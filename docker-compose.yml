@@ -1,0 +1,117 @@
+name: cloudguard
+
+services:
+  # PostgreSQL Database (Isolated)
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudguard-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cloudguard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudguard_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cloudguard_db}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - cloudguard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cloudguard} -d ${POSTGRES_DB:-cloudguard_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+  # Redis Cache (Isolated)
+  redis:
+    image: redis:7-alpine
+    container_name: cloudguard-redis
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - cloudguard_redisdata:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+  # CloudGuard Backend API Engine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: cloudguard-backend:latest
+    container_name: cloudguard-backend
+    ports:
+      - "${BACKEND_PORT:-8001}:8000"
+    environment:
+      # Database & Auth
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cloudguard}:${POSTGRES_PASSWORD:-cloudguard_secret}@postgres:5432/${POSTGRES_DB:-cloudguard_db}
+      - USE_DATABASE_AUTH=true
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_ENABLED=true
+      # Security & Identity
+      - APP_NAME=CloudGuard
+      - APP_TITLE=CloudGuard - An AI-Assisted Cloud-Native DevSecOps Monitoring and Intelligent Remediation Platform
+      - APP_VERSION=2.0.0
+      - SECRET_KEY=${SECRET_KEY:-cloudguard-super-secret-key-change-in-production}
+      # Kubernetes Cluster Access
+      - K8S_IN_CLUSTER=false
+      - K8S_CONFIG_PATH=/home/cloudguard/.kube/config
+      - K8S_HOST_OVERRIDE=host.docker.internal
+      # AI Provider
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      # Trivy Security Scanner
+      - TRIVY_ENABLED=true
+      - TRIVY_TIMEOUT=300
+    volumes:
+      - ~/.kube:/home/cloudguard/.kube:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cloudguard-network
+
+  # CloudGuard Frontend Web UI
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: cloudguard-frontend:latest
+    container_name: cloudguard-frontend
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"
+    environment:
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8001}
+      - VITE_APP_TITLE=CloudGuard
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+volumes:
+  cloudguard_pgdata:
+  cloudguard_redisdata:
+
+networks:
+  cloudguard-network:
+    name: cloudguard-network
+    driver: bridge
