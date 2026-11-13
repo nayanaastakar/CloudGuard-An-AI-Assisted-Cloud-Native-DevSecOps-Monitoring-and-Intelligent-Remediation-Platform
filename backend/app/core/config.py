@@ -1,7 +1,12 @@
+import sys
 from functools import lru_cache
 from typing import Optional
 
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+except ImportError:
+    from pydantic import BaseModel as BaseSettings
+    SettingsConfigDict = None
 
 
 class Settings(BaseSettings):
@@ -48,6 +53,9 @@ class Settings(BaseSettings):
     JENKINS_USERNAME: str = ""
     JENKINS_TOKEN: str = ""
 
+    # Helm
+    HELM_AUTO_INIT: bool = False
+
     # AI Provider (groq, gemini, anthropic)
     AI_PROVIDER: str = "gemini"
 
@@ -77,9 +85,17 @@ class Settings(BaseSettings):
         "http://localhost:8001",
     ]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    if SettingsConfigDict is not None:
+        model_config = SettingsConfigDict(
+            env_file=(".env.test" if "pytest" in sys.modules else ".env"),
+            env_file_encoding="utf-8",
+            extra="ignore",
+            case_sensitive=True,
+        )
+    else:
+        class Config:
+            env_file = ".env"
+            case_sensitive = True
 
 
 @lru_cache()

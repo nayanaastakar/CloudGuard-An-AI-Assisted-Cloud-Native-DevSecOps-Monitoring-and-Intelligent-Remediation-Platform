@@ -28,12 +28,17 @@ const ArgoCDDeploy = lazy(() => import('./components/deploy/ArgoCDDeploy'));
 const ClusterManagement = lazy(() => import('./components/clusters/ClusterManagement'));
 const SecurityDashboard = lazy(() => import('./components/security/SecurityDashboard'));
 const CloudGuardDashboard = lazy(() => import('./components/security/CloudGuardDashboard'));
+const AssetInventoryView = lazy(() => import('./components/security/AssetInventoryView'));
+const ScannerHealthAndSBOMView = lazy(() => import('./components/security/ScannerHealthAndSBOMView'));
 const AttackPathView = lazy(() => import('./components/security/AttackPathView'));
+const SecurityGraphView = lazy(() => import('./components/security/SecurityGraphView'));
 const IncidentInvestigationView = lazy(() => import('./components/security/IncidentInvestigationView'));
 const RemediationCenterView = lazy(() => import('./components/security/RemediationCenterView'));
 const VulnerabilityIntelligenceView = lazy(() => import('./components/security/VulnerabilityIntelligenceView'));
 const ComplianceView = lazy(() => import('./components/security/ComplianceView'));
 const DevSecOpsPipelineView = lazy(() => import('./components/security/DevSecOpsPipelineView'));
+const RuntimeThreatView = lazy(() => import('./components/security/RuntimeThreatView'));
+const LogExplorerView = lazy(() => import('./components/monitoring/LogExplorerView'));
 // const ClusterCostDashboard = lazy(() => import('./components/cost/ClusterCostDashboard'));  // Excluded from v1.4.0
 const EventLogs = lazy(() => import('./components/events/EventLogs'));
 const NetworkingDashboard = lazy(() => import('./components/networking/NetworkingDashboard'));
@@ -180,7 +185,14 @@ function AppContent() {
                       {/* CLOUDGUARD SECURITY & DEVSECOPS DASHBOARD */}
                       <Route path="/" element={<CloudGuardDashboard />} />
                       <Route path="/security" element={<CloudGuardDashboard />} />
+                      <Route path="/assets" element={<AssetInventoryView />} />
+                      <Route path="/sbom" element={<ScannerHealthAndSBOMView />} />
+                      <Route path="/scanners" element={<ScannerHealthAndSBOMView />} />
+                      <Route path="/threats" element={<RuntimeThreatView />} />
+                      <Route path="/runtime" element={<RuntimeThreatView />} />
                       <Route path="/attack-paths" element={<AttackPathView />} />
+                      <Route path="/graph" element={<SecurityGraphView />} />
+                      <Route path="/security-graph" element={<SecurityGraphView />} />
                       <Route path="/incidents" element={<IncidentInvestigationView />} />
                       <Route path="/remediation" element={<RemediationCenterView />} />
                       <Route path="/vulnerabilities" element={<VulnerabilityIntelligenceView />} />
@@ -234,6 +246,8 @@ function AppContent() {
 
                       {/* MONITORING */}
                       <Route path="/monitoring" element={<MonitoringDashboard />} />
+                      <Route path="/logs" element={<LogExplorerView />} />
+                      <Route path="/monitoring/logs" element={<LogExplorerView />} />
                       <Route path="/monitoring/prometheus" element={<PrometheusSetup />} />
                       <Route path="/monitoring/prometheus/explorer" element={<MetricsExplorer />} />
                       <Route path="/monitoring/prometheus/alerts" element={<AlertsView />} />

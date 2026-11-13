@@ -3,7 +3,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 
 from app.core.config import settings
 from app.schemas.incident import IncidentAnalysisResponse

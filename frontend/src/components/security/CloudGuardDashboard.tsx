@@ -20,6 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import cloudguardApi, { SecurityFinding, SecurityPostureResponse } from '../../services/cloudguardApi';
 import RemediationModal from './RemediationModal';
+import ProvenanceBadge from '../common/ProvenanceBadge';
 
 export default function CloudGuardDashboard() {
   const navigate = useNavigate();
@@ -80,11 +81,9 @@ export default function CloudGuardDashboard() {
             <ShieldCheckIcon className="h-8 w-8 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-white tracking-tight">CloudGuard Security Center</h1>
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                Live DevSecOps Intelligence
-              </span>
+              <ProvenanceBadge provenance={posture?.provenance} />
             </div>
             <p className="text-sm text-slate-400 mt-1">
               Continuous Kubernetes posture evaluation, attack path graphing, and automated remediation.

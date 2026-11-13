@@ -4,7 +4,8 @@ import { ArrowPathIcon } from '@heroicons/react/24/outline';
 interface PageHeaderProps {
   title: string;
   description?: string;
-  icon: React.ComponentType<{ className?: string }>;
+  subtitle?: string;
+  icon?: React.ComponentType<{ className?: string }>;
   iconColor?: string;
   actions?: React.ReactNode;
   onRefresh?: () => void;
@@ -13,6 +14,7 @@ interface PageHeaderProps {
     text: string;
     color?: 'primary' | 'green' | 'blue' | 'purple' | 'amber' | 'red';
   };
+  children?: React.ReactNode;
 }
 
 const colorClasses = {
@@ -51,14 +53,17 @@ const colorClasses = {
 export default function PageHeader({
   title,
   description,
+  subtitle,
   icon: Icon,
   iconColor = 'primary',
   actions,
   onRefresh,
   refreshing = false,
   badge,
+  children,
 }: PageHeaderProps) {
   const colors = colorClasses[iconColor as keyof typeof colorClasses] || colorClasses.primary;
+  const subText = description || subtitle;
 
   return (
     <motion.div
@@ -67,9 +72,11 @@ export default function PageHeader({
       className="sticky top-0 z-20 -mx-4 lg:-mx-6 px-4 lg:px-6 py-4 bg-gradient-to-r from-slate-50/95 via-white/95 to-slate-50/95 dark:from-slate-900/95 dark:via-slate-900/95 dark:to-slate-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-slate-700/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
     >
       <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-xl ${colors.bg}`}>
-          <Icon className={`h-6 w-6 ${colors.icon}`} />
-        </div>
+        {Icon && (
+          <div className={`p-2.5 rounded-xl ${colors.bg}`}>
+            <Icon className={`h-6 w-6 ${colors.icon}`} />
+          </div>
+        )}
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
@@ -83,9 +90,9 @@ export default function PageHeader({
               </span>
             )}
           </div>
-          {description && (
+          {subText && (
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
-              {description}
+              {subText}
             </p>
           )}
         </div>
@@ -93,6 +100,7 @@ export default function PageHeader({
 
       <div className="flex items-center gap-3">
         {actions}
+        {children}
         {onRefresh && (
           <motion.button
             whileHover={{ scale: 1.05 }}

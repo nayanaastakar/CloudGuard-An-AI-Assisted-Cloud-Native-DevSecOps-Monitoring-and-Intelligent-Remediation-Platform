@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudguard
+  labels:
+    app.kubernetes.io/name: cloudguard
+    app.kubernetes.io/part-of: cloudguard
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudguard-config
+  namespace: cloudguard
+data:
+  ENVIRONMENT: "production"
+  DATABASE_URL: "postgresql+asyncpg://cloudguard:cloudguard_secret_change_me@host.docker.internal:5433/cloudguard_db"
+  REDIS_URL: "redis://host.docker.internal:6380/0"
+  CORS_ORIGINS: '["http://localhost:3001","http://127.0.0.1:3001"]'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudguard-secrets
+  namespace: cloudguard
+type: Opaque
+stringData:
+  SECRET_KEY: "cloudguard_production_secret_key_change_in_real_vault"
+  POSTGRES_PASSWORD: "cloudguard_secret_change_me"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudguard-backend
+  namespace: cloudguard
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: cloudguard-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: cloudguard-config
+        - secretRef:
+            name: cloudguard-secrets
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: cloudguard
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudguard-frontend
+  namespace: cloudguard
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: cloudguard-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: cloudguard
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http

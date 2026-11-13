@@ -4,9 +4,13 @@ import asyncio
 import json
 import logging
 import os
-import pty
 import re
-import select
+try:
+    import pty
+    import select
+except ImportError:
+    pty = None
+    select = None
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect

@@ -56,5 +56,5 @@ class TestAPIStructure:
         response = test_client.get("/openapi.json")
         data = response.json()
 
-        assert data["info"]["title"] in ["KubeSight", "KubeSight Platform", "KubeSight API", "NextSight AI"]
+        assert data["info"]["title"] in ["CloudGuard", "CloudGuard Platform", "CloudGuard API", "KubeSight"]
         assert "version" in data["info"]

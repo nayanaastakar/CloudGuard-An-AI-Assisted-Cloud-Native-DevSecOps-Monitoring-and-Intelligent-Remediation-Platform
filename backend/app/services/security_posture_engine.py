@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.schemas.provenance import determine_provenance, ProvenanceState
 from app.models.cloudguard_models import (
     FindingCategory,
     FindingSeverity,
@@ -98,6 +99,9 @@ class SecurityPostureEngine:
                 return cached_data
 
         findings: List[Dict[str, Any]] = []
+        workload_count = 0
+        is_fallback = False
+        core_v1 = None
 
         try:
             core_v1 = _get_k8s_client()
@@ -276,6 +280,7 @@ class SecurityPostureEngine:
         except Exception as e:
             logger.error(f"Error auditing Kubernetes cluster: {e}")
             workload_count = 10
+            is_fallback = True
 
         # Calculate counts and score
         critical_count = sum(1 for f in findings if f["severity"] == FindingSeverity.CRITICAL.value)
@@ -285,8 +290,17 @@ class SecurityPostureEngine:
 
         score, grade = self.calculate_score(critical_count, high_count, medium_count, low_count)
 
+        from app.core.config import settings
+        is_live_data = core_v1 is not None and not is_fallback
+        provenance = determine_provenance(
+            is_live_source=is_live_data,
+            ttl_seconds=POSTURE_CACHE_TTL_SECONDS,
+            source_name="kubernetes-pss-audit" if is_live_data else "demo-posture-generator"
+        )
+
         result = {
             "cluster_id": cluster_id,
+            "provenance": provenance.dict(),
             "security_score": {
                 "score": score,
                 "grade": grade,

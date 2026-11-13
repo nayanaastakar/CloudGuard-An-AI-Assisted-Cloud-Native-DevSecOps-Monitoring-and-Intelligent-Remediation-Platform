@@ -51,7 +51,7 @@ class TimelineEventResponse(TimelineEventBase):
     class Config:
         # Pydantic v2 uses `from_attributes`, v1 uses `orm_mode`. Enable both for compatibility.
         from_attributes = True
-        orm_mode = True
+        from_attributes = True
 
 
 class TimelineFilter(BaseModel):

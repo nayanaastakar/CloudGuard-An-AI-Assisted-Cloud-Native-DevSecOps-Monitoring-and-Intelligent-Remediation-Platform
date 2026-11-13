@@ -2,7 +2,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import jenkins
+try:
+    import jenkins
+except ImportError:
+    jenkins = None
 
 from app.core.config import settings
 from app.schemas.jenkins import BuildInfo, BuildResult, JenkinsHealth, JobInfo, PipelineInfo, PipelineStage

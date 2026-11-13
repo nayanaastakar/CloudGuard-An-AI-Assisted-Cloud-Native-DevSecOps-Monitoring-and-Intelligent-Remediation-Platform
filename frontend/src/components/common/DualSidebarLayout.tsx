@@ -32,7 +32,6 @@ import {
   UserCircleIcon,
   UserGroupIcon,
   KeyIcon,
-  ShieldAlertIcon,
   ShieldExclamationIcon,
   WrenchScrewdriverIcon,
   BuildingLibraryIcon,
@@ -86,16 +85,21 @@ interface LayoutProps {
 
 const level1Navigation: Level1Item[] = [
   { id: 'dashboard', name: 'Security Posture', icon: ShieldCheckIcon, href: '/' },
+  { id: 'assets', name: 'Asset Discovery', icon: ServerStackIcon, badge: 'Inv', badgeColor: 'green', href: '/assets' },
+  { id: 'threats', name: 'Runtime Threat Detection', icon: ShieldExclamationIcon, badge: 'Falco', badgeColor: 'red', href: '/threats' },
+  { id: 'graph', name: 'Security Graph', icon: ServerStackIcon, badge: '360°', badgeColor: 'purple', href: '/graph' },
   { id: 'attack-paths', name: 'Attack Path Analysis', icon: ArrowsRightLeftIcon, badge: 'Live', badgeColor: 'red', href: '/attack-paths' },
   { id: 'incidents', name: 'AI Incident Investigation', icon: ShieldExclamationIcon, badge: 'AI', badgeColor: 'purple', href: '/incidents' },
-  { id: 'vulnerabilities', name: 'Vulnerability Intelligence', icon: ShieldAlertIcon, href: '/vulnerabilities' },
+  { id: 'vulnerabilities', name: 'Vulnerability Intelligence', icon: ShieldExclamationIcon, href: '/vulnerabilities' },
+  { id: 'sbom', name: 'Scanner Health & SBOM', icon: CubeTransparentIcon, href: '/sbom' },
   { id: 'remediation', name: 'Remediation Center', icon: WrenchScrewdriverIcon, badge: 'Dry-Run', badgeColor: 'green', href: '/remediation' },
   { id: 'compliance', name: 'Compliance Engine', icon: BuildingLibraryIcon, href: '/compliance' },
   { id: 'devsecops', name: 'DevSecOps Pipeline', icon: RocketLaunchIcon, href: '/devsecops' },
   // Core Infrastructure & Deployments
   { id: 'kubernetes', name: 'Cluster & Workloads', icon: ServerStackIcon },
   { id: 'deploy', name: 'Deployments & Helm', icon: CubeTransparentIcon },
-  { id: 'monitoring', name: 'Observability & Logs', icon: ChartBarIcon, badge: '2', badgeColor: 'red', href: '/monitoring' },
+  { id: 'monitoring', name: 'Observability & Metrics', icon: ChartBarIcon, href: '/monitoring' },
+  { id: 'logs', name: 'Loki Log Explorer', icon: CommandLineIcon, href: '/logs' },
   { id: 'settings', name: 'Settings & Admin', icon: Cog6ToothIcon },
 ];
 

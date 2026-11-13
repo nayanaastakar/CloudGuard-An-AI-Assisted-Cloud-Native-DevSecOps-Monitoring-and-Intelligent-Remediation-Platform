@@ -39,6 +39,13 @@ class FindingStatus(str, Enum):
     SUPPRESSED = "suppressed"
 
 
+class ProvenanceType(str, Enum):
+    LIVE = "live"
+    STALE = "stale"
+    DEMO = "demo"
+    UNAVAILABLE = "unavailable"
+
+
 class FindingCategory(str, Enum):
     POD_SECURITY = "pod_security"
     RBAC = "rbac"
@@ -98,6 +105,11 @@ class SecurityFindingRecord(Base, TimestampMixin):
     last_detected = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
 
+    # Provenance tracking
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False, index=True)
+    source = Column(String(100), default="cloudguard-engine", nullable=False)
+    last_synced_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
     # Relationship to remediation plans
     remediations = relationship("RemediationPlanRecord", back_populates="finding", cascade="all, delete-orphan")
 
@@ -135,6 +147,11 @@ class VulnerabilityRecord(Base, TimestampMixin):
     namespaces = Column(Text, nullable=True)
 
     scanned_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Provenance tracking
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False, index=True)
+    source = Column(String(100), default="trivy", nullable=False)
+    last_synced_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     __table_args__ = (
         Index("idx_vuln_cve_severity", "cve_id", "severity"),
@@ -262,3 +279,94 @@ class SecurityPostureHistoryRecord(Base, TimestampMixin):
     total_workloads_scanned = Column(Integer, default=0)
     compliance_percentage = Column(Float, default=0.0)
     recorded_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+
+class DiscoveredAssetRecord(Base, TimestampMixin):
+    """Inventory and metadata for discovered cloud infrastructure and workloads."""
+
+    __tablename__ = "discovered_assets"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cluster_id = Column(String(100), default="default", index=True, nullable=False)
+    asset_id = Column(String(200), unique=True, index=True, nullable=False)
+    resource_type = Column(String(50), nullable=False, index=True)  # Cluster, Node, Namespace, Workload, Pod, Container, Service
+    name = Column(String(255), nullable=False, index=True)
+    namespace = Column(String(100), nullable=True, index=True)
+
+    status = Column(String(50), default="active", nullable=False)  # active, degraded, stopped, terminating
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False, index=True)
+    source = Column(String(100), default="kubernetes-api", nullable=False)
+
+    metadata_json = Column(Text, nullable=True)  # JSON metadata (labels, annotations, IP, version)
+    relationships_json = Column(Text, nullable=True)  # JSON of related asset IDs (e.g., node -> pods)
+    
+    first_discovered = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_discovered = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    last_synced_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class SBOMPackageRecord(Base, TimestampMixin):
+    """Software Bill of Materials (SBOM) component and dependency catalog."""
+
+    __tablename__ = "sbom_packages"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cluster_id = Column(String(100), default="default", index=True, nullable=False)
+    image_tag = Column(String(500), nullable=False, index=True)
+    package_name = Column(String(255), nullable=False, index=True)
+    version = Column(String(100), nullable=False)
+    package_type = Column(String(50), default="os", index=True)  # os, npm, pypi, golang, maven
+    license = Column(String(100), nullable=True)
+    
+    vulnerability_count = Column(Integer, default=0)
+    has_critical_vuln = Column(Boolean, default=False)
+    
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False)
+    source = Column(String(100), default="trivy-sbom", nullable=False)
+    scanned_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class GraphNodeRecord(Base, TimestampMixin):
+    """Unified security relationship graph entity."""
+
+    __tablename__ = "security_graph_nodes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cluster_id = Column(String(100), default="default", index=True, nullable=False)
+    node_id = Column(String(255), unique=True, index=True, nullable=False)  # Stable URI, e.g. "k8s:workload:production/payment-api"
+    entity_type = Column(String(50), nullable=False, index=True)  # Cluster, Node, Namespace, Workload, Pod, Container, Image, Vulnerability, Identity, ServiceAccount, Role, Permission, NetworkEndpoint, SecurityPolicy, RuntimeEvent
+    name = Column(String(255), nullable=False, index=True)
+    namespace = Column(String(100), nullable=True, index=True)
+    properties_json = Column(Text, nullable=True)  # Extra attributes (IP, severity, port, cve, score)
+    criticality = Column(String(20), default="medium", index=True)  # critical, high, medium, low
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False, index=True)
+    source = Column(String(100), default="graph-engine", nullable=False)
+    first_observed = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_observed = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class GraphRelationshipRecord(Base, TimestampMixin):
+    """Directed, evidenced relationship edge between security entities."""
+
+    __tablename__ = "security_graph_relationships"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cluster_id = Column(String(100), default="default", index=True, nullable=False)
+    source_node_id = Column(String(255), nullable=False, index=True)
+    target_node_id = Column(String(255), nullable=False, index=True)
+    relationship_type = Column(String(50), nullable=False, index=True)  # RUNS_ON, BELONGS_TO, EXPOSES, USES, DEPENDS_ON, HAS_PERMISSION_TO_ACCESS, CONTAINS_VULNERABILITY, CONNECTS_TO, CAN_REACH, TRIGGERS, PROTECTED_BY, VIOLATES_POLICY
+    
+    evidence_reference = Column(Text, nullable=True)  # Explanation or reference pointer (e.g. "Ingress spec rules -> Service:443")
+    source_integration = Column(String(100), default="cloudguard-discovery", nullable=False)
+    confidence = Column(Float, default=1.0, nullable=False)  # 0.0 - 1.0 confidence score
+    is_inferred = Column(Boolean, default=False, nullable=False)  # Confirmed vs Inferred
+    provenance = Column(SQLEnum(ProvenanceType, native_enum=False), default=ProvenanceType.DEMO, nullable=False, index=True)
+    
+    first_observed = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_observed = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("idx_graph_rel_src_tgt_type", "source_node_id", "target_node_id", "relationship_type", unique=True),
+        Index("idx_graph_rel_tgt_type", "target_node_id", "relationship_type"),
+    )
+

@@ -59,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearAuthState = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token');
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -85,6 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Store new access token
       localStorage.setItem(TOKEN_KEY, access_token);
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('token', access_token);
       const expiryTime = Date.now() + (expires_in * 1000);
       localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
 
@@ -217,6 +221,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Store tokens and user data
       localStorage.setItem(TOKEN_KEY, access_token);
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('token', access_token);
       localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
 

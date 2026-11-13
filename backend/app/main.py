@@ -92,13 +92,14 @@ async def lifespan(app: FastAPI):
         else:
             logger.info("OAuth enabled but no providers configured")
 
-    # Initialize default Helm repositories in background
-    try:
-        from app.services.helm_service import helm_service
-        asyncio.create_task(helm_service.ensure_default_repositories())
-        logger.info("Scheduled background Helm repository initialization")
-    except Exception as e:
-        logger.warning("Could not schedule helm repository init: %s", e)
+    # Initialize default Helm repositories in background if enabled
+    if getattr(settings, "HELM_AUTO_INIT", False):
+        try:
+            from app.services.helm_service import helm_service
+            asyncio.create_task(helm_service.ensure_default_repositories())
+            logger.info("Scheduled background Helm repository initialization")
+        except Exception as e:
+            logger.warning("Could not schedule helm repository init: %s", e)
 
     yield
 

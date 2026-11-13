@@ -4,6 +4,48 @@
 
 import api from '../utils/axios';
 
+export interface ProvenanceMetadata {
+  state: 'live' | 'stale' | 'demo' | 'unavailable';
+  source: string;
+  last_synced_at: string;
+  is_fresh: boolean;
+  ttl_seconds: number;
+  error_message?: string;
+}
+
+export interface InfrastructureInventoryResponse {
+  cluster_id: string;
+  cluster_name: string;
+  provenance: ProvenanceMetadata;
+  summary: {
+    total_nodes: number;
+    total_namespaces: number;
+    total_workloads: number;
+    total_pods: number;
+  };
+  nodes: Array<{ id: string; name: string; type: string; status: string; roles: string[]; os_image: string; kubelet_version: string }>;
+  namespaces: Array<{ id: string; name: string; type: string; status: string; created_at: string }>;
+  workloads: Array<{ id: string; name: string; namespace: string; type: string; replicas: number; available_replicas: number; images: string[] }>;
+  pods: Array<{ id: string; name: string; namespace: string; type: string; node_name: string; status: string; ip?: string; containers: string[]; images: string[] }>;
+}
+
+export interface ScannerHealthResponse {
+  scanners: Record<string, { name: string; installed: boolean; path: string; status: string; supported_capabilities: string[]; last_checked: string }>;
+  total_configured: number;
+  active_count: number;
+  simulated_count: number;
+  timestamp: string;
+}
+
+export interface SBOMResponse {
+  image: string;
+  format: string;
+  provenance: ProvenanceMetadata;
+  generated_at: string;
+  package_count: number;
+  packages: Array<{ name: string; version: string; type: string; license?: string; vulnerabilities: number; critical: boolean }>;
+}
+
 export interface SecurityScore {
   score: number;
   grade: string;
@@ -34,6 +76,7 @@ export interface SecurityFinding {
 
 export interface SecurityPostureResponse {
   cluster_id: string;
+  provenance?: ProvenanceMetadata;
   security_score: SecurityScore;
   findings: SecurityFinding[];
   workloads_audited: number;
@@ -198,6 +241,15 @@ export const cloudguardApi = {
 
   getCompliance: (framework = 'CIS-K8s-1.8') =>
     api.get<ComplianceResponse>('/cloudguard/compliance', { params: { framework } }),
+
+  getInfrastructureInventory: (clusterId = 'default') =>
+    api.get<InfrastructureInventoryResponse>('/cloudguard/assets/inventory', { params: { cluster_id: clusterId } }),
+
+  getScannerHealth: () =>
+    api.get<ScannerHealthResponse>('/cloudguard/scanners/health'),
+
+  getSBOMPackages: (image = 'nginx:latest') =>
+    api.get<SBOMResponse>('/cloudguard/sbom/packages', { params: { image } }),
 };
 
 export default cloudguardApi;
