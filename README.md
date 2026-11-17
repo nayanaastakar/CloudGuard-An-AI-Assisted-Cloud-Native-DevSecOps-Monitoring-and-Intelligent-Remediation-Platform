@@ -30,39 +30,56 @@ CloudGuard adopts a modern **Vichy design system** featuring high-contrast slate
 
 ---
 
-## Application Showcase & Screenshots
+## Complete Application Showcase & Screenshots
 
-### 1. Kubernetes Attack Path Analysis & Lateral Movement Modeling
-Multi-hop graph modeling mapping ingress traffic vectors, vulnerable containers, overprivileged service accounts, and cluster targets.
+### 1. Security Center & Posture Overview
+Real-time posture score evaluation against Pod Security Standards (PSS) with automated threat posture grades.
 <p align="center">
-  <img src="screenshots/01_kubernetes_attack_path_analysis.jpg" alt="Kubernetes Attack Path Analysis" width="95%" />
+  <img src="screenshots/01_security_center_posture.png" alt="Security Center Posture" width="95%" />
 </p>
 
-### 2. Monitoring, Observability & AI Log Summarization
-Live cluster aggregation of Kubernetes events, pod logs, error rates, and automated 10-minute AI log incident root-cause summaries.
+### 2. Multi-Hop Kubernetes Attack Path Analysis
+Simulated kill-chain traversal identifying lateral movements from ingress endpoints through overprivileged service accounts to cluster secrets.
 <p align="center">
-  <img src="screenshots/02_monitoring_and_ai_log_summary.jpg" alt="Monitoring and AI Log Summary" width="95%" />
+  <img src="screenshots/06_attack_paths_analysis.png" alt="Kubernetes Attack Path Analysis" width="95%" />
 </p>
 
-### 3. Real-Time Cluster Metrics Dashboard
-Real-time resource utilization telemetry tracking CPU usage, memory consumption, pod restart frequencies, and active firing alerts.
+### 3. Real-Time Observability & Monitoring Metrics
+Cluster-wide resource metrics tracking CPU utilization, memory pressure, pod restart frequencies, and active firing alerts.
 <p align="center">
-  <img src="screenshots/03_realtime_metrics_dashboard.png" alt="Realtime Cluster Metrics Dashboard" width="95%" />
+  <img src="screenshots/14_monitoring_metrics.png" alt="Monitoring & Real-Time Metrics" width="95%" />
 </p>
 
-### 4. Security Center & Intelligent Remediation Planner
-Interactive security center tracking overall posture scores, vulnerability intelligence, and intelligent dry-run validated remediation manifests.
+### 4. AI-Driven Log Summarization & Event Stream
+Automated 10-minute AI log summarization powered by Gemini alongside live Kubernetes warning event streams.
 <p align="center">
-  <img src="screenshots/security-dashboard.png" alt="Security Center Dashboard" width="48%" />
-  <img src="screenshots/security-remediation.png" alt="Intelligent Remediation Planner" width="48%" />
+  <img src="screenshots/15_monitoring_logs_and_ai_summary.png" alt="AI Log Summary and Event Aggregation" width="95%" />
 </p>
 
-### 5. Workload Topologies & Diagnostic Terminals
-Deep workload introspection across Pods, Deployments, StatefulSets, and browser-based Kubectl terminal access.
-<p align="center">
-  <img src="screenshots/kubernetes-workloads.png" alt="Kubernetes Workloads View" width="48%" />
-  <img src="screenshots/terminal.png" alt="Kubectl Web Terminal" width="48%" />
-</p>
+### 5. Multi-Signal Security Modules Gallery
+
+| Module | Screenshot | Description |
+| :--- | :--- | :--- |
+| **Asset Inventory** | <img src="screenshots/02_asset_inventory.png" width="400" /> | Inventory across nodes, pods, namespaces, ingresses, and services |
+| **Vulnerability Intelligence** | <img src="screenshots/03_vulnerability_management.png" width="400" /> | Trivy container image scanning with contextual runtime risk calculation |
+| **Runtime Threats (Falco)** | <img src="screenshots/04_runtime_threats_falco.png" width="400" /> | Kernel-level runtime behavioral anomaly and Falco threat detection |
+| **360° Security Graph** | <img src="screenshots/05_security_graph_360.png" width="400" /> | Interactive topological graph modeling cluster relationships and blast radii |
+| **AI Incident Investigation** | <img src="screenshots/07_ai_incident_investigation.png" width="400" /> | Automated timeline generation, root cause analysis, and AI suggestions |
+| **Intelligent Remediation** | <img src="screenshots/08_remediation_center.png" width="400" /> | Server-side dry-run verified YAML manifests with mandatory human sign-off |
+| **Compliance Engine** | <img src="screenshots/09_compliance_engine.png" width="400" /> | CIS K8s v1.8, NIST SP 800-190, and PCI-DSS compliance audits |
+| **DevSecOps Pipeline** | <img src="screenshots/10_devsecops_pipeline.png" width="400" /> | Shift-left CI/CD gates and secret interception with Gitleaks |
+| **Scanner Health & SBOM** | <img src="screenshots/11_scanner_health_and_sbom.png" width="400" /> | CycloneDX and SPDX Software Bill of Materials (SBOM) tracking |
+
+### 6. Cluster Administration & Workloads
+
+| View | Screenshot | Description |
+| :--- | :--- | :--- |
+| **Cluster Overview & Nodes** | <img src="screenshots/12_cluster_overview_and_nodes.png" width="400" /> | Node capacity, kubelet statuses, and cluster topology metrics |
+| **Workload Manager** | <img src="screenshots/13_kubernetes_workloads.png" width="400" /> | Resource introspection across Pods, Deployments, and DaemonSets |
+| **Loki Log Explorer** | <img src="screenshots/16_loki_log_explorer.png" width="400" /> | Multi-tenant log querying with logQL filter capabilities |
+| **User Management** | <img src="screenshots/17_user_management.png" width="400" /> | Role-Based Access Control (RBAC) user administration |
+| **Audit Logs** | <img src="screenshots/18_audit_logs.png" width="400" /> | Comprehensive immutable audit trail of all administrative actions |
+| **Profile Settings** | <img src="screenshots/19_profile_settings.png" width="400" /> | Operator credentials, API keys, and notification preferences |
 
 ---
 
@@ -173,7 +190,7 @@ CloudGuard/
 │   ├── Dockerfile                  # Multi-stage production Nginx container
 │   ├── package.json                # Frontend dependencies
 │   └── tailwind.config.js          # Custom Vichy theme configuration
-├── screenshots/                    # Application interface screenshots
+├── screenshots/                    # Complete application interface screenshots (19 pages)
 ├── docker-compose.yml              # Multi-container orchestration definition
 ├── .env.example                    # Environment configuration template
 └── README.md                       # Comprehensive platform documentation
