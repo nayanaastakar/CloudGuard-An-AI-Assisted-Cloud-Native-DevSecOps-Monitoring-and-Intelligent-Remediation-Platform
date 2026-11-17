@@ -58,28 +58,97 @@ Automated 10-minute AI log summarization powered by Gemini alongside live Kubern
 
 ### 5. Multi-Signal Security Modules Gallery
 
-| Module | Screenshot | Description |
-| :--- | :--- | :--- |
-| **Asset Inventory** | <img src="screenshots/02_asset_inventory.png" width="400" /> | Inventory across nodes, pods, namespaces, ingresses, and services |
-| **Vulnerability Intelligence** | <img src="screenshots/03_vulnerability_management.png" width="400" /> | Trivy container image scanning with contextual runtime risk calculation |
-| **Runtime Threats (Falco)** | <img src="screenshots/04_runtime_threats_falco.png" width="400" /> | Kernel-level runtime behavioral anomaly and Falco threat detection |
-| **360° Security Graph** | <img src="screenshots/05_security_graph_360.png" width="400" /> | Interactive topological graph modeling cluster relationships and blast radii |
-| **AI Incident Investigation** | <img src="screenshots/07_ai_incident_investigation.png" width="400" /> | Automated timeline generation, root cause analysis, and AI suggestions |
-| **Intelligent Remediation** | <img src="screenshots/08_remediation_center.png" width="400" /> | Server-side dry-run verified YAML manifests with mandatory human sign-off |
-| **Compliance Engine** | <img src="screenshots/09_compliance_engine.png" width="400" /> | CIS K8s v1.8, NIST SP 800-190, and PCI-DSS compliance audits |
-| **DevSecOps Pipeline** | <img src="screenshots/10_devsecops_pipeline.png" width="400" /> | Shift-left CI/CD gates and secret interception with Gitleaks |
-| **Scanner Health & SBOM** | <img src="screenshots/11_scanner_health_and_sbom.png" width="400" /> | CycloneDX and SPDX Software Bill of Materials (SBOM) tracking |
+#### Asset Inventory
+Inventory across nodes, pods, namespaces, ingresses, and services with real-time classification.
+<p align="center">
+  <img src="screenshots/02_asset_inventory.png" alt="Asset Inventory" width="95%" />
+</p>
+
+#### Vulnerability Intelligence
+Trivy container image scanning with contextual runtime risk calculation and CVSS scoring.
+<p align="center">
+  <img src="screenshots/03_vulnerability_management.png" alt="Vulnerability Intelligence" width="95%" />
+</p>
+
+#### Runtime Threats (Falco)
+Kernel-level runtime behavioral anomaly and Falco threat detection streams.
+<p align="center">
+  <img src="screenshots/04_runtime_threats_falco.png" alt="Runtime Threats Falco" width="95%" />
+</p>
+
+#### 360° Security Graph
+Interactive topological graph modeling cluster relationships and blast radii.
+<p align="center">
+  <img src="screenshots/05_security_graph_360.png" alt="360 Security Graph" width="95%" />
+</p>
+
+#### AI Incident Investigation
+Automated incident timeline generation, root cause analysis, and Gemini AI suggestions.
+<p align="center">
+  <img src="screenshots/07_ai_incident_investigation.png" alt="AI Incident Investigation" width="95%" />
+</p>
+
+#### Intelligent Remediation Center
+Server-side dry-run verified YAML manifests with mandatory human-in-the-loop sign-off.
+<p align="center">
+  <img src="screenshots/08_remediation_center.png" alt="Intelligent Remediation Center" width="95%" />
+</p>
+
+#### Compliance Engine
+CIS Kubernetes v1.8, NIST SP 800-190, and PCI-DSS continuous compliance audits.
+<p align="center">
+  <img src="screenshots/09_compliance_engine.png" alt="Compliance Engine" width="95%" />
+</p>
+
+#### DevSecOps Pipeline Security
+Shift-left CI/CD gates and secret interception with Gitleaks pre-commit scanners.
+<p align="center">
+  <img src="screenshots/10_devsecops_pipeline.png" alt="DevSecOps Pipeline Security" width="95%" />
+</p>
+
+#### Scanner Health & SBOM
+CycloneDX and SPDX Software Bill of Materials (SBOM) tracking across images.
+<p align="center">
+  <img src="screenshots/11_scanner_health_and_sbom.png" alt="Scanner Health & SBOM" width="95%" />
+</p>
 
 ### 6. Cluster Administration & Workloads
 
-| View | Screenshot | Description |
-| :--- | :--- | :--- |
-| **Cluster Overview & Nodes** | <img src="screenshots/12_cluster_overview_and_nodes.png" width="400" /> | Node capacity, kubelet statuses, and cluster topology metrics |
-| **Workload Manager** | <img src="screenshots/13_kubernetes_workloads.png" width="400" /> | Resource introspection across Pods, Deployments, and DaemonSets |
-| **Loki Log Explorer** | <img src="screenshots/16_loki_log_explorer.png" width="400" /> | Multi-tenant log querying with logQL filter capabilities |
-| **User Management** | <img src="screenshots/17_user_management.png" width="400" /> | Role-Based Access Control (RBAC) user administration |
-| **Audit Logs** | <img src="screenshots/18_audit_logs.png" width="400" /> | Comprehensive immutable audit trail of all administrative actions |
-| **Profile Settings** | <img src="screenshots/19_profile_settings.png" width="400" /> | Operator credentials, API keys, and notification preferences |
+#### Cluster Overview & Nodes
+Node capacity, kubelet statuses, and cluster topology metrics.
+<p align="center">
+  <img src="screenshots/12_cluster_overview_and_nodes.png" alt="Cluster Overview & Nodes" width="95%" />
+</p>
+
+#### Workload Manager
+Resource introspection across Pods, Deployments, and DaemonSets.
+<p align="center">
+  <img src="screenshots/13_kubernetes_workloads.png" alt="Workload Manager" width="95%" />
+</p>
+
+#### Loki Log Explorer
+Multi-tenant log querying with logQL filter capabilities.
+<p align="center">
+  <img src="screenshots/16_loki_log_explorer.png" alt="Loki Log Explorer" width="95%" />
+</p>
+
+#### User Management
+Role-Based Access Control (RBAC) user administration and permissions.
+<p align="center">
+  <img src="screenshots/17_user_management.png" alt="User Management" width="95%" />
+</p>
+
+#### Audit Logs
+Comprehensive immutable audit trail of all administrative and operator actions.
+<p align="center">
+  <img src="screenshots/18_audit_logs.png" alt="Audit Logs" width="95%" />
+</p>
+
+#### Profile Settings
+Operator credentials, API keys, and notification preferences.
+<p align="center">
+  <img src="screenshots/19_profile_settings.png" alt="Profile Settings" width="95%" />
+</p>
 
 ---
 
