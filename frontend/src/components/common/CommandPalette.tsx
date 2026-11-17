@@ -152,7 +152,7 @@ export default function CommandPalette({ isOpen, onClose, onOpenAIChat }: Comman
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-[#0B1220]/60 backdrop-blur-sm"
           />
 
           {/* Command Palette */}

@@ -107,15 +107,15 @@ export default function SecurityGraphView() {
         return 'bg-rose-500/10 text-rose-400 border border-rose-500/30';
       case 'workload':
       case 'pod':
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
+        return 'bg-blue-500/10 text-violet-400 border border-blue-500/30';
       case 'serviceaccount':
       case 'role':
-        return 'bg-purple-500/10 text-purple-400 border border-purple-500/30';
+        return 'bg-violet-500/10 text-violet-400 border border-violet-500/30';
       case 'networkendpoint':
       case 'exposedservice':
         return 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
       default:
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+        return 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
     }
   };
 
@@ -129,7 +129,7 @@ export default function SecurityGraphView() {
           {provenance && <ProvenanceBadge provenance={provenance} />}
           <button
             onClick={fetchGraph}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh Graph
@@ -138,7 +138,7 @@ export default function SecurityGraphView() {
       </PageHeader>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-gray-900/60 p-3 rounded-xl border border-gray-800">
+      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-[#0B1220]/60 p-3 rounded-xl border border-gray-800">
         <div className="flex items-center gap-2 flex-wrap">
           <FunnelIcon className="w-4 h-4 text-gray-400" />
           <span className="text-xs text-gray-400">Entity Type:</span>
@@ -149,7 +149,7 @@ export default function SecurityGraphView() {
               className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
                 selectedEntity === t
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                  : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
               }`}
             >
               {t}
@@ -172,7 +172,7 @@ export default function SecurityGraphView() {
       {/* Two-Column Explorer: Nodes Grid (Left) + 360 Security Context Pane (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Node Explorer List */}
-        <div className="lg:col-span-2 bg-gray-900/60 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="lg:col-span-2 bg-[#0B1220]/60 border border-gray-800 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between text-xs font-semibold text-gray-300 pb-2 border-b border-gray-800">
             <span>DISCOVERED GRAPH ENTITIES ({nodes.length})</span>
             <span className="text-gray-500 font-mono">EDGES: {edges.length}</span>
@@ -188,7 +188,7 @@ export default function SecurityGraphView() {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-blue-500 bg-blue-950/20 shadow-md shadow-blue-500/10'
-                      : 'border-gray-800 bg-gray-950/40 hover:border-gray-700 hover:bg-gray-800/30'
+                      : 'border-gray-800 bg-gray-950/40 hover:border-[#2D3B55] hover:bg-[#151F32]/30'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -208,9 +208,9 @@ export default function SecurityGraphView() {
         </div>
 
         {/* 360 Security Context Pane */}
-        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-5 space-y-4">
+        <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl p-5 space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-800">
-            <InformationCircleIcon className="w-5 h-5 text-blue-400" />
+            <InformationCircleIcon className="w-5 h-5 text-violet-400" />
             <h3 className="text-sm font-bold text-gray-200">Asset Security Context (360°)</h3>
           </div>
 
@@ -256,7 +256,7 @@ export default function SecurityGraphView() {
                       <div className="space-y-1.5">
                         {contextData.rbac_permissions.map((r: any, idx: number) => (
                           <div key={idx} className="p-2 bg-purple-950/20 border border-purple-500/20 rounded-lg">
-                            <div className="text-purple-300 font-bold">{r.identity}</div>
+                            <div className="text-violet-300 font-bold">{r.identity}</div>
                             <div className="text-[11px] text-gray-400 mt-0.5">{r.evidence}</div>
                           </div>
                         ))}
@@ -273,7 +273,7 @@ export default function SecurityGraphView() {
                       {contextData.connected_assets?.map((a: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between p-1.5 bg-gray-950/60 rounded text-[11px] border border-gray-800">
                           <span className="text-gray-300 font-medium">{a.asset}</span>
-                          <span className="text-blue-400 font-mono text-[10px]">{a.rel}</span>
+                          <span className="text-violet-400 font-mono text-[10px]">{a.rel}</span>
                         </div>
                       ))}
                     </div>

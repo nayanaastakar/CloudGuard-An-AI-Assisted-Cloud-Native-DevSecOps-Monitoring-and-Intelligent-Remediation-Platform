@@ -188,6 +188,7 @@ export interface RemediationPlan {
   status: string;
   dry_run_verified: boolean;
   dry_run_output: string;
+  validation_status_label?: string;
   created_at: string;
   applied_at?: string;
   execution_log?: string;

@@ -51,7 +51,7 @@ export const AssetInventoryView: React.FC = () => {
         <button
           onClick={fetchInventory}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-colors"
         >
           <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Synchronize Assets
@@ -60,8 +60,8 @@ export const AssetInventoryView: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-3 bg-purple-950/60 text-purple-400 rounded-lg border border-purple-800/40">
+        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+          <div className="p-3 bg-purple-950/60 text-violet-400 rounded-lg border border-purple-800/40">
             <ServerIcon className="w-6 h-6" />
           </div>
           <div>
@@ -70,8 +70,8 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-3 bg-blue-950/60 text-blue-400 rounded-lg border border-blue-800/40">
+        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+          <div className="p-3 bg-blue-950/60 text-violet-400 rounded-lg border border-blue-800/40">
             <FolderIcon className="w-6 h-6" />
           </div>
           <div>
@@ -80,8 +80,8 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-3 bg-emerald-950/60 text-emerald-400 rounded-lg border border-emerald-800/40">
+        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+          <div className="p-3 bg-emerald-950/60 text-blue-400 rounded-lg border border-emerald-800/40">
             <CircleStackIcon className="w-6 h-6" />
           </div>
           <div>
@@ -90,8 +90,8 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-3 bg-cyan-950/60 text-cyan-400 rounded-lg border border-cyan-800/40">
+        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+          <div className="p-3 bg-cyan-950/60 text-violet-400 rounded-lg border border-cyan-800/40">
             <CubeIcon className="w-6 h-6" />
           </div>
           <div>
@@ -102,7 +102,7 @@ export const AssetInventoryView: React.FC = () => {
       </div>
 
       {/* Navigation Tabs and Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900/60 border border-gray-800 p-2 rounded-xl">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220]/60 border border-gray-800 p-2 rounded-xl">
         <div className="flex items-center gap-1 w-full sm:w-auto">
           {(['workloads', 'nodes', 'namespaces', 'pods'] as const).map((tab) => (
             <button
@@ -110,7 +110,7 @@ export const AssetInventoryView: React.FC = () => {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
                 activeTab === tab
-                  ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-emerald-600/20 text-blue-400 border border-blue-500/30'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -126,13 +126,13 @@ export const AssetInventoryView: React.FC = () => {
             placeholder={`Filter ${activeTab}...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500"
+            className="w-full pl-9 pr-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
 
       {/* Asset Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-[#0B1220] border border-gray-800 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-12 text-center text-gray-400 text-sm">Synchronizing infrastructure assets...</div>
         ) : (
@@ -152,12 +152,12 @@ export const AssetInventoryView: React.FC = () => {
                   data?.workloads
                     .filter((w) => w.name.toLowerCase().includes(search.toLowerCase()))
                     .map((w) => (
-                      <tr key={w.id} className="hover:bg-gray-800/30 transition-colors">
+                      <tr key={w.id} className="hover:bg-[#151F32]/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{w.name}</td>
-                        <td className="py-3 px-4 text-emerald-400">{w.type}</td>
+                        <td className="py-3 px-4 text-blue-400">{w.type}</td>
                         <td className="py-3 px-4 text-gray-400">{w.namespace}</td>
                         <td className="py-3 px-4">
-                          <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded text-[10px]">
+                          <span className="inline-flex items-center gap-1 text-blue-400 bg-emerald-950/50 px-2 py-0.5 rounded text-[10px]">
                             <CheckCircleIcon className="w-3 h-3" /> {w.available_replicas}/{w.replicas} Replicas
                           </span>
                         </td>
@@ -169,11 +169,11 @@ export const AssetInventoryView: React.FC = () => {
                   data?.nodes
                     .filter((n) => n.name.toLowerCase().includes(search.toLowerCase()))
                     .map((n) => (
-                      <tr key={n.id} className="hover:bg-gray-800/30 transition-colors">
+                      <tr key={n.id} className="hover:bg-[#151F32]/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{n.name}</td>
-                        <td className="py-3 px-4 text-purple-400">{n.type}</td>
+                        <td className="py-3 px-4 text-violet-400">{n.type}</td>
                         <td className="py-3 px-4 text-gray-400">{n.roles.join(', ') || 'worker'}</td>
-                        <td className="py-3 px-4 text-emerald-400">{n.status}</td>
+                        <td className="py-3 px-4 text-blue-400">{n.status}</td>
                         <td className="py-3 px-4 text-gray-400">{n.kubelet_version} ({n.os_image})</td>
                       </tr>
                     ))}
@@ -182,11 +182,11 @@ export const AssetInventoryView: React.FC = () => {
                   data?.namespaces
                     .filter((ns) => ns.name.toLowerCase().includes(search.toLowerCase()))
                     .map((ns) => (
-                      <tr key={ns.id} className="hover:bg-gray-800/30 transition-colors">
+                      <tr key={ns.id} className="hover:bg-[#151F32]/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{ns.name}</td>
-                        <td className="py-3 px-4 text-blue-400">{ns.type}</td>
+                        <td className="py-3 px-4 text-violet-400">{ns.type}</td>
                         <td className="py-3 px-4 text-gray-400">Cluster Scoped</td>
-                        <td className="py-3 px-4 text-emerald-400">{ns.status}</td>
+                        <td className="py-3 px-4 text-blue-400">{ns.status}</td>
                         <td className="py-3 px-4 text-gray-500">{ns.created_at || 'system'}</td>
                       </tr>
                     ))}
@@ -195,11 +195,11 @@ export const AssetInventoryView: React.FC = () => {
                   data?.pods
                     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
                     .map((p) => (
-                      <tr key={p.id} className="hover:bg-gray-800/30 transition-colors">
+                      <tr key={p.id} className="hover:bg-[#151F32]/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium truncate max-w-xs">{p.name}</td>
-                        <td className="py-3 px-4 text-cyan-400">{p.type}</td>
+                        <td className="py-3 px-4 text-violet-400">{p.type}</td>
                         <td className="py-3 px-4 text-gray-400">{p.namespace}</td>
-                        <td className="py-3 px-4 text-emerald-400">{p.status}</td>
+                        <td className="py-3 px-4 text-blue-400">{p.status}</td>
                         <td className="py-3 px-4 text-gray-400">IP: {p.ip || 'Host'} | Node: {p.node_name}</td>
                       </tr>
                     ))}

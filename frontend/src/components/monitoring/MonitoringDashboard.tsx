@@ -479,8 +479,8 @@ export default function MonitoringDashboard() {
     switch (severity) {
       case 'critical': return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-800' };
       case 'warning': return { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800' };
-      case 'info': return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' };
-      default: return { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-800' };
+      case 'info': return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-violet-400', border: 'border-blue-200 dark:border-blue-800' };
+      default: return { bg: 'bg-gray-100 dark:bg-[#0B1220]/30', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-800' };
     }
   };
 
@@ -488,7 +488,7 @@ export default function MonitoringDashboard() {
     switch (level) {
       case 'error': return 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400';
       case 'warn': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
-      case 'info': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+      case 'info': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-violet-400';
       case 'debug': return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
       default: return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
     }
@@ -621,7 +621,6 @@ export default function MonitoringDashboard() {
                       <span className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</span>
                       <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{metric.unit}</span>
                     </div>
-                    <MiniSparkline data={metric.trend} color={metric.status === 'healthy' ? 'green' : metric.status === 'warning' ? 'amber' : 'red'} />
                   </div>
                   <div className={`flex items-center gap-1 mt-2 text-xs ${
                     isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
@@ -795,7 +794,7 @@ export default function MonitoringDashboard() {
                         <span className={`text-sm font-medium ${
                           alert.labels.severity === 'critical' ? 'text-red-700 dark:text-red-400' :
                           alert.labels.severity === 'warning' ? 'text-amber-700 dark:text-amber-400' :
-                          'text-blue-700 dark:text-blue-400'
+                          'text-blue-700 dark:text-violet-400'
                         }`}>
                           {alert.labels.alertname}
                         </span>
@@ -954,7 +953,7 @@ export default function MonitoringDashboard() {
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
                       <Link
                         to={`/kubernetes/workloads?search=${alert.workloadName}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-violet-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                       >
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -967,7 +966,7 @@ export default function MonitoringDashboard() {
                           setSearchParams({ tab: 'logs' });
                           setLogSearch(alert.workloadName || '');
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-violet-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
                       >
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1146,7 +1145,7 @@ export default function MonitoringDashboard() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/10 dark:to-blue-900/10 border border-purple-200 dark:border-purple-500/20"
+              className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-emerald-950/10 dark:to-slate-900/10 border border-purple-200 dark:border-purple-500/20"
             >
               <div className="flex items-center gap-2 mb-2">
                 <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1161,7 +1160,7 @@ export default function MonitoringDashboard() {
                   className="ml-auto p-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors disabled:opacity-50"
                   title="Refresh summary"
                 >
-                  <ArrowPathIcon className={`h-4 w-4 text-purple-600 dark:text-purple-400 ${aiSummaryLoading ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon className={`h-4 w-4 text-purple-600 dark:text-violet-400 ${aiSummaryLoading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
 
@@ -1177,7 +1176,7 @@ export default function MonitoringDashboard() {
                   </p>
                   {aiSummary.key_issues && aiSummary.key_issues.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-500/20">
-                      <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">Key Issues:</h4>
+                      <h4 className="text-xs font-semibold text-purple-700 dark:text-violet-300 mb-2">Key Issues:</h4>
                       <ul className="space-y-1">
                         {aiSummary.key_issues.map((issue, idx) => (
                           <li key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
@@ -1222,7 +1221,7 @@ export default function MonitoringDashboard() {
                       <span className={`px-1.5 py-0.5 rounded uppercase font-bold ${getLogLevelStyles(log.level)}`}>
                         {log.level}
                       </span>
-                      <span className="text-cyan-400">[{log.source}]</span>
+                      <span className="text-violet-400">[{log.source}]</span>
                       <span className="text-slate-300 flex-1">{log.message}</span>
                       <span className="text-slate-600">{log.namespace}</span>
                     </div>

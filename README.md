@@ -4,18 +4,19 @@
 
 ### An AI-Assisted Cloud-Native DevSecOps Monitoring and Intelligent Remediation Platform
 
-**Secure, Analyse and Optimise Your Cloud-Native Infrastructure.**
+**Secure, Analyse and Optimise Your Cloud-Native Infrastructure with Real-Time Intelligence.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0.0-emerald.svg)](https://github.com/cloudguard-security/cloudguard/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-05AD98.svg)](https://github.com/nayanaastakar/CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-Remediation-Platform)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg?logo=react&logoColor=black)](https://reactjs.org/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3.4-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![CIS Benchmark](https://img.shields.io/badge/CIS%20K8s-v1.8-blueviolet.svg)](#continuous-compliance-engine)
-[![Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%202.5-orange.svg)](#ai-powered-incident-investigation)
+[![CIS Benchmark](https://img.shields.io/badge/CIS%20K8s-v1.8-05AD98.svg)](#6-continuous-compliance-engine)
+[![Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%202.5-orange.svg)](#4-ai-powered-incident-correlation--investigation)
 
 ---
 
@@ -23,19 +24,57 @@
 
 ## Overview
 
-**CloudGuard** is an enterprise-grade, security-first cloud-native DevSecOps monitoring and automated remediation platform. Designed specifically for multi-tenant and production Kubernetes environments, CloudGuard continuously analyzes cluster attack surfaces, performs contextual vulnerability risk scoring, correlates cross-signal incidents using Google Gemini 2.5, verifies remediation manifests with server-side dry-runs, and enforces regulatory compliance frameworks (CIS, NIST, PCI-DSS).
+**CloudGuard** is an enterprise-grade, cloud-native DevSecOps monitoring and intelligent remediation platform. Designed specifically for multi-tenant and production Kubernetes environments, CloudGuard continuously monitors cluster attack surfaces, models predictive multi-hop lateral movement chains, correlates cross-signal incidents with Google Gemini AI, validates remediation plans using server-side dry-runs, and enforces continuous regulatory compliance frameworks (CIS, NIST SP 800-190, PCI-DSS).
+
+CloudGuard adopts a modern **Vichy design system** featuring high-contrast slate backgrounds (`#0D1418`, `#131E24`), vibrant teal accents (`#05AD98`), soft light grays (`#BBBFBF`), and crisp pure white typography (`#FFFFFF`).
 
 ---
 
-## Core Capabilities
+## Application Showcase & Screenshots
+
+### 1. Kubernetes Attack Path Analysis & Lateral Movement Modeling
+Multi-hop graph modeling mapping ingress traffic vectors, vulnerable containers, overprivileged service accounts, and cluster targets.
+<p align="center">
+  <img src="screenshots/01_kubernetes_attack_path_analysis.jpg" alt="Kubernetes Attack Path Analysis" width="95%" />
+</p>
+
+### 2. Monitoring, Observability & AI Log Summarization
+Live cluster aggregation of Kubernetes events, pod logs, error rates, and automated 10-minute AI log incident root-cause summaries.
+<p align="center">
+  <img src="screenshots/02_monitoring_and_ai_log_summary.jpg" alt="Monitoring and AI Log Summary" width="95%" />
+</p>
+
+### 3. Real-Time Cluster Metrics Dashboard
+Real-time resource utilization telemetry tracking CPU usage, memory consumption, pod restart frequencies, and active firing alerts.
+<p align="center">
+  <img src="screenshots/03_realtime_metrics_dashboard.png" alt="Realtime Cluster Metrics Dashboard" width="95%" />
+</p>
+
+### 4. Security Center & Intelligent Remediation Planner
+Interactive security center tracking overall posture scores, vulnerability intelligence, and intelligent dry-run validated remediation manifests.
+<p align="center">
+  <img src="screenshots/security-dashboard.png" alt="Security Center Dashboard" width="48%" />
+  <img src="screenshots/security-remediation.png" alt="Intelligent Remediation Planner" width="48%" />
+</p>
+
+### 5. Workload Topologies & Diagnostic Terminals
+Deep workload introspection across Pods, Deployments, StatefulSets, and browser-based Kubectl terminal access.
+<p align="center">
+  <img src="screenshots/kubernetes-workloads.png" alt="Kubernetes Workloads View" width="48%" />
+  <img src="screenshots/terminal.png" alt="Kubectl Web Terminal" width="48%" />
+</p>
+
+---
+
+## Core Capabilities & Architecture
 
 ```mermaid
 flowchart TD
     subgraph Ingestion["1. Multi-Signal Security Telemetry"]
         K8s["Live Kubernetes API & PSS"]
         Trivy["Trivy Vulnerability Engine"]
-        Logs["Pod Logs & K8s Events"]
-        Git["Gitleaks CI/CD Gates"]
+        Logs["Pod Logs & K8s Warning Events"]
+        Git["Gitleaks CI/CD Secret Gates"]
     end
 
     subgraph Intelligence["2. CloudGuard Security Brain"]
@@ -57,116 +96,175 @@ flowchart TD
 ```
 
 ### 1. Intelligent Security Posture Engine
-- Evaluates live cluster state against **Pod Security Standards (PSS)**, RBAC escalation paths, and missing network policies.
-- Mathematical, explainable posture formula:
+- Evaluates live cluster state against **Pod Security Standards (PSS)**, RBAC escalation vectors, and missing network policies.
+- Explainable mathematical posture formula:
   $$\text{Score} = \max\left(0, 100 - (15 \times \text{Critical} + 8 \times \text{High} + 3 \times \text{Medium} + 1 \times \text{Low})\right)$$
-- Color-coded letter grades (A: 90-100, B: 75-89, C: 60-74, D: 40-59, F: <40).
+- Color-coded ratings (A: 90–100, B: 75–89, C: 60–74, D: 40–59, F: <40).
 
 ### 2. Advanced Vulnerability Intelligence
-- Trivy-backed container image vulnerability scanner.
-- Contextual risk calculation factoring runtime exposure and execution privilege:
+- Trivy-backed container image vulnerability scanner with CVE severity breakdowns.
+- Contextual risk calculation factoring runtime network exposure and container privilege:
   $$\text{Contextual Risk} = \text{CVSS} \times (1.0 + 0.3 \times \text{Exposed} + 0.4 \times \text{Privileged})$$
-- Fixable-now filtering and one-click CSV export.
+- Fixable-now filtering, CVE search, and one-click security exports.
 
 ### 3. Kubernetes Attack Path Analysis
-- Multi-hop traversal visualizer mapping complete kill-chains:
-  $$\text{External Ingress / LoadBalancer} \longrightarrow \text{Vulnerable Workload Pod} \longrightarrow \text{Mounted ServiceAccount} \longrightarrow \text{Over-privileged ClusterRole} \longrightarrow \text{Target Secrets / etcd}$$
-- Identifies critical choke-points to neutralize the entire attack chain with single corrective actions.
+- Multi-hop traversal visualizer mapping complete lateral kill-chains:
+  $$\text{External Ingress / LB} \longrightarrow \text{Vulnerable Workload Pod} \longrightarrow \text{Mounted ServiceAccount} \longrightarrow \text{Over-privileged ClusterRole} \longrightarrow \text{Target Secrets / etcd}$$
+- Pinpoints critical attack choke-points to neutralize multi-hop lateral movement vectors with minimal disruption.
 
 ### 4. AI-Powered Incident Correlation & Investigation
-- Correlates Kubernetes Warning events (`CrashLoopBackOff`, `OOMKilled`, `FailedScheduling`, `Unhealthy`) with raw pod logs.
-- Gemini 2.5 deep investigation engine computes root causes, blast radius, chronological timelines, and technical recommendations.
+- Correlates Kubernetes Warning events (`CrashLoopBackOff`, `OOMKilled`, `ImagePullBackOff`, `FailedScheduling`) with live pod logs.
+- Integrated **Gemini 2.5** investigation engine synthesizes root causes, blast radii, chronological failure sequences, and actionable remediation steps.
 
 ### 5. Intelligent Remediation Center with Server-Side Dry-Run
-- Generates corrective YAML manifests that eliminate root-causes while preserving workload spec.
-- Verifies syntax and admission controllers server-side via `kubectl apply --dry-run=server`.
-- Side-by-side unified diff viewer with mandatory human approval workflows.
+- Generates corrective YAML manifests that eliminate identified vulnerabilities while preserving original workload specs.
+- Validates syntax and admission controller acceptance using Kubernetes server-side dry-run (`kubectl apply --dry-run=server`).
+- Built-in unified diff viewer with mandatory human approval confirmation before patch execution.
 
 ### 6. Continuous Compliance Engine
-- Automated compliance evaluation against:
+- Automated compliance evaluation against industry security benchmarks:
   - **CIS Kubernetes Benchmark v1.8** (Control plane, worker node security, policies, RBAC).
   - **NIST SP 800-190** Application Container Security Guide.
-  - **PCI-DSS v4.0** Requirements 6 and 7 (Container isolation and least privilege access control).
+  - **PCI-DSS v4.0** Requirements 6 and 7 (Container isolation and least-privilege access control).
 
 ### 7. DevSecOps CI/CD Integration
-- Shift-left quality gates with Gitleaks secret interception.
-- Ready-to-use GitHub Actions and GitLab CI pipeline workflows.
+- Shift-left quality gates with automated secret interception (Gitleaks).
+- Pre-configured GitHub Actions and GitLab CI pipeline workflows.
 - Webhook trigger endpoint to block non-compliant PRs before deployment.
 
 ---
 
-## Quick Start (Docker Compose)
+## Technology Stack
 
-CloudGuard runs independently with its own database, cache, and port allocations to prevent interference with existing workloads.
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend UI** | React 18, TypeScript, Vite 6, TailwindCSS 3.4, Framer Motion, TanStack Query, Recharts, Heroicons |
+| **Backend API** | Python 3.11, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2, Uvicorn |
+| **Data & Cache** | PostgreSQL 16 (AsyncPG), Redis 7 (Aioredis) |
+| **AI Engine** | Google Gemini 2.5 / Google Generative AI Python SDK |
+| **Security Tooling** | Trivy, Gitleaks, Falco, CIS K8s Benchmarks |
+| **Deployment** | Docker Compose, Multi-Stage Dockerfiles, Nginx Reverse Proxy |
 
-### Default Ports
+---
 
-| Component | Container Name | Port Mapping |
-| :--- | :--- | :--- |
-| **Frontend Web UI** | `cloudguard-frontend` | `http://localhost:3001` |
-| **Backend API Engine** | `cloudguard-backend` | `http://localhost:8001` |
-| **PostgreSQL Database** | `cloudguard-postgres` | `localhost:5433` (DB: `cloudguard_db`) |
-| **Redis Cache** | `cloudguard-redis` | `localhost:6380` |
+## Project Structure
 
-### 1. Clone & Configure
-
-```bash
-cd D:\Projects\cloudguard
-
-# Copy environment template
-cp .env.example .env
-
-# Configure your Gemini API key in .env
-# GEMINI_API_KEY=your_gemini_api_key_here
+```
+CloudGuard/
+├── backend/                        # FastAPI Backend Application
+│   ├── app/
+│   │   ├── api/v1/endpoints/       # REST API Endpoints (CloudGuard, K8s, AI, Auth)
+│   │   ├── core/                   # Configuration, Database, Security & Redis setup
+│   │   ├── models/                 # SQLAlchemy ORM Models
+│   │   ├── schemas/                # Pydantic Request/Response Schemas
+│   │   └── services/               # Remediation Planner, Posture, Gemini AI services
+│   ├── tests/                      # Pytest backend test suite (126 passing tests)
+│   ├── Dockerfile                  # Production backend container definition
+│   └── requirements.txt            # Python dependencies
+├── frontend/                       # React 18 + TypeScript Frontend
+│   ├── src/
+│   │   ├── components/             # Security, Monitoring, Deploy, Kubernetes views
+│   │   │   ├── common/             # DualSidebarLayout, Navigation, CommandPalette
+│   │   │   ├── monitoring/         # MonitoringDashboard, LogExplorerView
+│   │   │   └── security/           # AttackPathView, CloudGuardDashboard, RemediationModal
+│   │   ├── contexts/               # AuthContext, ThemeContext, ClusterContext
+│   │   ├── services/               # API clients (cloudguardApi, api, prometheusApi)
+│   │   └── styles/                 # Vichy color tokens & TailwindCSS setup
+│   ├── Dockerfile                  # Multi-stage production Nginx container
+│   ├── package.json                # Frontend dependencies
+│   └── tailwind.config.js          # Custom Vichy theme configuration
+├── screenshots/                    # Application interface screenshots
+├── docker-compose.yml              # Multi-container orchestration definition
+├── .env.example                    # Environment configuration template
+└── README.md                       # Comprehensive platform documentation
 ```
 
-### 2. Launch CloudGuard Services
+---
+
+## Quick Start & Installation
+
+CloudGuard runs with isolated ports, database instances, and network namespaces to prevent interference with other local services.
+
+### Default Port Allocations
+
+| Component | Container Name | Port Mapping | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Frontend Web UI** | `cloudguard-frontend` | `http://localhost:3001` | CloudGuard Web Application |
+| **Backend API Engine** | `cloudguard-backend` | `http://localhost:8001` | FastAPI REST & WebSocket Endpoints |
+| **PostgreSQL Database** | `cloudguard-postgres` | `localhost:5433` | Isolated DB: `cloudguard_db` |
+| **Redis Cache** | `cloudguard-redis` | `localhost:6380` | High-performance cache & pub/sub |
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/nayanaastakar/CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-Remediation-Platform.git
+cd CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-Remediation-Platform
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+```
+Edit `.env` and set your optional credentials:
+```env
+# Google Gemini AI Key for intelligent incident correlation
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# JWT Authentication
+SECRET_KEY=your_secure_random_secret_key
+DEFAULT_ADMIN_PASSWORD=admin123
+```
+
+### 3. Launch via Docker Compose
 
 ```bash
 # Build and start all 4 services in detached mode
 docker compose up -d --build
 ```
 
-### 3. Verify Health
+### 4. Verify Service Health
 
 ```bash
-# Check service status
+# Check container status
 docker compose ps
 
-# Test Backend API Health
+# Test Backend API health
 curl http://localhost:8001/health
 
-# Access CloudGuard Dashboard
+# Access the CloudGuard Web Dashboard
 # Open http://localhost:3001 in your browser
 ```
 
 ---
 
-## API Architecture & Routes
+## API Documentation
 
-CloudGuard provides RESTful APIs mounted under `/api/v1/cloudguard`:
+CloudGuard exposes comprehensive RESTful APIs mounted under `/api/v1/cloudguard`:
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/v1/cloudguard/posture` | Live cluster posture audit, mathematical score, and findings |
+| `GET` | `/api/v1/cloudguard/posture` | Live cluster posture score, risk grades, and security findings |
 | `GET` | `/api/v1/cloudguard/vulnerabilities/scan` | Trivy container image scan with contextual risk scoring |
-| `GET` | `/api/v1/cloudguard/attack-paths` | Multi-hop attack graph traversal and mitigation choke-points |
+| `GET` | `/api/v1/cloudguard/attack-paths` | Predictive multi-hop attack graphs and mitigation choke-points |
 | `GET` | `/api/v1/cloudguard/incidents` | Gemini 2.5 correlated security incidents and timeline |
 | `POST`| `/api/v1/cloudguard/remediation/plan` | Generate corrective YAML with server-side dry-run validation |
-| `POST`| `/api/v1/cloudguard/remediation/apply` | Execute human-approved remediation manifest to live cluster |
+| `POST`| `/api/v1/cloudguard/remediation/apply` | Apply human-approved remediation manifest to live cluster |
 | `GET` | `/api/v1/cloudguard/compliance` | Benchmark evaluation for CIS K8s 1.8, NIST SP 800-190, PCI-DSS |
+| `POST`| `/api/v1/ai/summarize-logs` | AI automated incident summary and error pattern extraction |
 
-Interactive Swagger / OpenAPI docs are available at `http://localhost:8001/docs`.
+Interactive Swagger / OpenAPI documentation is accessible at `http://localhost:8001/docs`.
 
 ---
 
-## Security & Isolation Guarantee
+## Verification & Test Results
 
-CloudGuard operates under strict isolation principles:
-- **No Shared Volumes**: CloudGuard uses dedicated named volumes (`cloudguard_pgdata`, `cloudguard_redisdata`).
-- **No Shared Network**: CloudGuard runs inside isolated bridge network `cloudguard-network`.
-- **Dedicated Database**: Connects to `cloudguard_db` on port 5433 with user `cloudguard`.
-- **Zero API Key Leakage**: Secrets and credentials are strictly loaded via server-side environment variables and never logged or serialized to frontend payloads.
+The platform has been audited and validated through automated suites:
+
+* **Backend Unit & Integration Tests**: 126 passed (`pytest`).
+* **Frontend Component & Navigation Tests**: 18 passed (`vitest`).
+* **Server-Side Dry-Run Validation**: Verified syntax and admission controller checks via Kubernetes lifecycle endpoints.
+* **Security & Non-Interference Guarantee**: Dedicated ports (`3001`, `8001`, `5433`, `6380`) ensure complete isolation from surrounding environments.
 
 ---
 

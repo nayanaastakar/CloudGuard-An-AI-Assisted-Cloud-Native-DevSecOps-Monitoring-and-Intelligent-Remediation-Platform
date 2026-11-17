@@ -72,7 +72,7 @@ export default function LogExplorerView() {
       case 'WARN':
         return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
       case 'INFO':
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+        return 'text-violet-400 bg-blue-500/10 border-blue-500/30';
       default:
         return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
     }
@@ -88,7 +88,7 @@ export default function LogExplorerView() {
           {provenance && <ProvenanceBadge provenance={provenance} />}
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Run Query
@@ -107,7 +107,7 @@ export default function LogExplorerView() {
           const detail = servicesHealth[svc.key] || {};
           const isLive = detail.provenance === 'live';
           return (
-            <div key={svc.key} className="p-3.5 bg-gray-900/60 border border-gray-800 rounded-xl flex items-center justify-between">
+            <div key={svc.key} className="p-3.5 bg-[#0B1220]/60 border border-gray-800 rounded-xl flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-gray-200">{svc.title}</div>
                 <div className="text-[11px] text-gray-400">{svc.role}</div>
@@ -115,7 +115,7 @@ export default function LogExplorerView() {
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                   isLive
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
                     : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 }`}
               >
@@ -127,9 +127,9 @@ export default function LogExplorerView() {
       </div>
 
       {/* Query Bar */}
-      <div className="p-4 bg-gray-900/60 border border-gray-800 rounded-xl space-y-3">
+      <div className="p-4 bg-[#0B1220]/60 border border-gray-800 rounded-xl space-y-3">
         <label className="text-xs font-semibold text-gray-300 flex items-center gap-2">
-          <CommandLineIcon className="w-4 h-4 text-blue-400" />
+          <CommandLineIcon className="w-4 h-4 text-violet-400" />
           LogQL Query Expression:
         </label>
         <div className="flex gap-2">
@@ -161,7 +161,7 @@ export default function LogExplorerView() {
 
       {/* Log Feed */}
       <div className="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden font-mono text-xs">
-        <div className="bg-gray-900/80 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-gray-400 text-[11px]">
+        <div className="bg-[#0B1220]/80 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-gray-400 text-[11px]">
           <span>STREAM / LOG OUTPUT</span>
           <span>TIMESTAMP (UTC)</span>
         </div>
@@ -172,7 +172,7 @@ export default function LogExplorerView() {
         ) : (
           <div className="divide-y divide-gray-900 max-h-[600px] overflow-y-auto">
             {logs.map((log, idx) => (
-              <div key={idx} className="p-3 hover:bg-gray-900/50 flex items-start justify-between gap-4">
+              <div key={idx} className="p-3 hover:bg-[#0B1220]/50 flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${getLogLevelClass(log.level)}`}>

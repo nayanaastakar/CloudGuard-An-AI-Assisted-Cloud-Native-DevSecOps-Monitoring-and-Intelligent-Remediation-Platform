@@ -703,7 +703,7 @@ export interface ValidationIndicatorProps {
 
 export function ValidationIndicator({ valid, message }: ValidationIndicatorProps) {
   return (
-    <div className={`flex items-center gap-1.5 text-xs ${valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`}>
+    <div className={`flex items-center gap-1.5 text-xs ${valid ? 'text-emerald-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
       {valid ? (
         <CheckCircleIcon className="h-3.5 w-3.5" />
       ) : (

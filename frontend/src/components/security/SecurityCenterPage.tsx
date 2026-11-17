@@ -65,7 +65,7 @@ interface RBACNode {
 // Security Score Gauge Component
 function SecurityScoreGauge({ score }: { score: number }) {
   const getColor = (s: number) => {
-    if (s >= 80) return { stroke: '#10B981', bg: 'bg-emerald-100 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400' };
+    if (s >= 80) return { stroke: '#10B981', bg: 'bg-emerald-100 dark:bg-blue-500/10', text: 'text-emerald-600 dark:text-blue-400' };
     if (s >= 60) return { stroke: '#F59E0B', bg: 'bg-amber-100 dark:bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' };
     return { stroke: '#EF4444', bg: 'bg-red-100 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400' };
   };
@@ -129,9 +129,9 @@ function SecurityKPICard({
   const colorClasses = {
     red: { bg: 'bg-red-100 dark:bg-red-500/10', icon: 'text-red-600 dark:text-red-400', value: 'text-red-600 dark:text-red-400' },
     amber: { bg: 'bg-amber-100 dark:bg-amber-500/10', icon: 'text-amber-600 dark:text-amber-400', value: 'text-amber-600 dark:text-amber-400' },
-    green: { bg: 'bg-emerald-100 dark:bg-emerald-500/10', icon: 'text-emerald-600 dark:text-emerald-400', value: 'text-emerald-600 dark:text-emerald-400' },
-    blue: { bg: 'bg-blue-100 dark:bg-blue-500/10', icon: 'text-blue-600 dark:text-blue-400', value: 'text-blue-600 dark:text-blue-400' },
-    purple: { bg: 'bg-purple-100 dark:bg-purple-500/10', icon: 'text-purple-600 dark:text-purple-400', value: 'text-purple-600 dark:text-purple-400' },
+    green: { bg: 'bg-emerald-100 dark:bg-blue-500/10', icon: 'text-emerald-600 dark:text-blue-400', value: 'text-emerald-600 dark:text-blue-400' },
+    blue: { bg: 'bg-blue-100 dark:bg-blue-500/10', icon: 'text-blue-600 dark:text-violet-400', value: 'text-blue-600 dark:text-violet-400' },
+    purple: { bg: 'bg-purple-100 dark:bg-violet-500/10', icon: 'text-purple-600 dark:text-violet-400', value: 'text-purple-600 dark:text-violet-400' },
   };
 
   const colors = colorClasses[color];
@@ -169,7 +169,7 @@ function SeverityBadge({ severity }: { severity: SecurityViolation['severity'] }
     critical: { bg: 'bg-red-100 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400' },
     high: { bg: 'bg-orange-100 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400' },
     medium: { bg: 'bg-amber-100 dark:bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400' },
-    low: { bg: 'bg-blue-100 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
+    low: { bg: 'bg-blue-100 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-violet-400' },
   };
 
   const { bg, text } = config[severity];
@@ -331,7 +331,7 @@ function AISecuritySuggestion({
   const badgeColors = {
     critical: 'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400',
     high: 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    medium: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    medium: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-violet-400',
   };
 
   return (
@@ -344,7 +344,7 @@ function AISecuritySuggestion({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-            <SparklesIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <SparklesIcon className="h-4 w-4 text-purple-600 dark:text-violet-400" />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">{title}</p>
@@ -513,7 +513,7 @@ export default function SecurityCenterPage() {
           <GlassCard className="overflow-hidden">
             <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <UserGroupIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <UserGroupIcon className="h-5 w-5 text-purple-600 dark:text-violet-400" />
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white">RBAC Overview</h2>
               </div>
               <button className="text-xs text-primary-600 dark:text-primary-400 hover:underline">View Graph</button>
@@ -527,7 +527,7 @@ export default function SecurityCenterPage() {
           <GlassCard className="overflow-hidden">
             <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CubeIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <CubeIcon className="h-5 w-5 text-blue-600 dark:text-violet-400" />
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Image Vulnerabilities</h2>
               </div>
               <button className="text-xs text-primary-600 dark:text-primary-400 hover:underline">Full Report</button>
@@ -618,7 +618,7 @@ export default function SecurityCenterPage() {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-violet-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       >
                         <EyeIcon className="h-4 w-4" />
                       </motion.button>
@@ -636,7 +636,7 @@ export default function SecurityCenterPage() {
         <GlassCard className="overflow-hidden">
           <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-              <SparklesIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <SparklesIcon className="h-4 w-4 text-purple-600 dark:text-violet-400" />
             </div>
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">AI Security Recommendations</h2>
           </div>

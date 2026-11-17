@@ -171,13 +171,13 @@ export default function RemediationCenterView() {
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'completed':
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
-      case 'approved':
         return 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
+      case 'approved':
+        return 'bg-blue-500/10 text-violet-400 border border-blue-500/30';
       case 'pending_approval':
         return 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
       case 'rolled_back':
-        return 'bg-purple-500/10 text-purple-400 border border-purple-500/30';
+        return 'bg-violet-500/10 text-violet-400 border border-violet-500/30';
       default:
         return 'bg-rose-500/10 text-rose-400 border border-rose-500/30';
     }
@@ -191,7 +191,7 @@ export default function RemediationCenterView() {
       >
         <button
           onClick={fetchPlans}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
         >
           <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh Plans
@@ -199,8 +199,8 @@ export default function RemediationCenterView() {
       </PageHeader>
 
       {actionMessage && (
-        <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-xl text-xs text-blue-300 flex items-center gap-2">
-          <CheckBadgeIcon className="w-4 h-4 text-blue-400" />
+        <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-xl text-xs text-violet-300 flex items-center gap-2">
+          <CheckBadgeIcon className="w-4 h-4 text-violet-400" />
           <span>{actionMessage}</span>
         </div>
       )}
@@ -209,11 +209,11 @@ export default function RemediationCenterView() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Pending Approval', count: plans.filter((p) => p.status === 'pending_approval').length, color: 'text-amber-400' },
-          { label: 'Approved (Ready to Apply)', count: plans.filter((p) => p.status === 'approved').length, color: 'text-blue-400' },
-          { label: 'Completed & Verified', count: plans.filter((p) => p.status === 'completed').length, color: 'text-emerald-400' },
-          { label: 'Rolled Back', count: plans.filter((p) => p.status === 'rolled_back').length, color: 'text-purple-400' },
+          { label: 'Approved (Ready to Apply)', count: plans.filter((p) => p.status === 'approved').length, color: 'text-violet-400' },
+          { label: 'Completed & Verified', count: plans.filter((p) => p.status === 'completed').length, color: 'text-blue-400' },
+          { label: 'Rolled Back', count: plans.filter((p) => p.status === 'rolled_back').length, color: 'text-violet-400' },
         ].map((kpi, idx) => (
-          <div key={idx} className="p-4 bg-gray-900/60 border border-gray-800 rounded-xl">
+          <div key={idx} className="p-4 bg-[#0B1220]/60 border border-gray-800 rounded-xl">
             <span className="text-xs text-gray-400 font-medium">{kpi.label}</span>
             <div className={`text-2xl font-bold mt-1 ${kpi.color}`}>{kpi.count}</div>
           </div>
@@ -221,14 +221,14 @@ export default function RemediationCenterView() {
       </div>
 
       {/* Filter Strip */}
-      <div className="flex items-center gap-2 bg-gray-900/60 p-3 rounded-xl border border-gray-800">
+      <div className="flex items-center gap-2 bg-[#0B1220]/60 p-3 rounded-xl border border-gray-800">
         <span className="text-xs text-gray-400">Filter Status:</span>
         {['ALL', 'pending_approval', 'approved', 'completed', 'rolled_back'].map((s) => (
           <button
             key={s}
             onClick={() => setSelectedStatus(s)}
             className={`px-2.5 py-1 text-xs rounded-md font-medium uppercase transition-colors ${
-              selectedStatus === s ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+              selectedStatus === s ? 'bg-emerald-600 text-white' : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
             }`}
           >
             {s.replace('_', ' ')}
@@ -239,7 +239,7 @@ export default function RemediationCenterView() {
       {/* Two Column Layout: Plan Selection (Left) + Remediation Workspace & YAML Diff (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plans List */}
-        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl p-4 space-y-3">
           <div className="text-xs font-semibold text-gray-400 pb-2 border-b border-gray-800 flex justify-between">
             <span>REMEDIATION QUEUE ({plans.length})</span>
             <span className="text-[10px] text-gray-500 font-mono">Four-Eyes Active</span>
@@ -255,7 +255,7 @@ export default function RemediationCenterView() {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-emerald-500 bg-emerald-950/20 shadow-md shadow-emerald-500/10'
-                      : 'border-gray-800 bg-gray-950/40 hover:border-gray-700 hover:bg-gray-800/30'
+                      : 'border-gray-800 bg-gray-950/40 hover:border-[#2D3B55] hover:bg-[#151F32]/30'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -276,7 +276,7 @@ export default function RemediationCenterView() {
         </div>
 
         {/* Plan Details, Side-by-Side YAML Diff & Execution Controls */}
-        <div className="lg:col-span-2 bg-gray-900/60 border border-gray-800 rounded-xl p-6 space-y-6">
+        <div className="lg:col-span-2 bg-[#0B1220]/60 border border-gray-800 rounded-xl p-6 space-y-6">
           {selectedPlan ? (
             <>
               {/* Header & Lifecycle Actions */}
@@ -287,7 +287,7 @@ export default function RemediationCenterView() {
                       {selectedPlan.status}
                     </span>
                     {selectedPlan.is_sensitive && (
-                      <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-violet-500/10 text-violet-400 border border-violet-500/30">
                         Four-Eyes Required
                       </span>
                     )}
@@ -313,7 +313,7 @@ export default function RemediationCenterView() {
                     <button
                       onClick={() => handleExecute(selectedPlan.remediation_id)}
                       disabled={isProcessing}
-                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20"
+                      className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20"
                     >
                       <WrenchScrewdriverIcon className="w-4 h-4" />
                       Execute Change
@@ -324,7 +324,7 @@ export default function RemediationCenterView() {
                     <button
                       onClick={() => handleRollback(selectedPlan.remediation_id)}
                       disabled={isProcessing}
-                      className="px-3.5 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/30 border border-purple-500/40 text-xs font-semibold flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-lg bg-purple-600/20 text-violet-300 hover:bg-purple-600/30 border border-purple-500/40 text-xs font-semibold flex items-center gap-1.5"
                     >
                       <ArrowUturnLeftIcon className="w-4 h-4" />
                       Rollback to Snapshot
@@ -337,10 +337,10 @@ export default function RemediationCenterView() {
               <div className="p-3 bg-gray-950 border border-gray-800 rounded-xl space-y-1 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-gray-300 flex items-center gap-1.5">
-                    <CheckBadgeIcon className="w-4 h-4 text-emerald-400" />
+                    <CheckBadgeIcon className="w-4 h-4 text-blue-400" />
                     Admission Dry-Run Status:
                   </span>
-                  <span className="font-mono text-emerald-400">
+                  <span className="font-mono text-blue-400">
                     {selectedPlan.dry_run_verified ? 'VALIDATED' : 'WARNING'}
                   </span>
                 </div>
@@ -350,15 +350,15 @@ export default function RemediationCenterView() {
               {/* Unified YAML Diff Patch */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-300 flex items-center gap-2">
-                  <DocumentTextIcon className="w-4 h-4 text-blue-400" />
+                  <DocumentTextIcon className="w-4 h-4 text-violet-400" />
                   Proposed Manifest Diff (Unified Side-by-Side Patch):
                 </label>
                 <div className="p-3 bg-gray-950 border border-gray-800 rounded-xl overflow-x-auto font-mono text-xs max-h-56">
                   {selectedPlan.diff_patch.split('\n').map((line, idx) => {
                     let color = 'text-gray-300';
-                    if (line.startsWith('+')) color = 'text-emerald-400 bg-emerald-950/20';
+                    if (line.startsWith('+')) color = 'text-blue-400 bg-emerald-950/20';
                     if (line.startsWith('-')) color = 'text-rose-400 bg-rose-950/20';
-                    if (line.startsWith('@@')) color = 'text-blue-400';
+                    if (line.startsWith('@@')) color = 'text-violet-400';
                     return (
                       <div key={idx} className={color}>
                         {line}
@@ -378,7 +378,7 @@ export default function RemediationCenterView() {
                     <div key={idx} className="py-2 flex items-start justify-between text-xs gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-200 uppercase text-[10px] bg-gray-800 px-1.5 py-0.5 rounded">
+                          <span className="font-bold text-gray-200 uppercase text-[10px] bg-[#151F32] px-1.5 py-0.5 rounded">
                             {entry.action}
                           </span>
                           <span className="text-gray-400">by {entry.performed_by}</span>

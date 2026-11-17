@@ -230,7 +230,7 @@ jobs:
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <CommandLineIcon className="w-7 h-7 text-indigo-400" />
+              <CommandLineIcon className="w-7 h-7 text-blue-400" />
               DevSecOps CI/CD Security Pipeline
             </h1>
             <ProvenanceBadge state="live" label="Live Orchestrator" />
@@ -255,7 +255,7 @@ jobs:
           onClick={() => setActiveTab('pipelines')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             activeTab === 'pipelines'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -265,7 +265,7 @@ jobs:
           onClick={() => setActiveTab('gates')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             activeTab === 'gates'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -275,7 +275,7 @@ jobs:
           onClick={() => setActiveTab('secrets')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             activeTab === 'secrets'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -285,7 +285,7 @@ jobs:
           onClick={() => setActiveTab('signatures')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             activeTab === 'signatures'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -295,7 +295,7 @@ jobs:
           onClick={() => setActiveTab('ci_snippets')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             activeTab === 'ci_snippets'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -314,8 +314,8 @@ jobs:
                 onClick={() => setSelectedPipeline(pipe)}
                 className={`p-4 rounded-xl cursor-pointer border transition ${
                   selectedPipeline?.pipeline_id === pipe.pipeline_id
-                    ? 'bg-gray-800/90 border-indigo-500'
-                    : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+                    ? 'bg-[#1B2940] border-indigo-500'
+                    : 'bg-[#0B1220] border-gray-800 hover:border-[#2D3B55]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -323,7 +323,7 @@ jobs:
                   <span
                     className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
                       pipe.overall_status === 'PASSED'
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         : 'bg-red-500/20 text-red-400 border border-red-500/30'
                     }`}
                   >
@@ -342,7 +342,7 @@ jobs:
           {/* Pipeline Details */}
           <div className="lg:col-span-2 space-y-4">
             {selectedPipeline ? (
-              <div className="p-6 rounded-xl bg-gray-900 border border-gray-800 space-y-6">
+              <div className="p-6 rounded-xl bg-[#0B1220] border border-gray-800 space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-800">
                   <div>
                     <div className="flex items-center gap-3">
@@ -357,7 +357,7 @@ jobs:
                     <span
                       className={`px-3 py-1 rounded text-sm font-bold uppercase ${
                         selectedPipeline.overall_status === 'PASSED'
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                           : 'bg-red-500/20 text-red-400 border border-red-500/30'
                       }`}
                     >
@@ -390,7 +390,7 @@ jobs:
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {stage.status === 'passed' ? (
-                              <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
+                              <CheckCircleIcon className="w-5 h-5 text-blue-400" />
                             ) : (
                               <XCircleIcon className="w-5 h-5 text-red-400" />
                             )}
@@ -424,11 +424,11 @@ jobs:
             {policies.map((policy) => (
               <div
                 key={policy.id}
-                className="p-5 rounded-xl bg-gray-900 border border-gray-800 flex flex-col justify-between"
+                className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">
+                    <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
                       THRESHOLD: {policy.severityThreshold}
                     </span>
                     <button
@@ -436,7 +436,7 @@ jobs:
                       className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
                         policy.blocking
                           ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-gray-800 text-gray-400'
+                          : 'bg-[#151F32] text-gray-400'
                       }`}
                     >
                       {policy.blocking ? 'Blocking' : 'Advisory Only'}
@@ -447,7 +447,7 @@ jobs:
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between text-xs text-gray-500">
                   <span>Enforced at Pull Request stage</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
+                  <span className="text-blue-400 flex items-center gap-1">
                     <ShieldCheckIcon className="w-4 h-4" /> Active
                   </span>
                 </div>
@@ -460,7 +460,7 @@ jobs:
       {/* Tab: Secrets */}
       {activeTab === 'secrets' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-xl bg-gray-900 border border-gray-800">
+          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <KeyIcon className="w-5 h-5 text-amber-400" />
@@ -484,7 +484,7 @@ jobs:
                         <span className="text-xs font-mono text-gray-500">({f.rule_id})</span>
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        File: <span className="text-indigo-400">{f.file_path}</span>:{f.line_number}
+                        File: <span className="text-blue-400">{f.file_path}</span>:{f.line_number}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Masked Token: <span className="font-mono text-amber-300">{f.secret_preview || f.redacted_preview}</span>
@@ -508,9 +508,9 @@ jobs:
       {/* Tab: Signatures */}
       {activeTab === 'signatures' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-xl bg-gray-900 border border-gray-800">
+          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <FingerPrintIcon className="w-5 h-5 text-emerald-400" />
+              <FingerPrintIcon className="w-5 h-5 text-blue-400" />
               Cosign Digital Signature & Supply Chain Attestation
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -541,7 +541,7 @@ jobs:
             <button
               onClick={() => verifySignature(imageInput, signerInput)}
               disabled={loading}
-              className="mt-4 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-2"
+              className="mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-2"
             >
               {loading ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <DocumentCheckIcon className="w-4 h-4" />}
               Verify Cryptographic Signature
@@ -552,7 +552,7 @@ jobs:
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {signatureResult.verified ? (
-                      <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
+                      <CheckCircleIcon className="w-5 h-5 text-blue-400" />
                     ) : (
                       <XCircleIcon className="w-5 h-5 text-red-400" />
                     )}
@@ -585,17 +585,17 @@ jobs:
 
       {/* Tab: CI Snippets */}
       {activeTab === 'ci_snippets' && (
-        <div className="p-5 rounded-xl bg-gray-900 border border-gray-800 space-y-4">
+        <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white font-semibold">
-              <CodeBracketIcon className="w-5 h-5 text-indigo-400" />
+              <CodeBracketIcon className="w-5 h-5 text-blue-400" />
               GitHub Actions Workflow (.github/workflows/cloudguard.yml)
             </div>
             <button
               onClick={copySnippet}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 border border-gray-700 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#151F32] hover:bg-gray-700 text-xs text-gray-200 border border-[#2D3B55] transition"
             >
-              <ClipboardDocumentCheckIcon className="w-4 h-4 text-indigo-400" />
+              <ClipboardDocumentCheckIcon className="w-4 h-4 text-blue-400" />
               {copied ? 'Copied!' : 'Copy Workflow'}
             </button>
           </div>

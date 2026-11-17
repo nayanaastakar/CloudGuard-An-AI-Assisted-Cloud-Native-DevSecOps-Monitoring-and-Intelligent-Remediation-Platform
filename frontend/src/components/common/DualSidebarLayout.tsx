@@ -2,19 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  HomeIcon,
   ServerStackIcon,
   RocketLaunchIcon,
   BeakerIcon,
-  SparklesIcon,
   ShieldCheckIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
-  LinkIcon,
   Cog6ToothIcon,
-  SunIcon,
-  MoonIcon,
   ChevronRightIcon,
+  ChevronLeftIcon,
   ChevronDownIcon,
   MagnifyingGlassIcon,
   ArrowLeftStartOnRectangleIcon,
@@ -35,10 +30,8 @@ import {
   ShieldExclamationIcon,
   WrenchScrewdriverIcon,
   BuildingLibraryIcon,
-  CheckBadgeIcon,
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
@@ -84,17 +77,17 @@ interface LayoutProps {
 // ============================================================
 
 const level1Navigation: Level1Item[] = [
-  { id: 'dashboard', name: 'Security Posture', icon: ShieldCheckIcon, href: '/' },
-  { id: 'assets', name: 'Asset Discovery', icon: ServerStackIcon, badge: 'Inv', badgeColor: 'green', href: '/assets' },
-  { id: 'threats', name: 'Runtime Threat Detection', icon: ShieldExclamationIcon, badge: 'Falco', badgeColor: 'red', href: '/threats' },
+  { id: 'dashboard', name: 'Security Center', icon: ShieldCheckIcon, href: '/' },
+  { id: 'assets', name: 'Asset Inventory', icon: ServerStackIcon, badge: 'Inv', badgeColor: 'green', href: '/assets' },
+  { id: 'vulnerabilities', name: 'Vulnerability Management', icon: ShieldExclamationIcon, href: '/vulnerabilities' },
+  { id: 'threats', name: 'Runtime Threats', icon: ShieldExclamationIcon, badge: 'Falco', badgeColor: 'red', href: '/threats' },
   { id: 'graph', name: 'Security Graph', icon: ServerStackIcon, badge: '360°', badgeColor: 'purple', href: '/graph' },
-  { id: 'attack-paths', name: 'Attack Path Analysis', icon: ArrowsRightLeftIcon, badge: 'Live', badgeColor: 'red', href: '/attack-paths' },
-  { id: 'incidents', name: 'AI Incident Investigation', icon: ShieldExclamationIcon, badge: 'AI', badgeColor: 'purple', href: '/incidents' },
-  { id: 'vulnerabilities', name: 'Vulnerability Intelligence', icon: ShieldExclamationIcon, href: '/vulnerabilities' },
-  { id: 'sbom', name: 'Scanner Health & SBOM', icon: CubeTransparentIcon, href: '/sbom' },
+  { id: 'attack-paths', name: 'Attack Paths', icon: ArrowsRightLeftIcon, badge: 'Live', badgeColor: 'red', href: '/attack-paths' },
+  { id: 'incidents', name: 'AI Investigation', icon: ShieldExclamationIcon, badge: 'AI', badgeColor: 'purple', href: '/incidents' },
   { id: 'remediation', name: 'Remediation Center', icon: WrenchScrewdriverIcon, badge: 'Dry-Run', badgeColor: 'green', href: '/remediation' },
   { id: 'compliance', name: 'Compliance Engine', icon: BuildingLibraryIcon, href: '/compliance' },
   { id: 'devsecops', name: 'DevSecOps Pipeline', icon: RocketLaunchIcon, href: '/devsecops' },
+  { id: 'sbom', name: 'Scanner Health & SBOM', icon: CubeTransparentIcon, href: '/sbom' },
   // Core Infrastructure & Deployments
   { id: 'kubernetes', name: 'Cluster & Workloads', icon: ServerStackIcon },
   { id: 'deploy', name: 'Deployments & Helm', icon: CubeTransparentIcon },
@@ -103,10 +96,9 @@ const level1Navigation: Level1Item[] = [
   { id: 'settings', name: 'Settings & Admin', icon: Cog6ToothIcon },
 ];
 
-// Only modules with multiple SECTIONS get Level-2 sidebar
 const level2Configurations: Record<string, Level2Config> = {
   kubernetes: {
-    title: 'Kubernetes',
+    title: 'Kubernetes Workloads',
     items: [
       { name: 'Cluster Overview', href: '/cluster-overview', icon: CloudIcon },
       { name: 'Nodes', href: '/kubernetes/nodes', icon: ServerIcon },
@@ -119,7 +111,7 @@ const level2Configurations: Record<string, Level2Config> = {
     ],
   },
   deploy: {
-    title: 'Deploy',
+    title: 'Deploy & Packaging',
     items: [
       { name: 'YAML Deploy', href: '/deploy/yaml', icon: DocumentTextIcon },
       { name: 'Helm Deploy', href: '/deploy/helm', icon: CubeTransparentIcon },
@@ -133,7 +125,7 @@ const level2Configurations: Record<string, Level2Config> = {
     ],
   },
   settings: {
-    title: 'Settings',
+    title: 'Platform Administration',
     items: [
       { name: 'General Settings', href: '/settings', icon: Cog6ToothIcon },
       { name: 'Profile', href: '/profile', icon: UserCircleIcon },
@@ -142,8 +134,6 @@ const level2Configurations: Record<string, Level2Config> = {
       { name: 'API Keys', href: '/admin/api-keys', icon: KeyIcon },
     ],
   },
-  // Other modules (AI Optimizer, Security, Monitoring, Cost, Integrations)
-  // have direct href links and use horizontal tabs INSIDE the page
 };
 
 // ============================================================
@@ -157,7 +147,7 @@ function isGroup(item: Level2SubItem | Level2Group): item is Level2Group {
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   const parts = pathname.split('/').filter(Boolean);
   const breadcrumbs: { label: string; href: string }[] = [
-    { label: 'Home', href: '/' },
+    { label: 'Security Center', href: '/' },
   ];
 
   let currentPath = '';
@@ -178,55 +168,79 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
 function Level1NavItem({
   item,
   isActive,
+  isCollapsed,
   onClick,
 }: {
   item: Level1Item;
   isActive: boolean;
+  isCollapsed: boolean;
   onClick: () => void;
 }) {
   const content = (
     <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`relative flex flex-col items-center justify-center w-12 h-12 rounded-xl cursor-pointer transition-all duration-200 group ${
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      aria-label={item.name}
+      title={isCollapsed ? item.name : undefined}
+      className={`relative flex items-center gap-3 ${
+        isCollapsed ? 'justify-center w-11 h-11 px-0 mx-auto' : 'w-full h-11 px-3'
+      } rounded-xl cursor-pointer transition-all duration-200 group ${
         isActive
-          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
-          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-700 dark:hover:text-gray-200'
+          ? 'bg-[#05AD98] text-white shadow-lg shadow-[#05AD98]/30 font-semibold'
+          : 'text-slate-400 hover:bg-[#1A2830] hover:text-[#05AD98]'
       }`}
-      onClick={onClick}
     >
-      <item.icon className="h-5 w-5" />
+      <item.icon className="h-5 w-5 shrink-0" />
+
+      {/* Navigation Label beside icon */}
+      {!isCollapsed && (
+        <span className="text-xs font-semibold truncate flex-1 tracking-tight text-left">
+          {item.name}
+        </span>
+      )}
+
+      {/* Status Badge */}
       {item.badge && (
         <span
-          className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold rounded-full ${
+          className={`${
+            isCollapsed
+              ? 'absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-[10px]'
+              : 'relative shrink-0 px-1.5 py-0.5 text-[10px]'
+          } flex items-center justify-center font-bold rounded-full pointer-events-none ${
             item.badgeColor === 'red'
               ? 'bg-red-500 text-white'
               : item.badgeColor === 'purple'
-              ? 'bg-purple-500 text-white'
+              ? 'bg-violet-600 text-white'
               : item.badgeColor === 'amber'
               ? 'bg-amber-500 text-white'
-              : item.badgeColor === 'green'
-              ? 'bg-emerald-500 text-white'
-              : 'bg-blue-500 text-white'
+              : 'bg-emerald-600 text-white'
           }`}
         >
           {item.badge}
         </span>
       )}
 
-      {/* Tooltip */}
-      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl">
+      {/* Tooltip on hover */}
+      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#0D1418] border border-[#2F424E] text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl pointer-events-none">
         {item.name}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900 dark:border-r-slate-700" />
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#0D1418]" />
       </div>
     </motion.div>
   );
 
   if (item.href) {
-    return <Link to={item.href}>{content}</Link>;
+    return (
+      <Link to={item.href} aria-label={item.name} onClick={onClick} className="block w-full">
+        {content}
+      </Link>
+    );
   }
 
-  return content;
+  return (
+    <div onClick={onClick} className="block w-full">
+      {content}
+    </div>
+  );
 }
 
 // Level-2 Collapsible Group
@@ -250,15 +264,15 @@ function Level2CollapsibleGroup({
       <motion.button
         whileHover={{ x: 2 }}
         onClick={onToggle}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${
+        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-colors ${
           hasActiveChild
-            ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
-            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+            ? 'text-[#05AD98] bg-[#05AD98]/10'
+            : 'text-[#BBBFBF] hover:text-white hover:bg-[#1A2830]'
         }`}
       >
         <div className="flex items-center gap-2.5">
           <group.icon className="h-4 w-4" />
-          <span className="text-sm font-medium">{group.name}</span>
+          <span>{group.name}</span>
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -275,27 +289,15 @@ function Level2CollapsibleGroup({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden pl-4 pr-1 py-1 space-y-1"
           >
-            <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-gray-200 dark:border-slate-700 pl-3">
-              {group.items.map((item) => {
-                const isActive = item.href.split('?')[0] === activeHref.split('?')[0];
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-all duration-200 ${
-                      isActive
-                        ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium'
-                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-700 dark:hover:text-gray-200'
-                    }`}
-                  >
-                    <item.icon className="h-3.5 w-3.5" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
+            {group.items.map((subItem) => (
+              <Level2SimpleItem
+                key={subItem.href}
+                item={subItem}
+                activeHref={activeHref}
+              />
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
@@ -311,45 +313,51 @@ function Level2SimpleItem({
   item: Level2SubItem;
   activeHref: string;
 }) {
-  const isActive = item.href.split('?')[0] === activeHref.split('?')[0];
+  const isActive = activeHref.split('?')[0] === item.href.split('?')[0];
 
   return (
-    <Link
-      to={item.href}
-      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200 mb-0.5 ${
-        isActive
-          ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'
-      }`}
-    >
-      <div className="flex items-center gap-2.5">
-        <item.icon className="h-4 w-4" />
-        <span>{item.name}</span>
-      </div>
-      {item.badge && (
-        <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
-          {item.badge}
-        </span>
-      )}
+    <Link to={item.href} aria-label={item.name}>
+      <motion.div
+        whileHover={{ x: 2 }}
+        className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors group mb-1 ${
+          isActive
+            ? 'bg-[#05AD98] text-white font-medium shadow-md shadow-[#05AD98]/20'
+            : 'text-[#BBBFBF] hover:text-white hover:bg-[#1A2830]'
+        }`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <item.icon
+            className={`h-4 w-4 flex-shrink-0 ${
+              isActive ? 'text-white' : 'text-[#BBBFBF] group-hover:text-[#05AD98]'
+            }`}
+          />
+          <span className="truncate">{item.name}</span>
+        </div>
+        {item.badge && (
+          <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-violet-600/30 text-violet-300 border border-violet-500/30">
+            {item.badge}
+          </span>
+        )}
+      </motion.div>
     </Link>
   );
 }
 
-// Breadcrumb Component
+// Breadcrumbs
 function Breadcrumbs({ items }: { items: { label: string; href: string }[] }) {
   return (
-    <nav className="flex items-center gap-1 text-sm">
+    <nav className="flex items-center space-x-1 text-xs">
       {items.map((item, index) => (
-        <div key={item.href} className="flex items-center gap-1">
+        <div key={item.href} className="flex items-center">
           {index > 0 && (
-            <ChevronRightIcon className="h-3.5 w-3.5 text-gray-400" />
+            <ChevronRightIcon className="h-3.5 w-3.5 text-slate-500 mx-1 flex-shrink-0" />
           )}
           <Link
             to={item.href}
-            className={`transition-colors ${
+            className={`transition-colors truncate max-w-[150px] ${
               index === items.length - 1
-                ? 'text-gray-900 dark:text-white font-medium'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ? 'font-medium text-slate-200'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             {item.label}
@@ -367,32 +375,58 @@ function Breadcrumbs({ items }: { items: { label: string; href: string }[] }) {
 export default function DualSidebarLayout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
 
   const [activeModule, setActiveModule] = useState<string>('dashboard');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Workloads', 'Nodes']));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cloudguard_sidebar_collapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cloudguard_sidebar_collapsed', String(next));
+      }
+      return next;
+    });
+  };
 
   // Determine active module from current path
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path === '/security') {
       setActiveModule('dashboard');
+    } else if (path.startsWith('/assets')) {
+      setActiveModule('assets');
+    } else if (path.startsWith('/threats') || path.startsWith('/runtime')) {
+      setActiveModule('threats');
+    } else if (path.startsWith('/graph') || path.startsWith('/security-graph')) {
+      setActiveModule('graph');
     } else if (path.startsWith('/attack-paths')) {
       setActiveModule('attack-paths');
     } else if (path.startsWith('/incidents')) {
       setActiveModule('incidents');
     } else if (path.startsWith('/vulnerabilities')) {
       setActiveModule('vulnerabilities');
+    } else if (path.startsWith('/sbom') || path.startsWith('/scanners')) {
+      setActiveModule('sbom');
     } else if (path.startsWith('/remediation')) {
       setActiveModule('remediation');
     } else if (path.startsWith('/compliance')) {
       setActiveModule('compliance');
     } else if (path.startsWith('/devsecops')) {
       setActiveModule('devsecops');
+    } else if (path.startsWith('/logs')) {
+      setActiveModule('logs');
     } else if (path.startsWith('/cluster-overview') || path.startsWith('/kubernetes') || path.startsWith('/namespaces') || path.startsWith('/networking') || path.startsWith('/storage') || path.startsWith('/nodes')) {
       setActiveModule('kubernetes');
     } else if (path.startsWith('/deploy')) {
@@ -407,13 +441,11 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
   const level2Config = useMemo(() => {
     const config = level2Configurations[activeModule] || null;
 
-    // Filter settings items based on user role
     if (config && activeModule === 'settings' && user) {
       const isAdmin = user.role === 'admin';
       return {
         ...config,
         items: config.items.filter(item => {
-          // Only show User Management to admins
           if (!isGroup(item) && item.href === '/admin/users') {
             return isAdmin;
           }
@@ -446,7 +478,6 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
       navigate(item.href);
     } else {
       setActiveModule(item.id);
-      // Navigate to first item in Level-2 config
       const config = level2Configurations[item.id];
       if (config && config.items.length > 0) {
         const firstItem = config.items[0];
@@ -459,77 +490,137 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
     }
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const query = searchQuery.trim().toLowerCase();
+    if (query.includes('rem') || query.includes('fix')) {
+      navigate('/remediation');
+    } else if (query.includes('vuln') || query.includes('cve')) {
+      navigate('/vulnerabilities');
+    } else if (query.includes('threat') || query.includes('falco')) {
+      navigate('/threats');
+    } else if (query.includes('attack') || query.includes('path')) {
+      navigate('/attack-paths');
+    } else if (query.includes('graph')) {
+      navigate('/graph');
+    } else if (query.includes('ai') || query.includes('incident')) {
+      navigate('/incidents');
+    } else if (query.includes('asset') || query.includes('inv')) {
+      navigate('/assets');
+    } else if (query.includes('comp') || query.includes('cis')) {
+      navigate('/compliance');
+    } else if (query.includes('pipe') || query.includes('devsec')) {
+      navigate('/devsecops');
+    } else if (query.includes('log') || query.includes('loki')) {
+      navigate('/logs');
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] transition-colors duration-300">
-      {/* Background Effects */}
+    <div className="min-h-screen bg-[#0D1418] text-[#FFFFFF] transition-colors duration-300">
+      {/* Subtle Vichy Teal Glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/5 dark:bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 left-1/4 w-96 h-96 bg-purple-400/5 dark:bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-cyan-400/5 dark:bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#05AD98]/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-96 h-96 bg-[#048F7D]/5 rounded-full blur-3xl" />
       </div>
 
       {/* ============================================================ */}
       {/* LEVEL-1 SIDEBAR (Main Navigation) */}
       {/* ============================================================ */}
-      <aside className="fixed left-0 top-0 bottom-0 w-16 bg-white dark:bg-[#1E293B] border-r border-[#E2E8F0] dark:border-[#334155] z-50 flex flex-col shadow-lg dark:shadow-slate-900/50">
-        {/* CloudGuard Logo */}
-        <div className="h-16 flex items-center justify-center border-b border-[#E2E8F0] dark:border-[#334155]">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center shadow-lg shadow-indigo-500/30 cursor-pointer"
+      <aside
+        className={`fixed left-0 top-0 bottom-0 ${
+          isSidebarCollapsed ? 'w-16' : 'w-60'
+        } bg-[#131E24] border-r border-[#2F424E] z-50 flex flex-col shadow-xl transition-all duration-300`}
+      >
+        {/* CloudGuard Logo & Collapse Toggle */}
+        <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#2F424E]">
+          <div
+            className="flex items-center gap-3 cursor-pointer overflow-hidden min-w-0"
             onClick={() => navigate('/')}
-            title="CloudGuard"
+            title="CloudGuard Security Center"
           >
-            <ShieldCheckIcon className="h-5 w-5 text-white" />
-          </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.08, rotate: 4 }}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center shadow-lg shadow-[#05AD98]/30 shrink-0"
+            >
+              <ShieldCheckIcon className="h-5 w-5 text-white" />
+            </motion.div>
+            {!isSidebarCollapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold text-white tracking-tight truncate">
+                  CloudGuard
+                </span>
+                <span className="text-[10px] text-[#05AD98] font-semibold tracking-wider uppercase truncate">
+                  DevSecOps 360°
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar Collapse Toggle Button */}
+          <button
+            onClick={toggleSidebar}
+            aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="p-1.5 rounded-lg text-[#BBBFBF] hover:text-white hover:bg-[#1A2830] transition-colors shrink-0"
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRightIcon className="h-4 w-4" />
+            ) : (
+              <ChevronLeftIcon className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 py-4 px-2 space-y-2 overflow-y-auto">
+        <nav className="flex-1 py-3 px-2 space-y-1.5 overflow-y-auto">
           {level1Navigation.map((item) => (
             <Level1NavItem
               key={item.id}
               item={item}
               isActive={activeModule === item.id}
+              isCollapsed={isSidebarCollapsed}
               onClick={() => handleLevel1Click(item)}
             />
           ))}
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-2 space-y-2 border-t border-[#E2E8F0] dark:border-[#334155]">
-          {/* Theme Toggle */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleTheme}
-            className="w-12 h-12 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            {theme === 'light' ? (
-              <MoonIcon className="h-5 w-5" />
-            ) : (
-              <SunIcon className="h-5 w-5 text-amber-400" />
-            )}
-          </motion.button>
-
-          {/* User Avatar */}
+        <div className="p-2 border-t border-[#2F424E]">
           {user && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="relative w-12 h-12 flex items-center justify-center"
+            <div
+              onClick={() => navigate('/profile')}
+              title={`Logged in as ${user.username} (${user.role})`}
+              className={`flex items-center gap-3 ${
+                isSidebarCollapsed ? 'justify-center p-1' : 'px-2 py-2'
+              } rounded-xl hover:bg-[#1A2830] cursor-pointer transition-colors`}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 cursor-pointer">
-                <span className="text-white font-bold text-sm">
-                  {user.username.charAt(0).toUpperCase()}
-                </span>
+              <div className="relative shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center shadow-md shadow-[#05AD98]/25">
+                  <span className="text-white font-bold text-xs">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#05AD98] rounded-full border-2 border-[#131E24]" />
               </div>
-              <span className="absolute bottom-0 right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#1E293B]" />
-            </motion.div>
+              {!isSidebarCollapsed && (
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-xs font-semibold text-[#FFFFFF] truncate">
+                    {user.username}
+                  </span>
+                  <span className="text-[10px] text-[#BBBFBF] capitalize truncate">
+                    {user.role}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </aside>
 
-      {/* ============================================================ */}
       {/* LEVEL-2 SIDEBAR (Context Navigation) */}
       {/* ============================================================ */}
       <AnimatePresence>
@@ -539,27 +630,27 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -240, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed left-16 top-0 bottom-0 w-60 bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-xl border-r border-[#E2E8F0] dark:border-[#334155] z-40 flex flex-col shadow-xl dark:shadow-slate-900/50"
+            className={`fixed top-0 bottom-0 w-60 ${isSidebarCollapsed ? 'left-16' : 'left-60'} bg-[#131E24]/95 backdrop-blur-xl border-r border-[#2F424E] z-40 flex flex-col shadow-2xl`}
           >
             {/* Header */}
-            <div className="h-16 px-4 flex items-center border-b border-[#E2E8F0] dark:border-[#334155]">
-              <h2 className="text-base font-semibold text-[#0F172A] dark:text-white">
+            <div className="h-16 px-4 flex items-center border-b border-[#2F424E]">
+              <h2 className="text-base font-semibold text-white">
                 {level2Config.title}
               </h2>
             </div>
 
-            {/* Context Panel - Cluster & Namespace (Kubernetes and Deploy modules) */}
+            {/* Context Panel - Cluster & Namespace */}
             {(activeModule === 'kubernetes' || activeModule === 'deploy') && (
-              <div className="px-3 py-3 border-b border-[#E2E8F0] dark:border-[#334155] space-y-2">
+              <div className="px-3 py-3 border-b border-[#2F424E] space-y-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <label className="text-[10px] font-medium text-[#BBBFBF] uppercase tracking-wider">
                     Target Cluster
                   </label>
                   <ClusterSwitcher />
                 </div>
                 {activeModule === 'kubernetes' && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <label className="text-[10px] font-medium text-[#BBBFBF] uppercase tracking-wider">
                       Filter NS
                     </label>
                     <NamespaceFilter />
@@ -593,16 +684,16 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-[#E2E8F0] dark:border-[#334155]">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <ShieldCheckIcon className="h-4 w-4 text-indigo-500" />
-                  <span className="text-xs font-semibold text-[#0F172A] dark:text-white">
+            <div className="p-3 border-t border-[#2D3B55]">
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheckIcon className="h-4 w-4 text-blue-400" />
+                  <span className="text-xs font-semibold text-slate-100">
                     AI-Assisted DevSecOps
                   </span>
                 </div>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                  CloudGuard v2.0.0
+                <p className="text-[10px] text-slate-400">
+                  CloudGuard v2.0.0 Enterprise
                 </p>
               </div>
             </div>
@@ -615,23 +706,24 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
       {/* ============================================================ */}
       <div
         className={`min-h-screen flex flex-col transition-all duration-300 ${
-          level2Config && activeModule !== 'dashboard' ? 'ml-[304px]' : 'ml-16'
+          isSidebarCollapsed ? (level2Config && activeModule !== 'dashboard' ? 'ml-[304px]' : 'ml-16') : (level2Config && activeModule !== 'dashboard' ? 'ml-[480px]' : 'ml-60')
         }`}
       >
         {/* ============================================================ */}
         {/* TOP HEADER */}
         {/* ============================================================ */}
-        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xl border-b border-[#E2E8F0] dark:border-[#334155] shadow-sm">
-          {/* Gradient accent line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500" />
+        <header className="sticky top-0 z-30 h-16 bg-[#131E24]/95 backdrop-blur-xl border-b border-[#2F424E] shadow-md">
+          {/* Vichy Teal accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#05AD98] via-[#06C4AD] to-[#048F7D]" />
 
           <div className="h-full px-4 lg:px-6 flex items-center gap-4">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+              className="lg:hidden p-2 rounded-lg hover:bg-[#1A2830]"
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
             >
-              <Bars3Icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              <Bars3Icon className="h-5 w-5 text-[#BBBFBF]" />
             </button>
 
             {/* Breadcrumbs */}
@@ -642,39 +734,36 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Search */}
-            <div className="relative">
+            {/* Search Input */}
+            <form onSubmit={handleSearchSubmit} className="relative">
               <motion.div
                 animate={{ width: searchFocused ? 280 : 200 }}
                 className="relative"
               >
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#878787]" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Quick search modules..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 dark:bg-slate-800 border border-transparent focus:border-blue-500 rounded-xl text-[#0F172A] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full pl-9 pr-4 py-2 text-sm bg-[#1A2830] border border-[#2F424E] focus:border-[#05AD98] rounded-xl text-white placeholder-[#878787] focus:outline-none focus:ring-2 focus:ring-[#05AD98]/20 transition-all"
                 />
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-200 dark:bg-slate-700 rounded">
-                  ⌘K
-                </kbd>
               </motion.div>
-            </div>
+            </form>
 
             {/* Notifications */}
             <NotificationDropdown />
 
             {/* User Section */}
             {user && (
-              <div className="flex items-center gap-2 pl-4 border-l border-[#E2E8F0] dark:border-[#334155]">
+              <div className="flex items-center gap-2 pl-4 border-l border-[#2F424E]">
                 <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-sm font-medium text-[#0F172A] dark:text-white">
+                  <span className="text-sm font-medium text-white">
                     {user.username}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                  <span className="text-xs text-[#BBBFBF] capitalize">
                     {user.role}
                   </span>
                 </div>
@@ -682,8 +771,9 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={logout}
-                  className="p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  className="p-2 rounded-lg text-[#BBBFBF] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   title="Sign out"
+                  aria-label="Sign out"
                 >
                   <ArrowLeftStartOnRectangleIcon className="h-5 w-5" />
                 </motion.button>
@@ -693,11 +783,11 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 flex flex-col p-4 lg:p-6">
+        <main className="flex-1 flex flex-col p-4 lg:p-6 bg-[#0D1418]">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25 }}
             className="flex-1 flex flex-col"
           >
             {children}
@@ -715,7 +805,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
@@ -723,23 +813,24 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: -320 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-white dark:bg-[#1E293B] z-50 lg:hidden overflow-y-auto"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-[#131E24] z-50 lg:hidden overflow-y-auto border-r border-[#2F424E]"
             >
               {/* Mobile Header */}
-              <div className="h-16 px-4 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#334155]">
+              <div className="h-16 px-4 flex items-center justify-between border-b border-[#2F424E]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center">
                     <ShieldCheckIcon className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-lg font-bold text-[#0F172A] dark:text-white">
+                  <span className="text-lg font-bold text-white">
                     CloudGuard
                   </span>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                  className="p-2 rounded-lg hover:bg-[#1A2830]"
+                  aria-label="Close navigation"
                 >
-                  <XMarkIcon className="h-5 w-5 text-gray-500" />
+                  <XMarkIcon className="h-5 w-5 text-[#BBBFBF]" />
                 </button>
               </div>
 
@@ -747,82 +838,30 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
               <nav className="p-4 space-y-2">
                 {level1Navigation.map((item) => {
                   const isActive = activeModule === item.id;
-                  const config = level2Configurations[item.id];
 
                   return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => {
-                          handleLevel1Click(item);
-                          if (item.href) {
-                            setMobileMenuOpen(false);
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
-                          isActive
-                            ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <item.icon className="h-5 w-5" />
-                          <span className="font-medium">{item.name}</span>
-                        </div>
-                        {config && !item.href && (
-                          <ChevronDownIcon
-                            className={`h-4 w-4 transition-transform ${
-                              isActive ? 'rotate-180' : ''
-                            }`}
-                          />
-                        )}
-                      </button>
-
-                      {/* Submenu */}
-                      <AnimatePresence>
-                        {isActive && config && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="ml-4 mt-1 space-y-0.5 overflow-hidden"
-                          >
-                            {config.items.map((subItem) => {
-                              if (isGroup(subItem)) {
-                                return (
-                                  <div key={subItem.name} className="py-1">
-                                    <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase">
-                                      {subItem.name}
-                                    </p>
-                                    {subItem.items.map((child) => (
-                                      <Link
-                                        key={child.href}
-                                        to={child.href}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                                      >
-                                        <child.icon className="h-4 w-4" />
-                                        {child.name}
-                                      </Link>
-                                    ))}
-                                  </div>
-                                );
-                              }
-                              return (
-                                <Link
-                                  key={subItem.href}
-                                  to={subItem.href}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                                >
-                                  <subItem.icon className="h-4 w-4" />
-                                  {subItem.name}
-                                </Link>
-                              );
-                            })}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleLevel1Click(item);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
+                        isActive
+                          ? 'bg-[#05AD98] text-white'
+                          : 'text-[#BBBFBF] hover:bg-[#1A2830] hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5" />
+                        <span className="font-medium text-sm">{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded bg-[#05AD98]/30 text-[#06C4AD]">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
                   );
                 })}
               </nav>

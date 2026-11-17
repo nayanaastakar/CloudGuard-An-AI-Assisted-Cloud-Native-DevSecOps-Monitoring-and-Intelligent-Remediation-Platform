@@ -38,7 +38,7 @@ export default function ComplianceView() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pass':
-        return <CheckCircleIcon className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircleIcon className="w-5 h-5 text-blue-400" />;
       case 'fail':
         return <XCircleIcon className="w-5 h-5 text-red-400" />;
       case 'warn':
@@ -51,7 +51,7 @@ export default function ComplianceView() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pass':
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>;
+        return <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">PASS</span>;
       case 'fail':
         return <span className="px-2 py-0.5 text-xs font-semibold rounded bg-red-500/20 text-red-400 border border-red-500/30">FAIL</span>;
       case 'warn':
@@ -67,7 +67,7 @@ export default function ComplianceView() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <BuildingLibraryIcon className="w-7 h-7 text-indigo-400" />
+            <BuildingLibraryIcon className="w-7 h-7 text-blue-400" />
             Continuous Compliance Engine
           </h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -78,7 +78,7 @@ export default function ComplianceView() {
           <button
             onClick={() => refetch()}
             disabled={isLoading || isFetching}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 text-sm transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#151F32] hover:bg-gray-700 text-gray-200 border border-[#2D3B55] text-sm transition"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
             Run Audit
@@ -92,7 +92,7 @@ export default function ComplianceView() {
           onClick={() => { setFramework('CIS-K8s-1.8'); setSelectedCheck(null); }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             framework === 'CIS-K8s-1.8'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -102,7 +102,7 @@ export default function ComplianceView() {
           onClick={() => { setFramework('NIST-SP-800-190'); setSelectedCheck(null); }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             framework === 'NIST-SP-800-190'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -112,7 +112,7 @@ export default function ComplianceView() {
           onClick={() => { setFramework('PCI-DSS-4.0'); setSelectedCheck(null); }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
             framework === 'PCI-DSS-4.0'
-              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              ? 'border-indigo-500 text-blue-400 font-semibold'
               : 'border-transparent text-gray-400 hover:text-gray-200'
           }`}
         >
@@ -123,7 +123,7 @@ export default function ComplianceView() {
       {/* KPI Overview */}
       {compliance && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-between">
+          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-400 font-medium">Compliance Score</p>
               <p className="text-3xl font-extrabold text-white mt-1">
@@ -131,16 +131,16 @@ export default function ComplianceView() {
               </p>
               <p className="text-xs text-gray-500 mt-1">Total {compliance.total_checks} controls evaluated</p>
             </div>
-            <div className="w-16 h-16 rounded-full border-4 border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-lg">
+            <div className="w-16 h-16 rounded-full border-4 border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-lg">
               {compliance.compliance_percentage}%
             </div>
           </div>
 
           <div className="p-5 rounded-xl bg-emerald-950/20 border border-emerald-900/30">
-            <p className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+            <p className="text-xs text-blue-400 font-medium flex items-center gap-1">
               <CheckCircleIcon className="w-4 h-4" /> Passed Checks
             </p>
-            <p className="text-3xl font-bold text-emerald-400 mt-1">{compliance.passed}</p>
+            <p className="text-3xl font-bold text-blue-400 mt-1">{compliance.passed}</p>
             <p className="text-xs text-emerald-500/70 mt-1">Passing standard controls</p>
           </div>
 
@@ -166,7 +166,7 @@ export default function ComplianceView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           {/* Filter Bar */}
-          <div className="flex items-center justify-between bg-gray-900 p-3 rounded-xl border border-gray-800">
+          <div className="flex items-center justify-between bg-[#0B1220] p-3 rounded-xl border border-gray-800">
             <span className="text-xs text-gray-400 font-medium">Filter by Status:</span>
             <div className="flex gap-2">
               {['all', 'fail', 'warn', 'pass'].map((st) => (
@@ -176,7 +176,7 @@ export default function ComplianceView() {
                   className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
                     statusFilter === st
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                      : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
                   }`}
                 >
                   {st}
@@ -188,13 +188,13 @@ export default function ComplianceView() {
           {/* Checks List */}
           <div className="space-y-3">
             {isLoading ? (
-              <div className="p-8 text-center text-gray-400 bg-gray-900 rounded-xl border border-gray-800">
-                <ArrowPathIcon className="w-6 h-6 animate-spin mx-auto text-indigo-400 mb-2" />
+              <div className="p-8 text-center text-gray-400 bg-[#0B1220] rounded-xl border border-gray-800">
+                <ArrowPathIcon className="w-6 h-6 animate-spin mx-auto text-blue-400 mb-2" />
                 <p>Auditing cluster against {framework}...</p>
               </div>
             ) : filteredChecks.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 bg-gray-900 rounded-xl border border-gray-800">
-                <ShieldCheckIcon className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+              <div className="p-8 text-center text-gray-400 bg-[#0B1220] rounded-xl border border-gray-800">
+                <ShieldCheckIcon className="w-8 h-8 text-blue-400 mx-auto mb-2" />
                 <p>No checks match this filter</p>
               </div>
             ) : (
@@ -205,14 +205,14 @@ export default function ComplianceView() {
                   className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                     selectedCheck?.check_id === check.check_id
                       ? 'bg-indigo-950/30 border-indigo-500'
-                      : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+                      : 'bg-[#0B1220] border-gray-800 hover:border-[#2D3B55]'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">{getStatusIcon(check.status)}</div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-indigo-400 font-bold">{check.check_id}</span>
+                        <span className="font-mono text-xs text-blue-400 font-bold">{check.check_id}</span>
                         <span className="text-xs text-gray-500">[{check.category}]</span>
                       </div>
                       <h4 className="text-sm font-semibold text-white mt-0.5">{check.title}</h4>
@@ -230,11 +230,11 @@ export default function ComplianceView() {
         </div>
 
         {/* Selected Check Details */}
-        <div className="bg-gray-900 p-5 rounded-xl border border-gray-800 h-fit sticky top-6">
+        <div className="bg-[#0B1220] p-5 rounded-xl border border-gray-800 h-fit sticky top-6">
           {selectedCheck ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-indigo-400 font-bold">{selectedCheck.check_id}</span>
+                <span className="font-mono text-xs text-blue-400 font-bold">{selectedCheck.check_id}</span>
                 {getStatusBadge(selectedCheck.status)}
               </div>
 

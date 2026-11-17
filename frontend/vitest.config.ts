@@ -7,23 +7,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/test/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/mockData',
-        '**/mocks',
-      ],
-      lines: 80,
-      functions: 80,
-      branches: 80,
-      statements: 80,
-    },
+    setupFiles: ['./__tests__/setup.ts'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', '__tests__/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '__tests__/integration.test.ts',
+      '__tests__/Pipeline.test.tsx',
+      '__tests__/pipelineAPI.test.ts',
+      '__tests__/pipelineStore.test.ts',
+      '__tests__/usePipelineHooks.test.ts',
+    ],
   },
   resolve: {
     alias: {

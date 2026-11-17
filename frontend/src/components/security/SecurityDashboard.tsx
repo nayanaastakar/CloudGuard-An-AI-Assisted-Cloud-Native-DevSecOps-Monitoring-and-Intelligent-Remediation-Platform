@@ -659,7 +659,7 @@ export default function SecurityDashboard() {
       case 'high': return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400';
       case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'low': return 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-[#0B1220]/30 dark:text-gray-400';
     }
   };
 
@@ -1032,7 +1032,7 @@ export default function SecurityDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                <LockClosedIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <LockClosedIcon className="h-5 w-5 text-purple-600 dark:text-violet-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">RBAC Analysis</h3>
             </div>
@@ -1058,7 +1058,7 @@ export default function SecurityDashboard() {
                   <div className="text-xs text-gray-500">Wildcards</div>
                 </div>
                 <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-2 text-center">
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{rbacSummary.risky_service_accounts}</div>
+                  <div className="text-lg font-bold text-purple-600 dark:text-violet-400">{rbacSummary.risky_service_accounts}</div>
                   <div className="text-xs text-gray-500">Risky SAs</div>
                 </div>
                 <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-2 text-center">
@@ -1071,7 +1071,7 @@ export default function SecurityDashboard() {
                 whileTap={{ scale: 0.98 }}
                 onClick={fetchRbacDetail}
                 disabled={loadingRbacDetail}
-                className="w-full px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-violet-300 text-sm font-medium rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center justify-center gap-2"
               >
                 {loadingRbacDetail ? <Spinner size="sm" /> : <>View Details <ChevronDownIcon className="h-4 w-4" /></>}
               </motion.button>
@@ -1086,7 +1086,7 @@ export default function SecurityDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                <GlobeAltIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <GlobeAltIcon className="h-5 w-5 text-blue-600 dark:text-violet-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Network Policies</h3>
             </div>
@@ -1128,7 +1128,7 @@ export default function SecurityDashboard() {
                 whileTap={{ scale: 0.98 }}
                 onClick={fetchNetworkPolicyDetail}
                 disabled={loadingNetPolDetail}
-                className="w-full px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-violet-300 text-sm font-medium rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2"
               >
                 {loadingNetPolDetail ? <Spinner size="sm" /> : <>View Details <ChevronDownIcon className="h-4 w-4" /></>}
               </motion.button>
@@ -1143,7 +1143,7 @@ export default function SecurityDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-                <ChartBarIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <ChartBarIcon className="h-5 w-5 text-indigo-600 dark:text-blue-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Security Trends</h3>
             </div>
@@ -1158,7 +1158,7 @@ export default function SecurityDashboard() {
                 <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
                   trendsSummary.trend_direction === 'improving' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' :
                   trendsSummary.trend_direction === 'declining' ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' :
-                  'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                  'bg-gray-100 text-gray-700 dark:bg-[#0B1220]/30 dark:text-gray-400'
                 }`}>
                   {trendsSummary.trend_direction === 'improving' ? '↑' : trendsSummary.trend_direction === 'declining' ? '↓' : '→'}
                   <span className="ml-1 capitalize">{trendsSummary.trend_direction}</span>
@@ -1191,7 +1191,7 @@ export default function SecurityDashboard() {
                 whileTap={{ scale: 0.98 }}
                 onClick={fetchTrendsDetail}
                 disabled={loadingTrendsDetail}
-                className="w-full px-3 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium rounded-xl hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-blue-300 text-sm font-medium rounded-xl hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors flex items-center justify-center gap-2"
               >
                 {loadingTrendsDetail ? <Spinner size="sm" /> : <>View History <ChevronDownIcon className="h-4 w-4" /></>}
               </motion.button>
@@ -1315,10 +1315,10 @@ export default function SecurityDashboard() {
                   {(() => {
                     const plainEnglish = getPlainEnglishExplanation(selectedFinding);
                     return (
-                      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-500/20">
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-900/20 dark:to-emerald-950/20 border-2 border-blue-200 dark:border-blue-500/20">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
-                            <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-violet-400" />
                           </div>
                           <div className="flex-1">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
@@ -1442,7 +1442,7 @@ export default function SecurityDashboard() {
 
                           {aiRemediation.note && (
                             <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                              <p className="text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                              <p className="text-xs text-blue-700 dark:text-violet-300 flex items-start gap-2">
                                 <InformationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
                                 {aiRemediation.note}
                               </p>
@@ -1997,7 +1997,7 @@ export default function SecurityDashboard() {
 
                   {aiRemediation.note && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                      <p className="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                      <p className="text-sm text-blue-700 dark:text-violet-300 flex items-start gap-2">
                         <InformationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
                         {aiRemediation.note}
                       </p>

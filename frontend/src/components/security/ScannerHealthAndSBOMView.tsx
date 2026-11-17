@@ -61,7 +61,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
             loadHealth();
             loadSBOM();
           }}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-colors"
         >
           <ArrowPathIcon className="w-4 h-4" /> Refresh Toolchain
         </button>
@@ -71,14 +71,14 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {scannerHealth &&
           Object.entries(scannerHealth.scanners).map(([key, scanner]) => (
-            <div key={key} className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+            <div key={key} className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">{key}</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-400">{key}</span>
                 <span
                   className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                     scanner.installed
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                      : 'bg-blue-950 text-blue-300 border border-blue-800'
+                      ? 'bg-emerald-950 text-blue-400 border border-emerald-800'
+                      : 'bg-blue-950 text-violet-300 border border-blue-800'
                   }`}
                 >
                   {scanner.installed ? <CheckCircleIcon className="w-3 h-3" /> : <ExclamationCircleIcon className="w-3 h-3" />}
@@ -91,7 +91,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
               </div>
               <div className="flex flex-wrap gap-1 pt-1">
                 {scanner.supported_capabilities.map((cap) => (
-                  <span key={cap} className="px-1.5 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300 font-mono">
+                  <span key={cap} className="px-1.5 py-0.5 rounded bg-[#151F32] text-[10px] text-gray-300 font-mono">
                     {cap}
                   </span>
                 ))}
@@ -101,10 +101,10 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
       </div>
 
       {/* SBOM Explorer Section */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+      <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-950 text-emerald-400 rounded-lg border border-emerald-800/40">
+            <div className="p-2 bg-emerald-950 text-blue-400 rounded-lg border border-emerald-800/40">
               <CubeIcon className="w-5 h-5" />
             </div>
             <div>
@@ -122,12 +122,12 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
               value={targetImage}
               onChange={(e) => setTargetImage(e.target.value)}
               placeholder="e.g., redis:7-alpine"
-              className="px-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white placeholder-gray-500 font-mono focus:border-emerald-500"
+              className="px-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white placeholder-gray-500 font-mono focus:border-blue-500"
             />
             <button
               onClick={loadSBOM}
               disabled={loadingSbom}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors"
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition-colors"
             >
               Analyze
             </button>
@@ -148,9 +148,9 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-800/60">
               {sbomData?.packages.map((pkg, idx) => (
-                <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
+                <tr key={idx} className="hover:bg-[#151F32]/30 transition-colors">
                   <td className="py-2.5 px-4 text-white font-medium">{pkg.name}</td>
-                  <td className="py-2.5 px-4 text-emerald-400">{pkg.version}</td>
+                  <td className="py-2.5 px-4 text-blue-400">{pkg.version}</td>
                   <td className="py-2.5 px-4 text-gray-400 uppercase">{pkg.type}</td>
                   <td className="py-2.5 px-4 text-gray-300">{pkg.license || 'Unknown'}</td>
                   <td className="py-2.5 px-4">
@@ -163,7 +163,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
                         {pkg.vulnerabilities} CVEs
                       </span>
                     ) : (
-                      <span className="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded text-[10px]">
+                      <span className="text-blue-400 bg-emerald-950/60 px-2 py-0.5 rounded text-[10px]">
                         0 Clean
                       </span>
                     )}

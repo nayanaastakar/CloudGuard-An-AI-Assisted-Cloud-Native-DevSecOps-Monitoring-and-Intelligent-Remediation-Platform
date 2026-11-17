@@ -140,7 +140,7 @@ export default function IncidentInvestigationView() {
       case 'MEDIUM':
         return 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
       default:
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
+        return 'bg-blue-500/10 text-violet-400 border border-blue-500/30';
     }
   };
 
@@ -160,7 +160,7 @@ export default function IncidentInvestigationView() {
           </button>
           <button
             onClick={fetchInvestigations}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -169,14 +169,14 @@ export default function IncidentInvestigationView() {
       </PageHeader>
 
       {/* Safety Boundary Banner */}
-      <div className="p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl flex items-center justify-between text-xs text-purple-300">
+      <div className="p-3 bg-purple-950/20 border border-violet-500/30 rounded-xl flex items-center justify-between text-xs text-violet-300">
         <div className="flex items-center gap-2">
-          <LockClosedIcon className="w-4 h-4 text-purple-400" />
+          <LockClosedIcon className="w-4 h-4 text-violet-400" />
           <span>
             <strong>AI Safety Boundary Active:</strong> Gemini operates in read-only analyst mode. Automated shell commands or destructive changes are strictly prohibited.
           </span>
         </div>
-        <span className="font-mono text-[11px] bg-purple-900/40 px-2 py-0.5 rounded border border-purple-500/30">
+        <span className="font-mono text-[11px] bg-purple-900/40 px-2 py-0.5 rounded border border-violet-500/30">
           Analyst Mode
         </span>
       </div>
@@ -184,7 +184,7 @@ export default function IncidentInvestigationView() {
       {/* Main Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Investigation Dossier List (Left Column) */}
-        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl p-4 space-y-3">
           <div className="text-xs font-semibold text-gray-400 pb-2 border-b border-gray-800 flex justify-between items-center">
             <span>INVESTIGATION DOSSIERS ({investigations.length})</span>
             <span className="text-[10px] text-gray-500 font-mono">Evidence-Backed</span>
@@ -201,7 +201,7 @@ export default function IncidentInvestigationView() {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-purple-500 bg-purple-950/20 shadow-md shadow-purple-500/10'
-                      : 'border-gray-800 bg-gray-950/40 hover:border-gray-700 hover:bg-gray-800/30'
+                      : 'border-gray-800 bg-gray-950/40 hover:border-[#2D3B55] hover:bg-[#151F32]/30'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -224,7 +224,7 @@ export default function IncidentInvestigationView() {
         </div>
 
         {/* Investigation Workspace & Evidence Explorer (Right Columns) */}
-        <div className="lg:col-span-2 bg-gray-900/60 border border-gray-800 rounded-xl p-6 space-y-6">
+        <div className="lg:col-span-2 bg-[#0B1220]/60 border border-gray-800 rounded-xl p-6 space-y-6">
           {selectedInv && selectedInv.report ? (
             <>
               {/* Title & Metadata Strip */}
@@ -233,7 +233,7 @@ export default function IncidentInvestigationView() {
                   <span className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase ${getSeverityBadgeClass(selectedInv.report.severity_assessment)}`}>
                     {selectedInv.report.severity_assessment} Severity Assessment
                   </span>
-                  <span className="text-xs text-purple-400 font-medium">
+                  <span className="text-xs text-violet-400 font-medium">
                     Confidence: {(selectedInv.report.confidence * 100).toFixed(0)}%
                   </span>
                 </div>
@@ -245,8 +245,8 @@ export default function IncidentInvestigationView() {
 
               {/* Confirmed Facts vs Hypotheses */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-emerald-950/10 border border-emerald-500/20 rounded-xl space-y-2">
-                  <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <div className="p-4 bg-emerald-950/10 border border-blue-500/20 rounded-xl space-y-2">
+                  <h4 className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
                     <CheckCircleIcon className="w-4 h-4" />
                     Confirmed Facts ({selectedInv.report.confirmed_facts?.length || 0})
                   </h4>
@@ -274,7 +274,7 @@ export default function IncidentInvestigationView() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold text-gray-300">
                   <span className="flex items-center gap-1.5">
-                    <DocumentMagnifyingGlassIcon className="w-4 h-4 text-purple-400" />
+                    <DocumentMagnifyingGlassIcon className="w-4 h-4 text-violet-400" />
                     Curated Evidence Bundle ({selectedInv.evidence_bundle?.total_items || 0} Records)
                   </span>
                   <span className="text-gray-500 font-mono text-[11px]">{selectedInv.evidence_bundle?.bundle_id}</span>
@@ -284,7 +284,7 @@ export default function IncidentInvestigationView() {
                   {selectedInv.evidence_bundle?.items?.map((item) => (
                     <div key={item.evidence_id} className="p-2.5 bg-gray-950 border border-gray-800 rounded-lg text-xs space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-mono text-purple-400 font-semibold">{item.evidence_id}</span>
+                        <span className="font-mono text-violet-400 font-semibold">{item.evidence_id}</span>
                         <span className="text-[10px] text-gray-400 uppercase font-bold">{item.source}</span>
                       </div>
                       <div className="text-gray-300 text-[11px]">Asset: <strong>{item.asset_reference}</strong></div>
@@ -297,7 +297,7 @@ export default function IncidentInvestigationView() {
               {/* Actionable Recommendations (Remediation & Next Steps) */}
               <div className="p-4 bg-gray-950 border border-gray-800 rounded-xl space-y-3">
                 <h4 className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
-                  <WrenchScrewdriverIcon className="w-4 h-4 text-blue-400" />
+                  <WrenchScrewdriverIcon className="w-4 h-4 text-violet-400" />
                   Recommended Corrective & Investigation Steps (Requires Human Approval)
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -331,9 +331,9 @@ export default function IncidentInvestigationView() {
       {/* New Investigation Modal */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-[#0B1220] border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <SparklesIcon className="w-5 h-5 text-purple-400" />
+              <SparklesIcon className="w-5 h-5 text-violet-400" />
               Launch New AI Investigation
             </h3>
             <p className="text-xs text-gray-400">
@@ -382,7 +382,7 @@ export default function IncidentInvestigationView() {
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800"
+                  className="px-3 py-1.5 rounded-lg border border-[#2D3B55] text-gray-300 hover:bg-[#151F32]"
                 >
                   Cancel
                 </button>

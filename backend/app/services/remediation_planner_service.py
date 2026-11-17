@@ -8,6 +8,7 @@ import asyncio
 import difflib
 import logging
 import os
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -35,26 +36,31 @@ class RemediationPlannerService:
         namespace = finding.get("namespace", "default")
         category = finding.get("category", "pod_security")
 
-        current_yaml = await self._fetch_current_manifest(finding.get("resource_type", "Pod"), target_name, namespace)
-        proposed_yaml = self._generate_corrective_yaml(finding, current_yaml)
+        # Resolve deployment workload name if target is a pod
+        workload_kind, workload_name = self._resolve_workload_target(
+            finding.get("resource_type", "Pod"), target_name
+        )
+
+        current_yaml = await self._fetch_current_manifest(workload_kind, workload_name, namespace)
+        proposed_yaml = self._generate_corrective_yaml(finding, current_yaml, workload_kind, workload_name, namespace)
 
         # Compute diff
         diff_lines = list(difflib.unified_diff(
             current_yaml.splitlines(keepends=True),
             proposed_yaml.splitlines(keepends=True),
-            fromfile=f"current/{target_name}.yaml",
-            tofile=f"remediated/{target_name}.yaml",
+            fromfile=f"current/{workload_name}.yaml",
+            tofile=f"remediated/{workload_name}.yaml",
         ))
         diff_patch = "".join(diff_lines) if diff_lines else "No syntax diff available."
 
         # Perform dry run validation
-        dry_run_success, dry_run_msg = await self.validate_dry_run(proposed_yaml, namespace)
+        dry_run_success, dry_run_msg, validation_status_label = await self.validate_dry_run(proposed_yaml, namespace)
 
         plan = {
             "remediation_id": remediation_id,
             "finding_id": finding_id,
-            "title": f"Security Remediation for {finding.get('title', target_name)}",
-            "target_resource": f"{finding.get('resource_type', 'Workload')}/{target_name}",
+            "title": f"Security Remediation for {finding.get('title', workload_name)}",
+            "target_resource": f"{workload_kind}/{workload_name}",
             "namespace": namespace,
             "current_yaml": current_yaml,
             "proposed_yaml": proposed_yaml,
@@ -65,14 +71,39 @@ class RemediationPlannerService:
             "status": RemediationStatus.PENDING.value,
             "dry_run_verified": dry_run_success,
             "dry_run_output": dry_run_msg,
+            "validation_status_label": validation_status_label,
             "created_at": datetime.utcnow().isoformat(),
         }
 
         _remediation_store[remediation_id] = plan
         return plan
 
-    async def validate_dry_run(self, manifest_yaml: str, namespace: str) -> Tuple[bool, str]:
-        """Runs kubectl server-side dry-run to validate proposed manifest."""
+    def _resolve_workload_target(self, resource_type: str, resource_name: str) -> Tuple[str, str]:
+        """Resolves parent controller workload (Deployment) if finding targets a replica pod."""
+        # e.g., cloudguard-backend-5bfb47d855-9xpbw -> cloudguard-backend
+        if resource_type.lower() == "pod":
+            # Match standard Deployment pod naming convention <deployment>-<pod-hash>-<suffix>
+            match = re.match(r"^(.+)-[a-f0-9]{8,10}-[a-z0-9]{5}$", resource_name)
+            if match:
+                return "Deployment", match.group(1)
+            # Match ReplicaSet pod naming <name>-<suffix>
+            match_rs = re.match(r"^(.+)-[a-z0-9]{5}$", resource_name)
+            if match_rs:
+                return "Deployment", match_rs.group(1)
+            return "Deployment", resource_name
+        return resource_type, resource_name
+
+    async def validate_dry_run(self, manifest_yaml: str, namespace: str) -> Tuple[bool, str, str]:
+        """Runs kubectl server-side dry-run to validate proposed manifest.
+        
+        Returns:
+            Tuple[bool, str, str]: (is_success, output_message, status_label)
+            status_label is one of:
+            - 'Kubernetes Server-Side Dry-Run Passed'
+            - 'Kubernetes Server-Side Dry-Run Failed'
+            - 'Syntax Validated'
+            - 'Server Validation Unavailable'
+        """
         try:
             cmd = ["kubectl", "apply", "-f", "-", "--dry-run=server"]
             if namespace and namespace != "cluster-wide":
@@ -94,18 +125,24 @@ class RemediationPlannerService:
 
             if proc.returncode == 0:
                 output = stdout.decode().strip()
-                return True, f"Validation Successful: {output}"
+                return True, f"Validation Successful: {output}", "Kubernetes Server-Side Dry-Run Passed"
             else:
                 err_msg = stderr.decode().strip()
-                return False, f"Validation Warning / Error: {err_msg}"
+                if "actively refused" in err_msg or "dial tcp" in err_msg or "refused it" in err_msg or "timed out" in err_msg:
+                    # Server unreachable
+                    try:
+                        yaml.safe_load_all(manifest_yaml)
+                        return False, f"Server unreachable ({err_msg}). Local syntax check valid.", "Server Validation Unavailable"
+                    except Exception as ye:
+                        return False, f"Invalid YAML schema: {ye}", "Syntax Validation Failed"
+                return False, f"Server Dry-Run Error: {err_msg}", "Kubernetes Server-Side Dry-Run Failed"
         except Exception as e:
             logger.warning(f"Dry-run execution fallback: {e}")
-            # Client-side YAML validation as safe fallback
             try:
                 yaml.safe_load_all(manifest_yaml)
-                return True, "Client-side YAML syntax and schema valid (offline check)."
+                return False, f"Kubernetes API offline ({e}). Local YAML syntax check valid.", "Server Validation Unavailable"
             except Exception as ye:
-                return False, f"Invalid YAML schema: {ye}"
+                return False, f"Invalid YAML schema: {ye}", "Syntax Validation Failed"
 
     async def approve_and_apply(self, remediation_id: str, approver: str = "admin") -> Dict[str, Any]:
         """Enforces human-in-the-loop approval before applying change to Kubernetes."""
@@ -175,60 +212,74 @@ class RemediationPlannerService:
             )
             stdout, stderr = await proc.communicate()
             if proc.returncode == 0 and stdout:
-                return stdout.decode().strip()
+                manifest_str = stdout.decode().strip()
+                # Parse and clean runtime status noise
+                try:
+                    data = yaml.safe_load(manifest_str)
+                    if isinstance(data, dict):
+                        data.pop("status", None)
+                        if "metadata" in data and isinstance(data["metadata"], dict):
+                            data["metadata"].pop("managedFields", None)
+                            data["metadata"].pop("resourceVersion", None)
+                            data["metadata"].pop("uid", None)
+                            data["metadata"].pop("generation", None)
+                            data["metadata"].pop("creationTimestamp", None)
+                        return yaml.dump(data, sort_keys=False)
+                except Exception:
+                    pass
+                return manifest_str
         except Exception:
             pass
 
-        return f"# Live manifest for {resource_type}/{name} in namespace {namespace}\napiVersion: v1\nkind: {resource_type}\nmetadata:\n  name: {name}\n  namespace: {namespace}\n"
+        return f"# Live manifest for {resource_type}/{name} in namespace {namespace}\napiVersion: apps/v1\nkind: {resource_type}\nmetadata:\n  name: {name}\n  namespace: {namespace}\n"
 
-    def _generate_corrective_yaml(self, finding: Dict[str, Any], current_yaml: str) -> str:
-        """Constructs safe corrective YAML based on the finding category."""
-        if finding.get("remediation_yaml"):
-            base = finding["remediation_yaml"]
-            if "apiVersion" in base:
-                return base
-
-        name = finding.get("resource_name", "workload")
-        ns = finding.get("namespace", "default")
+    def _generate_corrective_yaml(
+        self,
+        finding: Dict[str, Any],
+        current_yaml: str,
+        workload_kind: str,
+        workload_name: str,
+        namespace: str
+    ) -> str:
+        """Constructs safe corrective YAML preserving all existing deployment specs."""
         cat = finding.get("category", "")
 
-        if cat == "network_policy" or "NETPOL" in finding.get("finding_id", ""):
-            return (
-                f"apiVersion: networking.k8s.io/v1\n"
-                f"kind: NetworkPolicy\n"
-                f"metadata:\n"
-                f"  name: {name}-isolation-policy\n"
-                f"  namespace: {ns}\n"
-                f"spec:\n"
-                f"  podSelector:\n"
-                f"    matchLabels:\n"
-                f"      app: {name}\n"
-                f"  policyTypes:\n"
-                f"  - Ingress\n"
-                f"  - Egress\n"
-                f"  ingress:\n"
-                f"  - from:\n"
-                f"    - podSelector:\n"
-                f"        matchLabels:\n"
-                f"          role: frontend\n"
-                f"    ports:\n"
-                f"    - protocol: TCP\n"
-                f"      port: 8080\n"
-                f"  egress:\n"
-                f"  - to:\n"
-                f"    - namespaceSelector: {{}}\n"
-                f"    ports:\n"
-                f"    - protocol: UDP\n"
-                f"      port: 53 # Allow CoreDNS\n"
-            )
+        # Try to patch the existing parsed deployment manifest cleanly
+        try:
+            data = yaml.safe_load(current_yaml)
+            if isinstance(data, dict) and data.get("kind") in ["Deployment", "DaemonSet", "StatefulSet"]:
+                spec = data.setdefault("spec", {})
+                template = spec.setdefault("template", {})
+                pod_spec = template.setdefault("spec", {})
 
-        # Default Pod Security Context Hardening
+                # Preserve pod securityContext
+                pod_sec = pod_spec.setdefault("securityContext", {})
+                pod_sec["runAsNonRoot"] = True
+                pod_sec.setdefault("runAsUser", 10001)
+                pod_sec.setdefault("fsGroup", 10001)
+
+                # Patch container securityContext
+                containers = pod_spec.setdefault("containers", [])
+                for c in containers:
+                    c_sec = c.setdefault("securityContext", {})
+                    c_sec["privileged"] = False
+                    c_sec["allowPrivilegeEscalation"] = False
+                    c_sec["readOnlyRootFilesystem"] = True
+                    c_sec["runAsNonRoot"] = True
+                    caps = c_sec.setdefault("capabilities", {})
+                    caps["drop"] = ["ALL"]
+
+                return yaml.dump(data, sort_keys=False)
+        except Exception as e:
+            logger.warning(f"Could not parse current YAML for patch generation: {e}")
+
+        # Fallback to standard corrective manifest structure
         return (
             f"apiVersion: apps/v1\n"
-            f"kind: Deployment\n"
+            f"kind: {workload_kind}\n"
             f"metadata:\n"
-            f"  name: {name}\n"
-            f"  namespace: {ns}\n"
+            f"  name: {workload_name}\n"
+            f"  namespace: {namespace}\n"
             f"spec:\n"
             f"  template:\n"
             f"    spec:\n"
@@ -237,7 +288,7 @@ class RemediationPlannerService:
             f"        runAsUser: 10001\n"
             f"        fsGroup: 10001\n"
             f"      containers:\n"
-            f"      - name: {name}\n"
+            f"      - name: {workload_name}\n"
             f"        securityContext:\n"
             f"          privileged: false\n"
             f"          allowPrivilegeEscalation: false\n"
