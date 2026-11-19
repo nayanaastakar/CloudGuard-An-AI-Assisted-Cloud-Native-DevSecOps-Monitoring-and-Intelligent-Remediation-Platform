@@ -1,0 +1,131 @@
+name: cloudguard-cicd
+
+services:
+  # PostgreSQL Database (Isolated)
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudguard-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cloudguard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CloudGuard_DevPass2026!}
+      POSTGRES_DB: ${POSTGRES_DB:-cloudguard_db}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - cloudguard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cloudguard} -d ${POSTGRES_DB:-cloudguard_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+  # Redis Cache (Isolated)
+  redis:
+    image: redis:7-alpine
+    container_name: cloudguard-redis
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    volumes:
+      - cloudguard_redisdata:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+  # CloudGuard Backend API Engine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: cloudguard-backend:latest
+    container_name: cloudguard-backend
+    ports:
+      - "${BACKEND_PORT:-8001}:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cloudguard}:${POSTGRES_PASSWORD:-CloudGuard_DevPass2026!}@postgres:5432/${POSTGRES_DB:-cloudguard_db}
+      - USE_DATABASE_AUTH=true
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_ENABLED=true
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - APP_NAME=CloudGuard
+      - APP_TITLE=CloudGuard - DevSecOps Monitoring & Intelligent Remediation
+      - APP_VERSION=2.0.0
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-at-least-32-chars-long-2026}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-AdminSecure123!}
+      - FALCO_WEBHOOK_SECRET=${FALCO_WEBHOOK_SECRET:-}
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_USERNAME=${JENKINS_USERNAME:-admin}
+      - JENKINS_TOKEN=${JENKINS_TOKEN:-}
+      - K8S_IN_CLUSTER=false
+      - AI_PROVIDER=gemini
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - TRIVY_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cloudguard-network
+
+  # CloudGuard Frontend Web UI
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: cloudguard-frontend:latest
+    container_name: cloudguard-frontend
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"
+    environment:
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8001}
+      - VITE_APP_TITLE=CloudGuard
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+  # Jenkins Controller (CI/CD Automation Engine)
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: cloudguard-jenkins
+    user: root
+    privileged: true
+    ports:
+      - "${JENKINS_PORT:-8080}:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    volumes:
+      - cloudguard_jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - cloudguard-network
+
+volumes:
+  cloudguard_pgdata:
+  cloudguard_redisdata:
+  cloudguard_jenkins_home:
+
+networks:
+  cloudguard-network:
+    name: cloudguard-network
+    driver: bridge
