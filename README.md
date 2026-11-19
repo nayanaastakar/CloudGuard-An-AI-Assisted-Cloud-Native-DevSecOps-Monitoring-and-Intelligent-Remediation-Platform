@@ -30,124 +30,68 @@ CloudGuard adopts a modern **Vichy design system** featuring high-contrast slate
 
 ---
 
-## Complete Application Showcase & Screenshots
+## Application Showcase & Live Screenshots
 
-### 1. Security Center & Posture Overview
-Real-time posture score evaluation against Pod Security Standards (PSS) with automated threat posture grades.
+CloudGuard features an enterprise **Vichy design system** (`#0D1418`, `#131E24`, `#05AD98`, `#FFFFFF`) with responsive layouts, real-time metrics telemetry, and high-contrast security controls. Below are authentic captures from the live platform. Detailed walkthroughs and descriptions are also documented in [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
+
+### 1. Main Security Center Dashboard
+*Comprehensive overview featuring the calibrated CIS/PSS security score (Grade C), multi-hop attack vectors, AI incident correlations, and live audit findings.*
 <p align="center">
-  <img src="screenshots/01_security_center_posture.png" alt="Security Center Posture" width="95%" />
+  <img src="docs/screenshots/dashboard-overview.png" alt="CloudGuard Main Security Center Dashboard" width="95%" />
 </p>
 
-### 2. Multi-Hop Kubernetes Attack Path Analysis
-Simulated kill-chain traversal identifying lateral movements from ingress endpoints through overprivileged service accounts to cluster secrets.
+### 2. Kubernetes Cluster Monitoring & Live Telemetry
+*Cluster-wide health monitoring with node telemetry, CPU & memory saturation graphs, pod restart counts, and active alert streams.*
 <p align="center">
-  <img src="screenshots/06_attack_paths_analysis.png" alt="Kubernetes Attack Path Analysis" width="95%" />
+  <img src="docs/screenshots/kubernetes-monitoring.png" alt="Kubernetes Cluster Monitoring" width="95%" />
 </p>
 
-### 3. Real-Time Observability & Monitoring Metrics
-Cluster-wide resource metrics tracking CPU utilization, memory pressure, pod restart frequencies, and active firing alerts.
+### 3. Security Posture Assessment & Calibrated Scoring
+*Granular breakdown of workload misconfigurations, PSS compliance benchmark deductions, and severity distributions.*
 <p align="center">
-  <img src="screenshots/14_monitoring_metrics.png" alt="Monitoring & Real-Time Metrics" width="95%" />
+  <img src="docs/screenshots/security-posture.png" alt="Security Posture Assessment" width="95%" />
 </p>
 
-### 4. AI-Driven Log Summarization & Event Stream
-Automated 10-minute AI log summarization powered by Gemini alongside live Kubernetes warning event streams.
+### 4. GitHub Repository Integration
+*Dynamic repository connection interface allowing users to input and connect any GitHub repository with automated URL sanitization.*
 <p align="center">
-  <img src="screenshots/15_monitoring_logs_and_ai_summary.png" alt="AI Log Summary and Event Aggregation" width="95%" />
+  <img src="docs/screenshots/github-repository-integration.png" alt="GitHub Repository Integration" width="95%" />
 </p>
 
-### 5. Multi-Signal Security Modules Gallery
-
-#### Asset Inventory
-Inventory across nodes, pods, namespaces, ingresses, and services with real-time classification.
+### 5. Repository Security & Manifest Scanner
+*Deep static analysis and vulnerability scanning of container manifests, Helm charts, and dependencies with explicit data provenance labels.*
 <p align="center">
-  <img src="screenshots/02_asset_inventory.png" alt="Asset Inventory" width="95%" />
+  <img src="docs/screenshots/repository-security-scanner.png" alt="Repository Security Scanner" width="95%" />
 </p>
 
-#### Vulnerability Intelligence
-Trivy container image scanning with contextual runtime risk calculation and CVSS scoring.
+### 6. Falco Runtime Threat Detection
+*Kernel-level eBPF behavioral threat detection monitoring real-time anomaly events, unauthorized shell executions, and privilege escalations.*
 <p align="center">
-  <img src="screenshots/03_vulnerability_management.png" alt="Vulnerability Intelligence" width="95%" />
+  <img src="docs/screenshots/runtime-threat-detection.png" alt="Falco Runtime Threat Detection" width="95%" />
 </p>
 
-#### Runtime Threats (Falco)
-Kernel-level runtime behavioral anomaly and Falco threat detection streams.
+### 7. Intelligent Remediation Center & Controlled Automation
+*End-to-end remediation lifecycle featuring Kubernetes server-side dry-run validation, unified diff viewer, and strict human authorization safeguards.*
 <p align="center">
-  <img src="screenshots/04_runtime_threats_falco.png" alt="Runtime Threats Falco" width="95%" />
+  <img src="docs/screenshots/remediation-center.png" alt="Intelligent Remediation Center" width="95%" />
 </p>
 
-
-Interactive topological graph modeling cluster relationships and blast radii.
+### 8. Monitoring, Observability & Live Event Streams
+*Correlated cluster logs, Kubernetes warning events, and AI-assisted telemetry summarization for rapid root cause diagnosis.*
 <p align="center">
-  <img src="screenshots/05_security_graph_360.png" alt="360 Security Graph" width="95%" />
+  <img src="docs/screenshots/monitoring-observability.png" alt="Monitoring and Observability" width="95%" />
 </p>
 
-#### AI Incident Investigation
-Automated incident timeline generation, root cause analysis, and Gemini AI suggestions.
+### 9. Multi-Hop Kubernetes Attack Path Analysis
+*Predictive topological attack graph mapping lateral movement trajectories from public ingress points to critical cluster secrets.*
 <p align="center">
-  <img src="screenshots/07_ai_incident_investigation.png" alt="AI Incident Investigation" width="95%" />
+  <img src="docs/screenshots/attack-path-analysis.png" alt="Kubernetes Attack Path Analysis" width="95%" />
 </p>
 
-#### Intelligent Remediation Center
-Server-side dry-run verified YAML manifests with mandatory human-in-the-loop sign-off.
+### 10. Project & Repository Architecture
+*Five-tier system architecture breakdown, open-source technology matrix, and comprehensive platform reference.*
 <p align="center">
-  <img src="screenshots/08_remediation_center.png" alt="Intelligent Remediation Center" width="95%" />
-</p>
-
-#### Compliance Engine
-CIS Kubernetes v1.8, NIST SP 800-190, and PCI-DSS continuous compliance audits.
-<p align="center">
-  <img src="screenshots/09_compliance_engine.png" alt="Compliance Engine" width="95%" />
-</p>
-
-#### DevSecOps Pipeline Security
-Shift-left CI/CD gates and secret interception with Gitleaks pre-commit scanners.
-<p align="center">
-  <img src="screenshots/10_devsecops_pipeline.png" alt="DevSecOps Pipeline Security" width="95%" />
-</p>
-
-#### Scanner Health & SBOM
-CycloneDX and SPDX Software Bill of Materials (SBOM) tracking across images.
-<p align="center">
-  <img src="screenshots/11_scanner_health_and_sbom.png" alt="Scanner Health & SBOM" width="95%" />
-</p>
-
-### 6. Cluster Administration & Workloads
-
-#### Cluster Overview & Nodes
-Node capacity, kubelet statuses, and cluster topology metrics.
-<p align="center">
-  <img src="screenshots/12_cluster_overview_and_nodes.png" alt="Cluster Overview & Nodes" width="95%" />
-</p>
-
-#### Workload Manager
-Resource introspection across Pods, Deployments, and DaemonSets.
-<p align="center">
-  <img src="screenshots/13_kubernetes_workloads.png" alt="Workload Manager" width="95%" />
-</p>
-
-#### Loki Log Explorer
-Multi-tenant log querying with logQL filter capabilities.
-<p align="center">
-  <img src="screenshots/16_loki_log_explorer.png" alt="Loki Log Explorer" width="95%" />
-</p>
-
-#### User Management
-Role-Based Access Control (RBAC) user administration and permissions.
-<p align="center">
-  <img src="screenshots/17_user_management.png" alt="User Management" width="95%" />
-</p>
-
-#### Audit Logs
-Comprehensive immutable audit trail of all administrative and operator actions.
-<p align="center">
-  <img src="screenshots/18_audit_logs.png" alt="Audit Logs" width="95%" />
-</p>
-
-#### Profile Settings
-Operator credentials, API keys, and notification preferences.
-<p align="center">
-  <img src="screenshots/19_profile_settings.png" alt="Profile Settings" width="95%" />
+  <img src="docs/screenshots/project-architecture.png" alt="Project & Repository Architecture" width="95%" />
 </p>
 
 ---
