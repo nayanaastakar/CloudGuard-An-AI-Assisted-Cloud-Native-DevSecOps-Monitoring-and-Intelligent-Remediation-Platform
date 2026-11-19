@@ -53,20 +53,22 @@ export default function CloudGuardDashboard() {
       e.preventDefault();
     }
     setRepoError(null);
-    const cleanUrl = repoInputUrl.trim();
-    if (!cleanUrl) {
+    // Strip query parameters and hash fragments (e.g., ?utm_source=... or #readme)
+    const strippedUrl = repoInputUrl.trim().split('?')[0].split('#')[0].replace(/\/+$/, '');
+    if (!strippedUrl) {
       setRepoError('Please paste a valid GitHub repository URL.');
       return;
     }
 
     // Match github.com/:owner/:repo
-    const match = cleanUrl.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git|\/)?$/);
+    const match = strippedUrl.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git|\/)?$/);
     if (!match) {
       setRepoError('Invalid GitHub URL format. Example: https://github.com/username/repository');
       return;
     }
 
-    const [, owner, repo] = match;
+    const [, owner, rawRepo] = match;
+    const repo = rawRepo.replace(/\.git$/, '');
     setRepoValidating(true);
     try {
       // Validate repository accessibility via GitHub API

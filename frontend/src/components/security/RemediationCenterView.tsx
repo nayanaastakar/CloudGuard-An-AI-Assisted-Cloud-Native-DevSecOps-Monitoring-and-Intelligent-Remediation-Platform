@@ -216,10 +216,26 @@ export default function RemediationCenterView() {
       {/* KPI Overview Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Pending Approval', count: plans.filter((p) => p.status === 'pending_approval').length, color: 'text-amber-400' },
-          { label: 'Approved (Ready to Apply)', count: plans.filter((p) => p.status === 'approved').length, color: 'text-violet-400' },
-          { label: 'Completed & Verified', count: plans.filter((p) => p.status === 'completed').length, color: 'text-blue-400' },
-          { label: 'Rolled Back', count: plans.filter((p) => p.status === 'rolled_back').length, color: 'text-violet-400' },
+          {
+            label: 'Pending Approval / Validation',
+            count: plans.filter((p) => p.status === 'pending_approval' || p.status === 'pending_validation').length,
+            color: 'text-amber-400',
+          },
+          {
+            label: 'Approved (Ready to Apply)',
+            count: plans.filter((p) => p.status === 'approved').length,
+            color: 'text-violet-400',
+          },
+          {
+            label: 'Completed & Verified',
+            count: plans.filter((p) => p.status === 'completed').length,
+            color: 'text-blue-400',
+          },
+          {
+            label: 'Rolled Back',
+            count: plans.filter((p) => p.status === 'rolled_back').length,
+            color: 'text-violet-400',
+          },
         ].map((kpi, idx) => (
           <div key={idx} className="p-4 bg-slate-950/60 border border-gray-800 rounded-xl">
             <span className="text-xs text-gray-400 font-medium">{kpi.label}</span>

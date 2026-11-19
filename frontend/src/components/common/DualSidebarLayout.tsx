@@ -438,6 +438,8 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
       path.startsWith('/nodes')
     ) {
       setActiveModule('monitoring');
+    } else if (path.startsWith('/github-repos') || path.startsWith('/github') || path.startsWith('/about')) {
+      setActiveModule('github-repos');
     } else if (
       path.startsWith('/incidents') ||
       path.startsWith('/settings') ||

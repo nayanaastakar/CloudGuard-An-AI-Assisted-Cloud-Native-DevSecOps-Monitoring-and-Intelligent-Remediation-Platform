@@ -144,10 +144,114 @@ class RemediationEngine:
                     details="Seeded sample plan; no live security finding was verified."
                 ),
                 RemediationAuditEntry(
-                action="validation_unavailable",
+                    action="validation_unavailable",
                     performed_by="cloudguard-validator",
                     timestamp=now,
-                details="Sample plan only. No server-side dry-run was performed."
+                    details="Sample plan only. No server-side dry-run was performed."
+                )
+            ]
+        )
+
+        # Plan 2: Sample Pending Approval
+        plan_id_2 = "REM-SAMPLE-002"
+        cur_yaml_2 = "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: auth-service\n  namespace: default\nspec:\n  template:\n    spec:\n      containers:\n      - name: auth-service\n        image: cloudguard/auth-service:v1.0.0\n"
+        prop_yaml_2 = "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: auth-service\n  namespace: default\nspec:\n  template:\n    spec:\n      containers:\n      - name: auth-service\n        image: cloudguard/auth-service:v1.0.1\n        securityContext:\n          allowPrivilegeEscalation: false\n"
+        diff_lines_2 = list(difflib.unified_diff(
+            cur_yaml_2.splitlines(keepends=True),
+            prop_yaml_2.splitlines(keepends=True),
+            fromfile="current/auth-service.yaml",
+            tofile="remediated/auth-service.yaml",
+        ))
+        self._plans[plan_id_2] = RemediationPlan(
+            remediation_id=plan_id_2,
+            source_type="finding",
+            source_id="FND-2026-0089",
+            title="Sample: Disallow Privilege Escalation on auth-service",
+            target_resource="Deployment/auth-service",
+            namespace="default",
+            category="pod_security",
+            description="Sample remediation plan awaiting operator approval.",
+            current_yaml=cur_yaml_2,
+            proposed_yaml=prop_yaml_2,
+            diff_patch="".join(diff_lines_2),
+            risk_level="medium",
+            is_sensitive=False,
+            security_benefit="Prevents child processes from gaining more privileges than parent process.",
+            operational_impact="Rolling update of deployment auth-service.",
+            status=RemediationLifecycleState.PENDING_APPROVAL,
+            dry_run_verified=True,
+            dry_run_output="Server-side dry-run passed (simulated).",
+            created_by="sec-analyst-bob",
+            pre_change_snapshot=cur_yaml_2,
+            audit_trail=[
+                RemediationAuditEntry(
+                    action="created",
+                    performed_by="sec-analyst-bob",
+                    timestamp=now,
+                    details="Sample plan created."
+                ),
+                RemediationAuditEntry(
+                    action="validated",
+                    performed_by="cloudguard-validator",
+                    timestamp=now,
+                    details="Dry-run validation passed."
+                )
+            ]
+        )
+
+        # Plan 3: Sample Completed & Verified
+        plan_id_3 = "REM-SAMPLE-003"
+        cur_yaml_3 = "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-all\n  namespace: default\n"
+        prop_yaml_3 = "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-all\n  namespace: default\nspec:\n  podSelector: {}\n  policyTypes:\n  - Ingress\n  - Egress\n"
+        diff_lines_3 = list(difflib.unified_diff(
+            cur_yaml_3.splitlines(keepends=True),
+            prop_yaml_3.splitlines(keepends=True),
+            fromfile="current/network-policy.yaml",
+            tofile="remediated/network-policy.yaml",
+        ))
+        self._plans[plan_id_3] = RemediationPlan(
+            remediation_id=plan_id_3,
+            source_type="finding",
+            source_id="FND-2026-0104",
+            title="Sample: Enforce Default Deny Ingress/Egress NetworkPolicy",
+            target_resource="NetworkPolicy/default-deny-all",
+            namespace="default",
+            category="network_security",
+            description="Sample remediation plan successfully applied and verified in cluster.",
+            current_yaml=cur_yaml_3,
+            proposed_yaml=prop_yaml_3,
+            diff_patch="".join(diff_lines_3),
+            risk_level="high",
+            is_sensitive=True,
+            security_benefit="Enforces zero-trust east-west pod isolation.",
+            operational_impact="Pods without explicit ingress/egress rules will have traffic restricted.",
+            status=RemediationLifecycleState.COMPLETED,
+            dry_run_verified=True,
+            dry_run_output="Server-side dry-run passed.",
+            created_by="sec-analyst-bob",
+            approved_by="lead-admin",
+            approval_timestamp=now,
+            execution_timestamp=now,
+            verification_status="verified",
+            pre_change_snapshot=cur_yaml_3,
+            audit_trail=[
+                RemediationAuditEntry(
+                    action="created",
+                    performed_by="sec-analyst-bob",
+                    timestamp=now,
+                    details="Sample plan created."
+                ),
+                RemediationAuditEntry(
+                    action="approved",
+                    performed_by="lead-admin",
+                    timestamp=now,
+                    details="Approved for execution."
+                ),
+                RemediationAuditEntry(
+                    action="executed",
+                    performed_by="cloudguard-runner",
+                    timestamp=now,
+                    details="Applied manifest successfully."
                 )
             ]
         )

@@ -24,7 +24,18 @@ import cloudguardApi, {
 } from '../../services/cloudguardApi';
 
 export default function RepositorySecurityView() {
-  const [repoUrl, setRepoUrl] = useState('');
+  const [repoUrl, setRepoUrl] = useState(() => {
+    try {
+      const stored = localStorage.getItem('cloudguard_connected_github_repo');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.url || '';
+      }
+    } catch (e) {
+      // Ignore storage errors
+    }
+    return '';
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<RepositoryScanResult | null>(null);

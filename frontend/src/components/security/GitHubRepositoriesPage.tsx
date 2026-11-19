@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import {
   CodeBracketSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -11,6 +12,7 @@ import {
   ServerStackIcon,
   CheckCircleIcon,
   CpuChipIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 
 const CLOUDGUARD_REPO = {
@@ -122,6 +124,19 @@ const setupSteps = [
 ];
 
 export default function GitHubRepositoriesPage() {
+  const [userRepo, setUserRepo] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('cloudguard_connected_github_repo');
+      if (stored) {
+        setUserRepo(JSON.parse(stored));
+      }
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, []);
+
   return (
     <div className="min-h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-6 md:p-8 space-y-8">
       {/* Top Header */}
@@ -145,6 +160,43 @@ export default function GitHubRepositoriesPage() {
           View on GitHub
         </a>
       </div>
+
+      {/* User Connected Repository Card (if configured) */}
+      {userRepo && (
+        <div className="bg-slate-800/80 border border-emerald-500/40 rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-gradient-to-r from-emerald-600/20 via-teal-600/10 to-blue-600/20 border-b border-emerald-500/30 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/20 rounded-xl border border-emerald-500/30 text-emerald-400">
+                <LinkIcon className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-white">{userRepo.owner}/{userRepo.repo}</h3>
+                  <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Connected Custom Project
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">{userRepo.url}</p>
+              </div>
+            </div>
+            <a
+              href={userRepo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors shadow-lg shadow-emerald-700/20 self-start md:self-auto"
+            >
+              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+              Open Connected Repo
+            </a>
+          </div>
+          {userRepo.description && (
+            <div className="px-6 py-3.5 bg-slate-900/50 text-xs text-slate-300">
+              <span className="font-semibold text-slate-400">Project Description: </span>
+              {userRepo.description}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Repository Information Card */}
       <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
