@@ -278,7 +278,7 @@ export default function CloudGuardDashboard() {
             </div> : <p className="my-5 text-lg font-semibold text-red-300">No posture score: cluster audit unavailable.</p>}
 
             <p className="text-xs text-gray-400 mt-2">
-              Scoring Formula: <code className="text-blue-400 font-mono">100 - (15×Crit + 8×High + 3×Med + 1×Low)</code>
+              Scoring Formula: <code className="text-blue-400 font-mono">100 - (5×Crit + 2×High + 0.5×Med + 0.2×Low)</code>
             </p>
           </div>
 
