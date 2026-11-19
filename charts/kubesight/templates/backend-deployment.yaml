@@ -40,11 +40,20 @@ spec:
               value: {{ .Values.backend.env.APP_NAME | quote }}
             - name: DEBUG
               value: {{ .Values.backend.env.DEBUG | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.backend.env.ENVIRONMENT | quote }}
             - name: K8S_IN_CLUSTER
               value: {{ .Values.backend.env.K8S_IN_CLUSTER | quote }}
+            - name: K8S_SKIP_TLS_VERIFY
+              value: {{ .Values.backend.env.K8S_SKIP_TLS_VERIFY | quote }}
+            - name: REDIS_ENABLED
+              value: {{ .Values.backend.env.REDIS_ENABLED | quote }}
             {{- with .Values.backend.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ required "backend.existingSecret must name a pre-created secret with SECRET_KEY, DEFAULT_ADMIN_PASSWORD, DATABASE_URL, REDIS_URL, CORS_ORIGINS, and FALCO_WEBHOOK_SECRET" .Values.backend.existingSecret | quote }}
           livenessProbe:
             httpGet:
               path: /health

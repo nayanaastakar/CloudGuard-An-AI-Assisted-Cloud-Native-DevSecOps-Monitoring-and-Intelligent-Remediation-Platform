@@ -39,6 +39,11 @@ class AuthService:
         if self._initialized:
             return
 
+        if not settings.DEFAULT_ADMIN_PASSWORD:
+            self._initialized = True
+            logger.warning("No local administrator users seeded because DEFAULT_ADMIN_PASSWORD is not configured")
+            return
+
         # Create default admin user
         admin_id = str(uuid.uuid4())
         self._users[admin_id] = {
@@ -53,29 +58,8 @@ class AuthService:
             "last_login": None,
         }
 
-        # Create demo users for each role
-        demo_users = [
-            ("viewer", "Viewer User", UserRole.VIEWER),
-            ("operator", "Operator User", UserRole.OPERATOR),
-            ("developer", "Developer User", UserRole.DEVELOPER),
-        ]
-
-        for username, full_name, role in demo_users:
-            user_id = str(uuid.uuid4())
-            self._users[user_id] = {
-                "id": user_id,
-                "username": username,
-                "email": f"{username}@kubesight.local",
-                "full_name": full_name,
-                "password_hash": get_password_hash(settings.DEFAULT_ADMIN_PASSWORD),
-                "role": role,
-                "is_active": True,
-                "created_at": datetime.now(timezone.utc),
-                "last_login": None,
-            }
-
         self._initialized = True
-        logger.info("AuthService initialized with default users")
+        logger.info("AuthService initialized with the configured administrator")
 
     async def authenticate(self, username: str, password: str) -> Optional[TokenResponse]:
         """Authenticate a user and return access and refresh tokens."""

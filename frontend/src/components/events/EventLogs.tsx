@@ -22,7 +22,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Import shared constants
-import { containerVariants, itemVariants, formatAge } from '../../utils/constants';
 
 // Types
 interface K8sEvent {
@@ -282,8 +281,8 @@ export default function EventLogs() {
     try {
       setLoading(true);
       setError(null);
-      const params = namespaceFilter !== 'all' ? { namespace: namespaceFilter } : {};
-      const res = await kubernetesApi.getEvents(params);
+      const namespace = namespaceFilter !== 'all' ? namespaceFilter : undefined;
+      const res = await kubernetesApi.getEvents(namespace);
 
       if (res.data) {
         // Transform API response to our format

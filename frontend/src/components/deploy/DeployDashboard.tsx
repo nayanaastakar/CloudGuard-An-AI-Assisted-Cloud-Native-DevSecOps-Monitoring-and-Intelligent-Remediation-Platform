@@ -55,15 +55,6 @@ const tabs: Tab[] = [
 ];
 
 // Local animation variants (extends shared patterns for this component)
-const localContainerVariants = {
-  ...containerVariants,
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
 
 
 export default function DeployDashboard() {

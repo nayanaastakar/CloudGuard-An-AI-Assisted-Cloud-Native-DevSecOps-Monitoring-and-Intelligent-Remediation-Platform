@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ShieldExclamationIcon,
-  ExclamationCircleIcon,
-  ShieldCheckIcon,
   ArrowPathIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -27,7 +24,7 @@ interface ThreatEvent {
   hostname?: string;
   tags?: string[];
   provenance: {
-    state: 'live' | 'stale' | 'demo' | 'unavailable';
+    state: 'live' | 'stale' | 'demo' | 'unavailable' | 'error';
     source: string;
     last_synced_at: string;
     is_fresh: boolean;
@@ -78,6 +75,18 @@ export default function RuntimeThreatView() {
   useEffect(() => {
     fetchThreats();
   }, [selectedSeverity]);
+
+  // Real-time event listener to refresh on runtime_threat events
+  useEffect(() => {
+    const handleRuntimeThreatEvent = () => {
+      fetchThreats();
+    };
+
+    window.addEventListener('cloudguard:runtime_threat', handleRuntimeThreatEvent);
+    return () => {
+      window.removeEventListener('cloudguard:runtime_threat', handleRuntimeThreatEvent);
+    };
+  }, [selectedSeverity, searchTerm]);
 
   const handleSimulateWebhook = async () => {
     setIsSimulating(true);
@@ -149,7 +158,7 @@ export default function RuntimeThreatView() {
           </button>
           <button
             onClick={fetchThreats}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-gray-200 hover:bg-slate-800 border border-slate-700 transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -181,7 +190,7 @@ export default function RuntimeThreatView() {
       </div>
 
       {/* Controls: Filter & Search */}
-      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-[#0B1220]/60 p-3 rounded-xl border border-gray-800">
+      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-slate-950/60 p-3 rounded-xl border border-gray-800">
         <div className="flex items-center gap-2 w-full md:w-auto">
           <FunnelIcon className="w-4 h-4 text-gray-400" />
           <span className="text-xs text-gray-400">Severity:</span>
@@ -192,7 +201,7 @@ export default function RuntimeThreatView() {
               className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
                 selectedSeverity === sev
                   ? 'bg-blue-600 text-white'
-                  : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
+                  : 'bg-slate-900 text-gray-400 hover:text-gray-200'
               }`}
             >
               {sev}
@@ -213,7 +222,7 @@ export default function RuntimeThreatView() {
       </div>
 
       {/* Events Table / Card Feed */}
-      <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-950/60 border border-gray-800 rounded-xl overflow-hidden">
         {events.length === 0 ? (
           <div className="p-12 text-center text-gray-500 text-sm">
             {isLoading ? 'Scanning for runtime threat alerts...' : 'No runtime threat events match the selected criteria.'}
@@ -225,7 +234,7 @@ export default function RuntimeThreatView() {
                 key={evt.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="p-4 hover:bg-[#151F32]/40 transition-colors flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
+                className="p-4 hover:bg-slate-900/40 transition-colors flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
               >
                 <div className="space-y-1.5 max-w-2xl">
                   <div className="flex items-center gap-2">

@@ -7,7 +7,6 @@ import {
   DocumentDuplicateIcon,
   SparklesIcon,
   PlayIcon,
-  TrashIcon,
   PlusIcon,
   ChevronRightIcon,
   Cog6ToothIcon,
@@ -29,7 +28,6 @@ import {
 import GlassCard from '../common/GlassCard';
 import usePipelineStore from '../../stores/pipelineStore';
 import RepositorySelector, { RepositoryConfig } from './RepositorySelector';
-import { aiOptimizePipeline } from '../../services/pipelineAPI';
 import api from '../../services/api';
 import { pipelineLogger as logger } from '../../utils/logger';
 

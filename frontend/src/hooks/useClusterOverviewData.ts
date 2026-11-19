@@ -83,7 +83,7 @@ async function fetchClusterOverviewData(): Promise<ClusterOverviewData> {
   ]);
 
   // Log successful data fetches for debugging
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.debug('[ClusterOverview] Data fetch results:', {
       health: healthRes?.data ? 'OK' : 'NULL',
       namespaces: namespacesRes?.data?.length ?? 0,
@@ -165,7 +165,7 @@ async function fetchClusterOverviewData(): Promise<ClusterOverviewData> {
       aiInsights.push({
         title: rec.title || 'Optimization Opportunity',
         description: rec.description || 'Review resource allocation',
-        category: rec.category || 'Resource Optimization',
+        category: rec.type || 'Resource Optimization',
         impact: rec.severity === 'critical' || rec.severity === 'high' ? 'high' : rec.severity === 'medium' ? 'medium' : 'low',
         source: 'optimization',
       });

@@ -41,6 +41,38 @@ export interface PipelineRun {
   stages: Stage[];
   artifacts?: Artifact[];
   triggeredBy?: string;
+  testSummary?: TestSummary | null;
+  coverageSummary?: CoverageSummary | null;
+}
+
+export interface TestSummary {
+  totalTests: number;
+  passedTests: number;
+  failedTests: number;
+  skippedTests: number;
+  errorTests?: number;
+  passRate: number;
+  framework?: string | null;
+}
+
+export interface CoverageSummary {
+  lineCoverage?: number | null;
+  branchCoverage?: number | null;
+  coverageChange?: number | null;
+  coverageTool?: string | null;
+}
+
+export interface TestAndCoverageReport {
+  runId: string;
+  pipelineId: string;
+  pipelineName: string;
+  branch: string;
+  commit?: string | null;
+  status: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  testSummary?: TestSummary | null;
+  coverageSummary?: CoverageSummary | null;
 }
 
 export interface Stage {
@@ -312,6 +344,11 @@ export const getPipelineRun = async (pipelineId: string, runId: string): Promise
   }
 };
 
+export const getRunReport = async (runId: string): Promise<TestAndCoverageReport> => {
+  const response = await api.get<TestAndCoverageReport>(`/testing/runs/${runId}/report`);
+  return response.data;
+};
+
 export const triggerPipeline = async (pipelineId: string, branch?: string): Promise<PipelineRun> => {
   try {
     const response = await api.post(`/pipelines/${pipelineId}/runs`, {
@@ -488,9 +525,7 @@ export const createVariable = async (
 
 export const updateVariable = async (
   id: string,
-  variable: Partial<Variable>,
-  pipelineId?: string
-): Promise<Variable> => {
+  variable: Partial<Variable>): Promise<Variable> => {
   try {
     const response = await api.patch(`/pipelines/variables/${id}`, variable);
     return response.data;
@@ -500,7 +535,7 @@ export const updateVariable = async (
   }
 };
 
-export const deleteVariable = async (id: string, pipelineId?: string): Promise<void> => {
+export const deleteVariable = async (id: string): Promise<void> => {
   try {
     await api.delete(`/pipelines/variables/${id}`);
   } catch (error: any) {
@@ -540,9 +575,7 @@ export const createSecret = async (
 
 export const updateSecret = async (
   id: string,
-  secret: { value?: string; scope?: string },
-  pipelineId?: string
-): Promise<Secret> => {
+  secret: { value?: string; scope?: string }): Promise<Secret> => {
   try {
     const response = await api.patch(`/pipelines/secrets/${id}`, secret);
     return response.data;
@@ -552,7 +585,7 @@ export const updateSecret = async (
   }
 };
 
-export const deleteSecret = async (id: string, pipelineId?: string): Promise<void> => {
+export const deleteSecret = async (id: string): Promise<void> => {
   try {
     await api.delete(`/pipelines/secrets/${id}`);
   } catch (error: any) {

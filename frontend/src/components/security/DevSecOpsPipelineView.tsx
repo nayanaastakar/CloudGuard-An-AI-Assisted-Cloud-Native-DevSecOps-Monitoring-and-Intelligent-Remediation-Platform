@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   CommandLineIcon,
   ShieldCheckIcon,
@@ -314,8 +313,8 @@ jobs:
                 onClick={() => setSelectedPipeline(pipe)}
                 className={`p-4 rounded-xl cursor-pointer border transition ${
                   selectedPipeline?.pipeline_id === pipe.pipeline_id
-                    ? 'bg-[#1B2940] border-indigo-500'
-                    : 'bg-[#0B1220] border-gray-800 hover:border-[#2D3B55]'
+                    ? 'bg-slate-800 border-primary-500'
+                    : 'bg-slate-950 border-gray-800 hover:border-slate-600'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -342,7 +341,7 @@ jobs:
           {/* Pipeline Details */}
           <div className="lg:col-span-2 space-y-4">
             {selectedPipeline ? (
-              <div className="p-6 rounded-xl bg-[#0B1220] border border-gray-800 space-y-6">
+              <div className="p-6 rounded-xl bg-slate-950 border border-gray-800 space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-800">
                   <div>
                     <div className="flex items-center gap-3">
@@ -424,7 +423,7 @@ jobs:
             {policies.map((policy) => (
               <div
                 key={policy.id}
-                className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 flex flex-col justify-between"
+                className="p-5 rounded-xl bg-slate-950 border border-gray-800 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -436,7 +435,7 @@ jobs:
                       className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
                         policy.blocking
                           ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-[#151F32] text-gray-400'
+                          : 'bg-slate-900 text-gray-400'
                       }`}
                     >
                       {policy.blocking ? 'Blocking' : 'Advisory Only'}
@@ -460,7 +459,7 @@ jobs:
       {/* Tab: Secrets */}
       {activeTab === 'secrets' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800">
+          <div className="p-5 rounded-xl bg-slate-950 border border-gray-800">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <KeyIcon className="w-5 h-5 text-amber-400" />
@@ -508,7 +507,7 @@ jobs:
       {/* Tab: Signatures */}
       {activeTab === 'signatures' && (
         <div className="space-y-4">
-          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800">
+          <div className="p-5 rounded-xl bg-slate-950 border border-gray-800">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <FingerPrintIcon className="w-5 h-5 text-blue-400" />
               Cosign Digital Signature & Supply Chain Attestation
@@ -585,7 +584,7 @@ jobs:
 
       {/* Tab: CI Snippets */}
       {activeTab === 'ci_snippets' && (
-        <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 space-y-4">
+        <div className="p-5 rounded-xl bg-slate-950 border border-gray-800 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white font-semibold">
               <CodeBracketIcon className="w-5 h-5 text-blue-400" />
@@ -593,7 +592,7 @@ jobs:
             </div>
             <button
               onClick={copySnippet}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#151F32] hover:bg-gray-700 text-xs text-gray-200 border border-[#2D3B55] transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-gray-200 border border-slate-700 transition"
             >
               <ClipboardDocumentCheckIcon className="w-4 h-4 text-blue-400" />
               {copied ? 'Copied!' : 'Copy Workflow'}

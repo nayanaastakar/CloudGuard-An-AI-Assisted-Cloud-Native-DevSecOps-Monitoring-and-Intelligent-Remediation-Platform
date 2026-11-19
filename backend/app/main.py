@@ -11,19 +11,14 @@ from app.api.routes import (
     auth,
     clusters,
     cost,
-    gitflow,
     health,
     helm,
     incidents,
-    jenkins,
     kubernetes,
     optimization,
-    # pipelines,  # Excluded from v1.4.0 release - coming in future version
     prometheus,
     security,
-    selfservice,
     settings as settings_routes,
-    testing,
     timeline,
     websocket,
     cloudguard_routes,
@@ -47,7 +42,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION} ({env})")
 
     # Run production validation checks
-    run_startup_checks(settings, block_on_failure=not settings.DEBUG)
+    run_startup_checks(settings, block_on_failure=not settings.DEBUG and env == "production")
 
     # Set app info metric
     set_app_info(settings.APP_VERSION, env)
@@ -136,11 +131,8 @@ app.add_middleware(MetricsMiddleware)
 app.include_router(metrics_router, tags=["Metrics"])
 app.include_router(health.router, tags=["Health"])
 app.include_router(kubernetes.router, prefix=f"{settings.API_PREFIX}/kubernetes", tags=["Kubernetes"])
-app.include_router(jenkins.router, prefix=f"{settings.API_PREFIX}/jenkins", tags=["Jenkins"])
 app.include_router(incidents.router, prefix=f"{settings.API_PREFIX}/incidents", tags=["Incidents"])
 app.include_router(timeline.router, prefix=f"{settings.API_PREFIX}/timeline", tags=["Timeline"])
-app.include_router(selfservice.router, prefix=f"{settings.API_PREFIX}/selfservice", tags=["Self-Service"])
-app.include_router(gitflow.router, prefix=f"{settings.API_PREFIX}/gitflow", tags=["GitFlow"])
 app.include_router(websocket.router, prefix=f"{settings.API_PREFIX}/ws", tags=["WebSocket"])
 app.include_router(clusters.router, prefix=f"{settings.API_PREFIX}/clusters", tags=["Clusters"])
 app.include_router(auth.router, prefix=f"{settings.API_PREFIX}/auth", tags=["Authentication"])
@@ -150,8 +142,13 @@ app.include_router(security.router, prefix=f"{settings.API_PREFIX}", tags=["Secu
 app.include_router(ai.router, prefix=f"{settings.API_PREFIX}", tags=["AI"])
 app.include_router(argocd.router, prefix=f"{settings.API_PREFIX}", tags=["ArgoCD"])
 app.include_router(optimization.router, prefix=f"{settings.API_PREFIX}/optimization", tags=["Optimization"])
+# Decoupled out-of-scope legacy routers: jenkins, gitflow, selfservice, testing, repo_intel, pipelines
+# app.include_router(jenkins.router, prefix=f"{settings.API_PREFIX}/jenkins", tags=["Jenkins"])
+# app.include_router(selfservice.router, prefix=f"{settings.API_PREFIX}/selfservice", tags=["Self-Service"])
+# app.include_router(gitflow.router, prefix=f"{settings.API_PREFIX}/gitflow", tags=["GitFlow"])
 # app.include_router(pipelines.router, prefix=f"{settings.API_PREFIX}", tags=["Pipelines"])  # Excluded from v1.4.0
-app.include_router(testing.router, prefix=f"{settings.API_PREFIX}", tags=["Testing & Coverage"])
+# app.include_router(testing.router, prefix=f"{settings.API_PREFIX}", tags=["Testing & Coverage"])
+# app.include_router(repo_intel.router, prefix=f"{settings.API_PREFIX}", tags=["Repo Intel"])
 app.include_router(agents.router, prefix=f"{settings.API_PREFIX}", tags=["Agents"])
 app.include_router(prometheus.router, prefix=f"{settings.API_PREFIX}", tags=["Prometheus"])
 app.include_router(cloudguard_routes.router, prefix=f"{settings.API_PREFIX}", tags=["CloudGuard DevSecOps"])

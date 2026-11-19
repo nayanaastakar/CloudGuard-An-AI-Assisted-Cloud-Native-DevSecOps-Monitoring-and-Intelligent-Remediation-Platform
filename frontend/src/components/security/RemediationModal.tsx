@@ -7,6 +7,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
   CheckBadgeIcon,
+  XCircleIcon,
 } from '@heroicons/react/24/outline';
 import cloudguardApi, { RemediationPlan, SecurityFinding } from '../../services/cloudguardApi';
 
@@ -92,16 +93,34 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
     );
   };
 
+  const isLiveResource = plan?.manifest_provenance === 'live';
+  const isDryRunPassed = Boolean(plan?.dry_run_verified);
+  const isExecutionAuthorized = plan?.execution_available !== false;
+  const isValidationPassing = isLiveResource && isDryRunPassed;
+
+  // Determine blocking reasons
+  const getBlockingReason = () => {
+    if (!plan) return 'Generating plan...';
+    if (!isLiveResource) return 'Blocked: Proposed change is based on a sample manifest, not a live cluster resource.';
+    if (!isDryRunPassed) return 'Blocked: Server-side dry-run validation failed or produced errors.';
+    if (!isExecutionAuthorized) return 'Execution disabled: No separate authorized execution identity or action allowlist configured.';
+    if (!confirmed) return 'Confirmation required: Review the diff and check the approval box above.';
+    return null;
+  };
+
+  const blockingReason = getBlockingReason();
+  const canApply = isValidationPassing && isExecutionAuthorized && confirmed && !applying;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B1220]/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl bg-[#151F32] border border-[#2D3B55] shadow-2xl overflow-hidden"
+        className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden"
       >
         {/* Header */}
-        <div className="p-5 border-b border-[#2D3B55] flex items-start justify-between bg-[#0B1220]/60 shrink-0">
+        <div className="p-5 border-b border-slate-700 flex items-start justify-between bg-slate-950/60 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
               <ShieldCheckIcon className="h-6 w-6" />
@@ -118,7 +137,7 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
 
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1B2940] transition-colors"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             title="Close modal"
             aria-label="Close modal"
           >
@@ -148,25 +167,39 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
               <span>{applyResult} Closing and refreshing findings...</span>
             </div>
           )}
+          {plan && !isExecutionAuthorized && (
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 shrink-0" />
+              <span>
+                {plan.policy_restriction_message ||
+                  'Remediation execution is disabled until a separate authorized identity and strict action allowlist are configured.'}
+              </span>
+            </div>
+          )}
 
           {plan && !loading && (
             <>
               {/* Dry-run verification status */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[#0B1220]/80 border border-[#2D3B55]">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/80 border border-slate-700">
                 <div className="flex items-center gap-2">
                   <CheckBadgeIcon className="h-5 w-5 text-blue-400" />
                   <span className="font-medium text-white text-xs sm:text-sm">Kubernetes Server-Side Dry-Run Validation</span>
                 </div>
                 {getValidationBadge()}
               </div>
+              {plan.manifest_provenance === 'demo' && (
+                <p className="text-xs text-amber-300">
+                  Sample manifest only — no live Kubernetes resource was retrieved.
+                </p>
+              )}
 
               {/* Impact and benefit cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-[#0B1220]/40 border border-[#2D3B55]">
+                <div className="p-3.5 rounded-xl bg-slate-950/40 border border-slate-700">
                   <p className="text-xs font-semibold uppercase text-blue-400">Security Benefit</p>
                   <p className="text-xs text-slate-300 mt-1">{plan.security_benefit}</p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#0B1220]/40 border border-[#2D3B55]">
+                <div className="p-3.5 rounded-xl bg-slate-950/40 border border-slate-700">
                   <p className="text-xs font-semibold uppercase text-amber-400">Operational Impact</p>
                   <p className="text-xs text-slate-300 mt-1">{plan.operational_impact}</p>
                 </div>
@@ -180,7 +213,7 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                       viewMode === 'proposed'
                         ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40'
-                        : 'bg-[#1B2940] text-slate-400 hover:text-white border border-transparent'
+                        : 'bg-slate-800 text-slate-400 hover:text-white border border-transparent'
                     }`}
                   >
                     Proposed Remediation YAML
@@ -190,7 +223,7 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                       viewMode === 'diff'
                         ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40'
-                        : 'bg-[#1B2940] text-slate-400 hover:text-white border border-transparent'
+                        : 'bg-slate-800 text-slate-400 hover:text-white border border-transparent'
                     }`}
                   >
                     Unified Diff Patch
@@ -200,18 +233,18 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                       viewMode === 'current'
                         ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40'
-                        : 'bg-[#1B2940] text-slate-400 hover:text-white border border-transparent'
+                        : 'bg-slate-800 text-slate-400 hover:text-white border border-transparent'
                     }`}
                   >
-                    Current Manifest
+                    {plan.manifest_provenance === 'demo' ? 'Sample Manifest' : 'Current Manifest'}
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#0B1220] font-mono text-xs overflow-x-auto max-h-52 border border-[#2D3B55] text-slate-200">
+                <div className="p-3.5 rounded-xl bg-slate-950 font-mono text-xs overflow-x-auto max-h-52 border border-slate-700 text-slate-200">
                   <pre>
                     {viewMode === 'proposed' && (plan.proposed_yaml || 'No proposed YAML generated.')}
                     {viewMode === 'diff' && (plan.diff_patch || 'No unified diff available.')}
-                    {viewMode === 'current' && (plan.current_yaml || 'No live manifest available.')}
+                    {viewMode === 'current' && (plan.current_yaml || 'No current manifest available.')}
                   </pre>
                 </div>
               </div>
@@ -220,39 +253,64 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
         </div>
 
         {/* Footer with Always-Visible Approval Checkbox & Actions */}
-        <div className="p-5 border-t border-[#2D3B55] bg-[#0B1220]/90 shrink-0 space-y-3">
+        <div className="p-5 border-t border-slate-700 bg-slate-950/90 shrink-0 space-y-3">
           {/* Approval Checkbox Section */}
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#151F32] border border-[#2D3B55]">
+          <div className={`flex items-start gap-3 px-3.5 py-3 rounded-xl border ${
+            !isValidationPassing
+              ? 'bg-red-950/20 border-red-500/30 text-slate-400'
+              : 'bg-slate-900 border-slate-700 text-slate-100'
+          }`}>
             <input
               type="checkbox"
               id="remediation-approval-checkbox"
               checked={confirmed}
-              disabled={loading || !plan}
+              disabled={loading || !plan || !isValidationPassing}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="h-4 w-4 rounded border-[#2D3B55] bg-[#0B1220] text-blue-600 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
+              className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             />
-            <label
-              htmlFor="remediation-approval-checkbox"
-              className="text-xs sm:text-sm font-semibold text-slate-100 cursor-pointer select-none flex-1"
-            >
-              I have reviewed the proposed changes and approve this remediation.
-            </label>
+            <div className="flex-1">
+              <label
+                htmlFor="remediation-approval-checkbox"
+                className={`text-xs sm:text-sm font-semibold select-none ${
+                  !isValidationPassing ? 'text-slate-400 cursor-not-allowed' : 'text-slate-100 cursor-pointer'
+                }`}
+              >
+                I have reviewed the proposed changes and authorize execution against the cluster.
+              </label>
+              {!isValidationPassing && (
+                <p className="text-[11px] text-red-400 mt-1">
+                  Approval is locked because technical validation (dry-run or live resource match) failed.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Action Row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-xs">
               {!plan && loading && <span className="text-slate-400">Generating dry-run preview...</span>}
-              {plan && !confirmed && !applying && (
-                <span className="text-amber-400 flex items-center gap-1.5 font-medium">
-                  <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
-                  Confirmation required before applying.
+              {plan && !isValidationPassing && (
+                <span className="text-red-400 flex items-center gap-1.5 font-medium">
+                  <XCircleIcon className="h-4 w-4 shrink-0" />
+                  Validation failed: Execution blocked.
                 </span>
               )}
-              {plan && confirmed && !applying && !applyResult && (
+              {plan && isValidationPassing && !isExecutionAuthorized && (
+                <span className="text-red-400 flex items-center gap-1.5 font-medium">
+                  <XCircleIcon className="h-4 w-4 shrink-0" />
+                  Execution policy blocked (Allowlist required).
+                </span>
+              )}
+              {plan && isValidationPassing && isExecutionAuthorized && !confirmed && !applying && (
+                <span className="text-amber-400 flex items-center gap-1.5 font-medium">
+                  <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
+                  Technical validation passed. Operator approval required.
+                </span>
+              )}
+              {plan && isValidationPassing && isExecutionAuthorized && confirmed && !applying && !applyResult && (
                 <span className="text-emerald-400 flex items-center gap-1.5 font-medium">
                   <CheckCircleIcon className="h-4 w-4 shrink-0" />
-                  Approval granted. Ready to apply to cluster.
+                  Ready for Authorized Execution.
                 </span>
               )}
             </div>
@@ -261,21 +319,15 @@ export default function RemediationModal({ finding, onClose, onSuccess }: Remedi
               <button
                 onClick={onClose}
                 disabled={applying}
-                className="px-4 py-2 text-xs font-medium rounded-xl bg-[#1B2940] hover:bg-[#233552] text-slate-300 border border-[#2D3B55] transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-xs font-medium rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApply}
-                disabled={!confirmed || applying || !plan}
+                disabled={!canApply}
                 className="flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                title={
-                  !plan
-                    ? 'Generating plan...'
-                    : !confirmed
-                    ? 'Confirmation required before applying'
-                    : 'Apply remediation to cluster'
-                }
+                title={blockingReason || 'Apply remediation to cluster'}
               >
                 {applying ? (
                   <>

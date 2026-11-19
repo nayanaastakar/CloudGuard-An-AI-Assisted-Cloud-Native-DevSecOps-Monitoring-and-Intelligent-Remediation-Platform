@@ -9,13 +9,12 @@ import subprocess
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
-import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 
 logger = logging.getLogger(__name__)
 from app.schemas.security import (  # New schemas for RBAC, Network Policies, and Trends
@@ -86,27 +85,11 @@ def _find_trivy_binary() -> Optional[str]:
 def _get_k8s_client() -> client.CoreV1Api:
     """Get Kubernetes CoreV1Api client."""
     try:
-        if os.path.exists("/tmp/kubeconfig"):
-            config.load_kube_config(config_file="/tmp/kubeconfig")
-        elif settings.K8S_IN_CLUSTER:
-            config.load_incluster_config()
-        elif settings.K8S_CONFIG_PATH:
-            config_path = os.path.expanduser(settings.K8S_CONFIG_PATH)
-            config.load_kube_config(config_file=config_path)
-        else:
-            config.load_kube_config()
-
-        # Override host and disable SSL verification for Docker Desktop / internal host
-        configuration = client.Configuration.get_default_copy()
-        if settings.K8S_HOST_OVERRIDE and configuration.host:
-            configuration.host = configuration.host.replace("127.0.0.1", settings.K8S_HOST_OVERRIDE).replace(
-                "localhost", settings.K8S_HOST_OVERRIDE
-            )
-        configuration.verify_ssl = False
-        configuration.assert_hostname = False
-        client.Configuration.set_default(configuration)
-
-        return client.CoreV1Api()
+        api_client = create_kubernetes_api_client(
+            in_cluster=settings.K8S_IN_CLUSTER,
+            host_override=settings.K8S_HOST_OVERRIDE,
+        )
+        return client.CoreV1Api(api_client)
     except Exception as e:
         logger.error(f"Failed to initialize Kubernetes client: {e}")
         raise
@@ -417,8 +400,8 @@ class SecurityService:
 
         try:
             core_v1 = _get_k8s_client()
-            rbac_v1 = client.RbacAuthorizationV1Api()
-            networking_v1 = client.NetworkingV1Api()
+            rbac_v1 = client.RbacAuthorizationV1Api(core_v1.api_client)
+            networking_v1 = client.NetworkingV1Api(core_v1.api_client)
 
             # Check 1: Ensure that the --anonymous-auth argument is set to false
             checks.append(
@@ -1021,7 +1004,7 @@ class SecurityService:
 
         try:
             core_v1 = _get_k8s_client()
-            rbac_v1 = client.RbacAuthorizationV1Api()
+            rbac_v1 = client.RbacAuthorizationV1Api(core_v1.api_client)
 
             # Get all service accounts
             service_accounts = core_v1.list_service_account_for_all_namespaces()
@@ -1287,7 +1270,7 @@ class SecurityService:
 
         try:
             core_v1 = _get_k8s_client()
-            networking_v1 = client.NetworkingV1Api()
+            networking_v1 = client.NetworkingV1Api(core_v1.api_client)
 
             # Get all namespaces
             namespaces = core_v1.list_namespace()

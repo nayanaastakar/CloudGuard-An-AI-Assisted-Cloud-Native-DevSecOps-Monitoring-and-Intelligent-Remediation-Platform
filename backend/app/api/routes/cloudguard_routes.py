@@ -3,10 +3,12 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from pydantic import BaseModel, ValidationError
+from app.core.config import settings
+from app.core.falco_webhook_auth import FalcoWebhookAuthError, MAX_BODY_BYTES, verify_falco_request
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_current_user_optional
 from app.schemas.auth import UserInfo
 from app.services.asset_discovery_service import asset_discovery_service
 from app.services.attack_path_engine import AttackPathEngine
@@ -22,6 +24,14 @@ from app.services.security_graph_service import security_graph_engine
 from app.services.ai_investigation_engine import ai_investigation_engine
 from app.services.remediation_engine import remediation_engine
 from app.services.devsecops_pipeline_service import devsecops_pipeline_service
+from app.services.repository_security_scanner import (
+    repository_scanner,
+    RepositoryScanResult,
+)
+from app.core.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
+from app.models.repo_intel.repository import RepoIntelRepository, RepoIntelAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +61,10 @@ class RemediationApplyRequest(BaseModel):
     comment: Optional[str] = "Approved via CloudGuard Remediation Center"
 
 
+class AuditTriggerRequest(BaseModel):
+    cluster_id: str = "default"
+
+
 class CIWebhookPayload(BaseModel):
     commit_sha: str
     branch: str
@@ -68,13 +82,45 @@ class CIWebhookPayload(BaseModel):
 @router.get("/posture")
 async def get_security_posture(
     cluster_id: str = Query("default", description="Target Kubernetes cluster"),
+    refresh: bool = Query(False, description="Force a fresh audit bypassing cache"),
     current_user: UserInfo = Depends(get_current_user),
 ):
     """Returns explainable security posture audit and score."""
     try:
-        return await posture_engine.audit_cluster(cluster_id)
+        return await posture_engine.audit_cluster(cluster_id, force=refresh)
     except Exception as e:
         logger.error(f"Failed to audit cluster security: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/posture/audit")
+async def trigger_security_audit(
+    payload: AuditTriggerRequest = AuditTriggerRequest(),
+    current_user: UserInfo = Depends(get_current_user),
+):
+    """Triggers an immediate, cache-bypassing security posture audit and broadcasts the result."""
+    try:
+        result = await posture_engine.audit_cluster(payload.cluster_id, force=True)
+        # Broadcast event via WebSocket manager if available
+        try:
+            from app.core.websocket_manager import ws_manager
+            await ws_manager.broadcast_event(
+                event_type="posture_update",
+                data={
+                    "cluster_id": payload.cluster_id,
+                    "audit_run_id": result.get("audit_run_id"),
+                    "audit_status": result.get("audit_status"),
+                    "security_score": result.get("security_score"),
+                    "total_findings": (result.get("security_score") or {}).get("total_findings"),
+                    "audit_triggered_by": current_user.username,
+                },
+                cluster_id=payload.cluster_id,
+            )
+        except Exception as ws_err:
+            logger.warning(f"WebSocket broadcast skipped: {ws_err}")
+        return result
+    except Exception as e:
+        logger.error(f"Security audit trigger failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -140,7 +186,7 @@ async def create_remediation_plan(
     req: RemediationPlanRequest,
     current_user: UserInfo = Depends(get_current_user),
 ):
-    """Generates server-side dry-run validated remediation manifest and diff."""
+    """Generates a remediation manifest and diff with explicit dry-run status."""
     try:
         return await remediation_service.generate_plan(req.model_dump())
     except Exception as e:
@@ -252,6 +298,16 @@ async def get_monitoring_status(
     return await observability_service.get_observability_status()
 
 
+from app.services.realtime_k8s_service import realtime_k8s_service, RealTimeClusterMonitoring
+
+@router.get("/monitoring/realtime", response_model=RealTimeClusterMonitoring)
+async def get_realtime_cluster_monitoring(
+    current_user: Optional[Any] = Depends(get_current_user_optional),
+):
+    """Retrieves live Kubernetes cluster health, nodes, pod failure states, warnings, and native Metrics Server utilization."""
+    return await realtime_k8s_service.get_realtime_metrics()
+
+
 @router.get("/monitoring/metrics")
 async def get_cluster_metrics(
     cluster_id: str = Query("default", description="Cluster ID"),
@@ -278,11 +334,33 @@ async def query_loki_logs(
 
 @router.post("/runtime/falco/webhook")
 async def receive_falco_webhook(
-    payload: FalcoWebhookPayload,
+    request: Request,
+    timestamp: Optional[str] = Header(None, alias="X-CloudGuard-Timestamp"),
+    nonce: Optional[str] = Header(None, alias="X-CloudGuard-Nonce"),
+    signature: Optional[str] = Header(None, alias="X-CloudGuard-Signature"),
 ):
-    """Ingests live runtime threat events from Falco / Falcosidekick with deduplication."""
+    """Accept a timestamped HMAC-signed event from the configured Falco HTTP sender."""
+    body_buffer = bytearray()
+    async for chunk in request.stream():
+        body_buffer.extend(chunk)
+        if len(body_buffer) > MAX_BODY_BYTES:
+            raise HTTPException(status_code=413, detail="Falco webhook payload exceeds the 1 MiB limit")
+    body = bytes(body_buffer)
     try:
+        await verify_falco_request(
+            secret=settings.FALCO_WEBHOOK_SECRET,
+            timestamp=timestamp or "",
+            nonce=nonce or "",
+            signature=signature or "",
+            body=body,
+        )
+    except FalcoWebhookAuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+    try:
+        payload = FalcoWebhookPayload.model_validate_json(body)
         return await runtime_threat_service.ingest_falco_event(payload)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=f"Invalid Falco webhook payload: {e}")
     except Exception as e:
         logger.error(f"Failed to ingest Falco webhook: {e}")
         raise HTTPException(status_code=400, detail=f"Invalid webhook payload: {e}")
@@ -407,6 +485,7 @@ class CreateRemediationRequest(BaseModel):
     current_yaml: str
     proposed_yaml: str
     is_sensitive: bool = False
+    cluster_id: Optional[str] = None
 
 
 class PlanApprovalRequest(BaseModel):
@@ -443,7 +522,7 @@ async def create_remediation_lifecycle_plan(
     payload: CreateRemediationRequest,
     current_user: UserInfo = Depends(get_current_user),
 ):
-    """Creates a new remediation plan with dry-run validation and diff generation."""
+    """Creates a remediation plan with an attempted dry-run and explicit validation result."""
     try:
         return await remediation_engine.create_plan(
             source_type=payload.source_type,
@@ -455,7 +534,8 @@ async def create_remediation_lifecycle_plan(
             current_yaml=payload.current_yaml,
             proposed_yaml=payload.proposed_yaml,
             created_by=current_user.email or current_user.username,
-            is_sensitive=payload.is_sensitive
+            is_sensitive=payload.is_sensitive,
+            cluster_id=payload.cluster_id
         )
     except Exception as e:
         logger.error(f"Failed to create remediation plan: {e}")
@@ -595,6 +675,115 @@ async def verify_image_signature_endpoint(
         image_ref=image,
         expected_signer=expected_signer
     )
+
+
+class RepositoryScanRequest(BaseModel):
+    url: str
+
+
+@router.post("/repository/scan", response_model=RepositoryScanResult)
+async def scan_github_repository(
+    request: RepositoryScanRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Any] = Depends(get_current_user_optional),
+):
+    """Scans a public GitHub repository for DevSecOps and container security risks."""
+    try:
+        result = await repository_scanner.scan_repository(request.url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Repository scanning error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to scan repository: {str(e)}")
+
+    # Safely persist scan history into RepoIntel models
+    try:
+        user_id = getattr(current_user, "id", None) if current_user else None
+        if not user_id:
+            from app.models.user import User
+            admin_user_stmt = select(User.id).where(User.username == "admin").limit(1)
+            admin_res = await db.execute(admin_user_stmt)
+            user_id = admin_res.scalar_one_or_none() or "0e35f0f6-f453-473e-a3b9-3f03d6de77e7"
+
+        owner = result.owner
+        repo = result.repo
+
+        # Check existing repo
+        stmt = select(RepoIntelRepository).where(
+            RepoIntelRepository.github_owner == owner,
+            RepoIntelRepository.repo_name == repo,
+            RepoIntelRepository.user_id == user_id
+        )
+        res = await db.execute(stmt)
+        repo_record = res.scalars().first()
+
+        if not repo_record:
+            repo_record = RepoIntelRepository(
+                user_id=user_id,
+                github_owner=owner,
+                repo_name=repo,
+                github_url=result.repository_url,
+                default_branch=result.default_branch,
+            )
+            db.add(repo_record)
+            await db.flush()
+
+        analysis_record = RepoIntelAnalysis(
+            repository_id=repo_record.id,
+            branch=result.default_branch,
+            commit_sha=result.latest_commit_sha,
+            status=result.scan_status,
+            result=result.model_dump(),
+        )
+        db.add(analysis_record)
+        await db.commit()
+    except Exception as exc:
+        logger.warning(f"Could not persist repository scan record: {exc}")
+        await db.rollback()
+
+    return result
+
+
+@router.get("/repository/history")
+async def get_repository_scan_history(
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Any] = Depends(get_current_user_optional),
+):
+    """Retrieves recent repository scan analyses."""
+    try:
+        stmt = (
+            select(RepoIntelAnalysis, RepoIntelRepository)
+            .join(RepoIntelRepository, RepoIntelAnalysis.repository_id == RepoIntelRepository.id)
+            .order_by(desc(RepoIntelAnalysis.created_at))
+            .limit(limit)
+        )
+        res = await db.execute(stmt)
+        rows = res.all()
+
+        history = []
+        for analysis, repo in rows:
+            res_json = analysis.result or {}
+            history.append({
+                "analysis_id": analysis.id,
+                "repository_url": repo.github_url,
+                "owner": repo.github_owner,
+                "repo": repo.repo_name,
+                "branch": analysis.branch,
+                "commit_sha": analysis.commit_sha,
+                "status": analysis.status,
+                "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+                "critical_count": res_json.get("critical_count", 0),
+                "high_count": res_json.get("high_count", 0),
+                "medium_count": res_json.get("medium_count", 0),
+                "low_count": res_json.get("low_count", 0),
+                "total_findings": res_json.get("total_findings", 0),
+            })
+        return history
+    except Exception as e:
+        logger.error(f"Error fetching repository scan history: {e}")
+        return []
+
 
 
 

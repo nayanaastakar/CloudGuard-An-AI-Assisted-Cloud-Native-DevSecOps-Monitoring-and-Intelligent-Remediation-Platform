@@ -7,10 +7,10 @@ services:
     container_name: cloudguard-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-cloudguard}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudguard_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-cloudguard_db}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - cloudguard_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -27,7 +27,7 @@ services:
     image: redis:7-alpine
     container_name: cloudguard-redis
     ports:
-      - "${REDIS_PORT:-6380}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
     volumes:
       - cloudguard_redisdata:/data
     command: redis-server --appendonly yes
@@ -51,19 +51,24 @@ services:
       - "${BACKEND_PORT:-8001}:8000"
     environment:
       # Database & Auth
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cloudguard}:${POSTGRES_PASSWORD:-cloudguard_secret}@postgres:5432/${POSTGRES_DB:-cloudguard_db}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cloudguard}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-cloudguard_db}
       - USE_DATABASE_AUTH=true
       - REDIS_URL=redis://redis:6379/0
       - REDIS_ENABLED=true
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
       # Security & Identity
       - APP_NAME=CloudGuard
       - APP_TITLE=CloudGuard - An AI-Assisted Cloud-Native DevSecOps Monitoring and Intelligent Remediation Platform
       - APP_VERSION=2.0.0
-      - SECRET_KEY=${SECRET_KEY:-cloudguard-super-secret-key-change-in-production}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:?Set DEFAULT_ADMIN_PASSWORD in .env}
+      - FALCO_WEBHOOK_SECRET=${FALCO_WEBHOOK_SECRET:-}
       # Kubernetes Cluster Access
       - K8S_IN_CLUSTER=false
       - K8S_CONFIG_PATH=/home/cloudguard/.kube/config
       - K8S_HOST_OVERRIDE=host.docker.internal
+      - K8S_SKIP_TLS_VERIFY=${K8S_SKIP_TLS_VERIFY:-false}
       # AI Provider
       - AI_PROVIDER=${AI_PROVIDER:-gemini}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}

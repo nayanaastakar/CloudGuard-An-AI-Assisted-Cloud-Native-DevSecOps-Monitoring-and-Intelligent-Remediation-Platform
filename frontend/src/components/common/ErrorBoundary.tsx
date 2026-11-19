@@ -78,7 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <summary className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                   Error details
                 </summary>
-                <pre className="mt-2 p-3 bg-gray-100 dark:bg-[#151F32] rounded-lg text-xs text-red-600 dark:text-red-400 overflow-auto max-h-40">
+                <pre className="mt-2 p-3 bg-gray-100 dark:bg-slate-900 rounded-lg text-xs text-red-600 dark:text-red-400 overflow-auto max-h-40">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -147,7 +147,7 @@ export function PageErrorBoundary({ children }: { children: ReactNode }) {
               </button>
               <a
                 href="/"
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#151F32] hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 Go to Dashboard
               </a>

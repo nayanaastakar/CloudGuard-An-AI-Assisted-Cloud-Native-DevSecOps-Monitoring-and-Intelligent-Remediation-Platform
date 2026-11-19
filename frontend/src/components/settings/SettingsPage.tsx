@@ -32,7 +32,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
 
   // Data states
-  const [userSettings, setUserSettings] = useState<UserSettingsResponse | null>(null);
+  const [, setUserSettings] = useState<UserSettingsResponse | null>(null);
 
   // Local settings state (for editing before save)
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');

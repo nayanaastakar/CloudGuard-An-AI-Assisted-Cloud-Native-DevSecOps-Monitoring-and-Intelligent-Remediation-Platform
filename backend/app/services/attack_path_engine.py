@@ -26,8 +26,8 @@ class AttackPathEngine:
 
         try:
             core_v1 = _get_k8s_client()
-            net_v1 = client.NetworkingV1Api()
-            rbac_v1 = client.RbacAuthorizationV1Api()
+            net_v1 = client.NetworkingV1Api(core_v1.api_client)
+            rbac_v1 = client.RbacAuthorizationV1Api(core_v1.api_client)
 
             # 1. Gather all exposed entry points (Ingresses & LoadBalancer/NodePort Services)
             entry_points: List[Dict[str, Any]] = []
@@ -115,6 +115,7 @@ class AttackPathEngine:
                             "type": "entry_point",
                             "status": "exposed",
                             "description": "Public ingress or external port facing the Internet.",
+                            "provenance": "live",
                         },
                         {
                             "id": "node-2",
@@ -122,6 +123,7 @@ class AttackPathEngine:
                             "type": "workload",
                             "status": "vulnerable" if is_privileged else "running",
                             "description": f"Target workload running in namespace '{ns}'" + (" (Privileged container execution enabled)" if is_privileged else ""),
+                            "provenance": "live",
                         },
                         {
                             "id": "node-3",
@@ -129,6 +131,7 @@ class AttackPathEngine:
                             "type": "identity",
                             "status": "overprivileged" if has_roles else "standard",
                             "description": f"Bound roles: {', '.join(roles) if roles else 'default tokens'}",
+                            "provenance": "live",
                         },
                         {
                             "id": "node-4",
@@ -136,6 +139,7 @@ class AttackPathEngine:
                             "type": "target",
                             "status": "critical_impact",
                             "description": "Full cluster or node compromise potential.",
+                            "provenance": "live",
                         },
                     ]
 
@@ -162,6 +166,8 @@ class AttackPathEngine:
                         "entry_point": entry_label,
                         "target_resource": target,
                         "hop_count": 3,
+                        "provenance": "live",
+                        "data_source": "kubernetes-api",
                         "nodes": nodes,
                         "edges": edges,
                         "mitigations": mitigations,
@@ -181,11 +187,13 @@ class AttackPathEngine:
                 "entry_point": "Ingress / External Traffic (Port 80/443)",
                 "target_resource": "Cluster Secrets & ConfigMaps",
                 "hop_count": 3,
+                "provenance": "demo",
+                "data_source": "seeded-demo-sample",
                 "nodes": [
-                    {"id": "node-1", "label": "Ingress/frontend-gw", "type": "entry_point", "status": "exposed", "description": "Public entry point into cluster."},
-                    {"id": "node-2", "label": "Pod/frontend-service", "type": "workload", "status": "running", "description": "Microservice pod with automounted token."},
-                    {"id": "node-3", "label": "ServiceAccount/default", "type": "identity", "status": "overprivileged", "description": "Standard service account with secret read access."},
-                    {"id": "node-4", "label": "Secrets/db-credentials", "type": "target", "status": "critical_impact", "description": "Sensitive database connection secrets."},
+                    {"id": "node-1", "label": "Ingress/frontend-gw", "type": "entry_point", "status": "exposed", "description": "Sample public entry point; not verified against a cluster.", "provenance": "demo"},
+                    {"id": "node-2", "label": "Pod/frontend-service", "type": "workload", "status": "running", "description": "Sample microservice pod with an example automounted token.", "provenance": "demo"},
+                    {"id": "node-3", "label": "ServiceAccount/default", "type": "identity", "status": "overprivileged", "description": "Sample service account with example secret read access.", "provenance": "demo"},
+                    {"id": "node-4", "label": "Secrets/db-credentials", "type": "target", "status": "critical_impact", "description": "Sample sensitive database credentials target.", "provenance": "demo"},
                 ],
                 "edges": [
                     {"source": "node-1", "target": "node-2", "label": "Ingress Forwarding", "vector": "Network Ingress"},

@@ -5,11 +5,12 @@ import tempfile
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 from kubernetes.config import list_kube_config_contexts
 
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 from app.schemas.cluster import AuthType, ClusterConfig, ClusterContextInfo, ClusterHealth, ClusterInfo, ClusterStatus
 
 logger = logging.getLogger(__name__)
@@ -106,46 +107,39 @@ class ClusterService:
                     ca_file.write(ca_data)
                     ca_file.close()
                     configuration.ssl_ca_cert = ca_file.name
-                    configuration.verify_ssl = True
-                elif cluster.skip_tls_verify:
-                    configuration.verify_ssl = False
-                else:
-                    configuration.verify_ssl = True
-
-                api_client = client.ApiClient(configuration)
+                api_client = create_kubernetes_api_client(
+                    configuration=configuration, skip_tls_verify=cluster.skip_tls_verify
+                )
 
             elif cluster.in_cluster or cluster.auth_type == AuthType.IN_CLUSTER:
-                config.load_incluster_config()
-                api_client = client.ApiClient()
+                api_client = create_kubernetes_api_client(
+                    in_cluster=True, skip_tls_verify=cluster.skip_tls_verify
+                )
 
             elif cluster.kubeconfig_content:
                 # Write kubeconfig content to a temp file and load it
                 kubeconfig_file = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml", mode="w")
                 kubeconfig_file.write(cluster.kubeconfig_content)
                 kubeconfig_file.close()
-                config.load_kube_config(config_file=kubeconfig_file.name, context=cluster.context)
-                api_client = client.ApiClient()
+                api_client = create_kubernetes_api_client(
+                    config_file=kubeconfig_file.name,
+                    context=cluster.context,
+                    skip_tls_verify=cluster.skip_tls_verify,
+                )
 
             elif cluster.context:
                 config_path = cluster.kubeconfig_path
                 if config_path:
                     config_path = os.path.expanduser(config_path)
-                config.load_kube_config(config_file=config_path, context=cluster.context)
-
-                # Handle host override for Docker Desktop
-                if cluster.host_override:
-                    configuration = client.Configuration.get_default_copy()
-                    if configuration.host:
-                        configuration.host = configuration.host.replace("127.0.0.1", cluster.host_override).replace(
-                            "localhost", cluster.host_override
-                        )
-                        client.Configuration.set_default(configuration)
-
-                api_client = client.ApiClient()
+                api_client = create_kubernetes_api_client(
+                    config_file=config_path,
+                    context=cluster.context,
+                    host_override=cluster.host_override,
+                    skip_tls_verify=cluster.skip_tls_verify,
+                )
 
             else:
-                config.load_kube_config()
-                api_client = client.ApiClient()
+                api_client = create_kubernetes_api_client(in_cluster=False)
 
             self._clients[cluster_id] = {
                 "api_client": api_client,

@@ -21,7 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Import shared utilities
-import { formatAge, itemVariants } from '../../utils/constants';
+import { formatAge } from '../../utils/constants';
 import { StatusBadge } from '../common/StatusBadge';
 
 // Helm-specific status label mapping
@@ -124,7 +124,7 @@ export default function HelmDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Use cached hook for releases
-  const { releases, isLoading: initialLoading, isRefetching: loading, error, refresh } = useHelmReleases(selectedNamespace);
+  const { releases, isRefetching: loading, error, refresh } = useHelmReleases(selectedNamespace);
 
   // Extract unique namespaces from releases
   const namespaces = useMemo(() => {
@@ -307,7 +307,7 @@ export default function HelmDashboard() {
       {/* Error Banner */}
       {error && (
         <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex-shrink-0">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error.message}</p>
         </div>
       )}
 

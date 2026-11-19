@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ArrowLeftIcon,
   StopIcon,
@@ -21,7 +21,6 @@ import { streamRunLogs } from '../../services/pipelineAPI';
 import { pipelineLogger as logger } from '../../utils/logger';
 import TestResultsPanel from './TestResultsPanel';
 import CoverageReport from './CoverageReport';
-import PipelineApprovalGate from './PipelineApprovalGate';
 
 interface StageStatus {
   id: string;
@@ -48,7 +47,6 @@ export default function PipelineRunDetail() {
   const { id: pipelineId, runId } = useParams();
   const navigate = useNavigate();
   const {
-    selectedPipeline,
     selectedRun,
     logs,
     isLoading,
@@ -125,7 +123,7 @@ export default function PipelineRunDetail() {
 
   // Auto-refresh run status for running pipelines
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (selectedRun?.status === 'running' && pipelineId && runId) {
       interval = setInterval(() => {
         fetchRun(pipelineId, runId);
@@ -240,22 +238,6 @@ export default function PipelineRunDetail() {
     return `${seconds}s`;
   };
 
-  const formatTimeAgo = (dateStr?: string) => {
-    if (!dateStr) return 'Never';
-    try {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffSecs = Math.floor(diffMs / 1000);
-
-      if (diffSecs < 60) return `${diffSecs} seconds ago`;
-      if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)} minutes ago`;
-      if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)} hours ago`;
-      return date.toLocaleDateString();
-    } catch {
-      return dateStr;
-    }
-  };
 
   // Get stages from run or use defaults
   const stages: StageStatus[] = selectedRun?.stages || [

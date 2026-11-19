@@ -44,6 +44,9 @@ class RemediationAuditEntry(BaseModel):
 
 class RemediationPlan(BaseModel):
     remediation_id: str
+    cluster_id: str = "default"
+    provenance: str = "demo"
+    data_source: str = "seeded-demo-sample"
     source_type: str  # finding, vulnerability, threat, attack_path, incident
     source_id: str
     title: str
@@ -116,11 +119,11 @@ class RemediationEngine:
             remediation_id=plan_id,
             source_type="finding",
             source_id="FND-2026-0042",
-            title="Drop Privileged Mode & Harden SecurityContext on payment-api",
+            title="Sample: Drop Privileged Mode & Harden SecurityContext on payment-api",
             target_resource="Deployment/payment-api",
             namespace="production",
             category="pod_security",
-            description="Revokes privileged container execution flags and updates image to runc-patched version.",
+            description="Sample remediation for a seeded scenario; this resource and finding have not been verified against a live cluster.",
             current_yaml=cur_yaml,
             proposed_yaml=prop_yaml,
             diff_patch="".join(diff_lines),
@@ -128,9 +131,9 @@ class RemediationEngine:
             is_sensitive=True,  # Requires four-eyes approval
             security_benefit="Mitigates container breakout vulnerability CVE-2024-21626 and prevents unauthorized root host escape.",
             operational_impact="Workload will undergo a zero-downtime rolling restart.",
-            status=RemediationLifecycleState.PENDING_APPROVAL,
-            dry_run_verified=True,
-            dry_run_output="Validation Successful: deployment.apps/payment-api configured (server-side dry-run verified)",
+            status=RemediationLifecycleState.PENDING_VALIDATION,
+            dry_run_verified=False,
+            dry_run_output="Server-side dry-run has not been performed; this is a seeded demonstration plan.",
             created_by="sec-analyst-bob",
             pre_change_snapshot=cur_yaml,
             audit_trail=[
@@ -138,13 +141,13 @@ class RemediationEngine:
                     action="created",
                     performed_by="sec-analyst-bob",
                     timestamp=now,
-                    details="Remediation plan generated from Security Finding FND-2026-0042."
+                    details="Seeded sample plan; no live security finding was verified."
                 ),
                 RemediationAuditEntry(
-                    action="validated",
+                action="validation_unavailable",
                     performed_by="cloudguard-validator",
                     timestamp=now,
-                    details="Server-side dry-run completed with zero admission errors."
+                details="Sample plan only. No server-side dry-run was performed."
                 )
             ]
         )
@@ -160,11 +163,22 @@ class RemediationEngine:
         current_yaml: str,
         proposed_yaml: str,
         created_by: str = "security-analyst",
-        is_sensitive: bool = False
+        is_sensitive: bool = False,
+        cluster_id: Optional[str] = None
     ) -> RemediationPlan:
         """Creates and dry-run validates a new remediation plan."""
         plan_id = f"REM-{len(self._plans) + 1:03d}"
         now = datetime.now(timezone.utc).isoformat()
+
+        # Determine effective cluster_id: explicit param > active cluster
+        effective_cluster_id = cluster_id
+        if not effective_cluster_id:
+            try:
+                from app.services.cluster_service import cluster_service
+                effective_cluster_id = await cluster_service.get_active_cluster()
+            except Exception:
+                effective_cluster_id = None
+        effective_cluster_id = effective_cluster_id or "default"
 
         # Sanity check forbidden destructive actions
         for kw in FORBIDDEN_KEYWORDS:
@@ -182,9 +196,16 @@ class RemediationEngine:
 
         # Dry-run validation
         is_valid, val_msg = await self.validate_manifest(proposed_yaml, namespace)
+        server_validated = is_valid or val_msg.startswith("Server-Side Dry-Run Rejection:")
+        validation_action = (
+            "validated" if is_valid
+            else "validation_failed" if server_validated or val_msg.startswith(("Validation Failed:", "Local Schema Error:"))
+            else "validation_unavailable"
+        )
 
         plan = RemediationPlan(
             remediation_id=plan_id,
+            cluster_id=effective_cluster_id,
             source_type=source_type,
             source_id=source_id,
             title=title,
@@ -200,6 +221,8 @@ class RemediationEngine:
             security_benefit="Hardens cluster security posture and mitigates active finding.",
             operational_impact="Workload configuration will be updated in namespace.",
             status=RemediationLifecycleState.PENDING_APPROVAL if is_valid else RemediationLifecycleState.VALIDATION_FAILED,
+            provenance="live" if server_validated else "unavailable",
+            data_source="kubernetes-server-side-dry-run" if server_validated else "user-supplied-manifest",
             dry_run_verified=is_valid,
             dry_run_output=val_msg,
             created_by=created_by,
@@ -212,7 +235,7 @@ class RemediationEngine:
                     details=f"Plan created for {target_resource}."
                 ),
                 RemediationAuditEntry(
-                    action="validated",
+                    action=validation_action,
                     performed_by="cloudguard-validator",
                     timestamp=now,
                     details=val_msg
@@ -246,12 +269,12 @@ class RemediationEngine:
                 return True, f"Server-Side Dry-Run Successful: {stdout.decode().strip()}"
             else:
                 err = stderr.decode().strip()
-                # If target machine refused connection / cluster is offline, gracefully fall back to local validation
-                if "actively refused" in err or "dial tcp" in err or "refused it" in err or "timed out" in err:
+                # If target machine refused connection / cluster is offline / kubeconfig unreadable, gracefully fall back to local validation
+                if any(err_term in err for err_term in ["actively refused", "dial tcp", "refused it", "timed out", "Access is denied", "no configuration has been provided"]):
                     docs = list(yaml.safe_load_all(manifest_yaml))
                     if not docs or not docs[0]:
                         return False, "Validation Failed: Manifest is empty or invalid YAML."
-                    return True, f"Local-Only Validation Succeeded (Cluster API Offline): YAML syntax and resource schema valid."
+                    return False, "Server-side dry-run unavailable (cluster API offline). Local YAML syntax is valid; this does not verify admission or cluster compatibility."
                 return False, f"Server-Side Dry-Run Rejection: {err}"
         except Exception:
             # Fallback to local schema parsing
@@ -259,7 +282,7 @@ class RemediationEngine:
                 docs = list(yaml.safe_load_all(manifest_yaml))
                 if not docs or not docs[0]:
                     return False, "Validation Failed: Manifest is empty or invalid YAML."
-                return True, "Local-Only Validation Succeeded: YAML syntax and Kubernetes resource schema valid (offline check)."
+                return False, "Server-side dry-run unavailable. Local YAML syntax is valid; this does not verify admission or cluster compatibility."
             except Exception as e:
                 return False, f"Local Schema Error: {e}"
 
@@ -315,7 +338,7 @@ class RemediationEngine:
         return plan
 
     async def execute_plan(self, remediation_id: str, executor: str) -> RemediationPlan:
-        """Executes an approved remediation within the controlled execution boundary."""
+        """Fail closed until a separate identity and strict action allowlist exist."""
         plan = self._plans.get(remediation_id)
         if not plan:
             raise ValueError(f"Remediation plan '{remediation_id}' not found.")
@@ -324,93 +347,31 @@ class RemediationEngine:
             raise ValueError(f"Cannot execute plan in status '{plan.status.value}'. Must be 'approved'.")
 
         now = datetime.now(timezone.utc).isoformat()
-        plan.status = RemediationLifecycleState.EXECUTING
+        plan.status = RemediationLifecycleState.EXECUTION_FAILED
         plan.execution_timestamp = now
-
-        # Execute change via controlled kubectl if available, otherwise deterministic simulation
-        apply_success = False
-        output_log = ""
-
-        try:
-            cmd = ["kubectl", "apply", "-f", "-"]
-            if plan.namespace and plan.namespace != "cluster-wide":
-                cmd.extend(["-n", plan.namespace])
-
-            kubeconfig = "/tmp/kubeconfig" if os.path.exists("/tmp/kubeconfig") else None
-            env = os.environ.copy()
-            if kubeconfig:
-                env["KUBECONFIG"] = kubeconfig
-
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-            )
-            stdout, stderr = await proc.communicate(input=plan.proposed_yaml.encode())
-            if proc.returncode == 0:
-                apply_success = True
-                output_log = f"Live Cluster Execution Succeeded: {stdout.decode().strip()}"
-            else:
-                err = stderr.decode().strip()
-                if "actively refused" in err or "dial tcp" in err or "refused it" in err or "timed out" in err:
-                    apply_success = True
-                    output_log = f"Controlled Execution Succeeded (Simulated Admission - Live Cluster Offline): Applied corrective manifest for {plan.target_resource}."
-                else:
-                    apply_success = False
-                    output_log = f"Live Cluster Execution Rejected: {err}"
-        except Exception:
-            # Deterministic controlled simulation in environments without live cluster write access
-            apply_success = True
-            output_log = f"Controlled Execution Succeeded (Simulated Admission): Applied corrective manifest for {plan.target_resource}."
-
-        if apply_success:
-            plan.status = RemediationLifecycleState.VERIFYING
-            plan.execution_log = output_log
-            plan.audit_trail.append(RemediationAuditEntry(
-                action="executed",
-                performed_by=executor,
-                timestamp=now,
-                details=output_log
-            ))
-
-            # Automatically run post-execution verification
-            await self.verify_plan(remediation_id, verifier="cloudguard-verifier")
-        else:
-            plan.status = RemediationLifecycleState.EXECUTION_FAILED
-            plan.execution_log = output_log
-            plan.audit_trail.append(RemediationAuditEntry(
-                action="execution_failed",
-                performed_by=executor,
-                timestamp=now,
-                details=output_log
-            ))
-
+        plan.execution_log = (
+            "Execution unavailable: no separate remediation identity and strict action allowlist are configured."
+        )
+        plan.audit_trail.append(RemediationAuditEntry(
+            action="execution_unavailable",
+            performed_by=executor,
+            timestamp=now,
+            details=plan.execution_log,
+        ))
         return plan
 
     async def verify_plan(self, remediation_id: str, verifier: str = "cloudguard-verifier") -> RemediationPlan:
-        """Verifies intended security outcome (e.g. readiness and policy compliance)."""
+        """Fail closed until a live Kubernetes post-change verifier exists."""
         plan = self._plans.get(remediation_id)
         if not plan:
             raise ValueError(f"Remediation plan '{remediation_id}' not found.")
 
-        now = datetime.now(timezone.utc).isoformat()
-        # Verification check: Check that securityContext or isolation attributes are valid
-        plan.verification_status = "PASSED"
-        plan.verification_details = "Post-change verification passed: Container securityContext verified runAsNonRoot=true, readOnlyRootFilesystem=true. Zero admission violations."
-        plan.status = RemediationLifecycleState.COMPLETED
-
-        plan.audit_trail.append(RemediationAuditEntry(
-            action="verified",
-            performed_by=verifier,
-            timestamp=now,
-            details=plan.verification_details
-        ))
-        return plan
+        plan.verification_status = "UNAVAILABLE"
+        plan.verification_details = "No live Kubernetes post-change verifier is configured."
+        raise RuntimeError(plan.verification_details)
 
     async def rollback_plan(self, remediation_id: str, operator: str) -> RemediationPlan:
-        """Reverts the applied change to the pre-change snapshot."""
+        """Fail closed until rollback performs a real Kubernetes operation."""
         plan = self._plans.get(remediation_id)
         if not plan:
             raise ValueError(f"Remediation plan '{remediation_id}' not found.")
@@ -418,16 +379,7 @@ class RemediationEngine:
         if not plan.rollback_supported or not plan.pre_change_snapshot:
             raise ValueError("Rollback not supported: No pre-change snapshot preserved.")
 
-        now = datetime.now(timezone.utc).isoformat()
-        plan.status = RemediationLifecycleState.ROLLED_BACK
-        plan.rollback_executed = True
-        plan.audit_trail.append(RemediationAuditEntry(
-            action="rolled_back",
-            performed_by=operator,
-            timestamp=now,
-            details=f"Rollback executed: Workload configuration restored to pre-change snapshot by {operator}."
-        ))
-        return plan
+        raise RuntimeError("Rollback execution is not implemented; no cluster change was made.")
 
     def list_plans(self, status: Optional[str] = None) -> List[RemediationPlan]:
         plans = list(self._plans.values())

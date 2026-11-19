@@ -429,6 +429,9 @@ async def create_default_admin(db: AsyncSession):
     count = result.scalar() or 0
 
     if count == 0:
+        if not settings.DEFAULT_ADMIN_PASSWORD:
+            logger.error("Default administrator was not created because DEFAULT_ADMIN_PASSWORD is not configured")
+            return
         logger.info("No users found. Creating default admin user...")
         admin = User(
             username="admin",
@@ -440,23 +443,5 @@ async def create_default_admin(db: AsyncSession):
         )
         db.add(admin)
 
-        # Create demo users
-        demo_users = [
-            ("viewer", "Viewer User", "viewer@kubesight.local", UserRole.VIEWER),
-            ("operator", "Operator User", "operator@kubesight.local", UserRole.OPERATOR),
-            ("developer", "Developer User", "developer@kubesight.local", UserRole.DEVELOPER),
-        ]
-
-        for username, full_name, email, role in demo_users:
-            user = User(
-                username=username,
-                email=email,
-                full_name=full_name,
-                password_hash=get_password_hash(settings.DEFAULT_ADMIN_PASSWORD),
-                role=role,
-                is_active=True,
-            )
-            db.add(user)
-
         await db.commit()
-        logger.info("Default users created successfully")
+        logger.info("Default administrator created successfully")

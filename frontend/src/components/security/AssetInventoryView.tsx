@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   ServerIcon,
   CircleStackIcon,
@@ -8,7 +7,6 @@ import {
   MagnifyingGlassIcon,
   ArrowPathIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import cloudguardApi, { InfrastructureInventoryResponse } from '../../services/cloudguardApi';
 import ProvenanceBadge from '../common/ProvenanceBadge';
@@ -60,7 +58,7 @@ export const AssetInventoryView: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+        <div className="bg-slate-950 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
           <div className="p-3 bg-purple-950/60 text-violet-400 rounded-lg border border-purple-800/40">
             <ServerIcon className="w-6 h-6" />
           </div>
@@ -70,7 +68,7 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+        <div className="bg-slate-950 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
           <div className="p-3 bg-blue-950/60 text-violet-400 rounded-lg border border-blue-800/40">
             <FolderIcon className="w-6 h-6" />
           </div>
@@ -80,7 +78,7 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+        <div className="bg-slate-950 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
           <div className="p-3 bg-emerald-950/60 text-blue-400 rounded-lg border border-emerald-800/40">
             <CircleStackIcon className="w-6 h-6" />
           </div>
@@ -90,7 +88,7 @@ export const AssetInventoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+        <div className="bg-slate-950 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
           <div className="p-3 bg-cyan-950/60 text-violet-400 rounded-lg border border-cyan-800/40">
             <CubeIcon className="w-6 h-6" />
           </div>
@@ -102,7 +100,7 @@ export const AssetInventoryView: React.FC = () => {
       </div>
 
       {/* Navigation Tabs and Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220]/60 border border-gray-800 p-2 rounded-xl">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-950/60 border border-gray-800 p-2 rounded-xl">
         <div className="flex items-center gap-1 w-full sm:w-auto">
           {(['workloads', 'nodes', 'namespaces', 'pods'] as const).map((tab) => (
             <button
@@ -132,7 +130,7 @@ export const AssetInventoryView: React.FC = () => {
       </div>
 
       {/* Asset Table */}
-      <div className="bg-[#0B1220] border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-slate-950 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-12 text-center text-gray-400 text-sm">Synchronizing infrastructure assets...</div>
         ) : (
@@ -152,7 +150,7 @@ export const AssetInventoryView: React.FC = () => {
                   data?.workloads
                     .filter((w) => w.name.toLowerCase().includes(search.toLowerCase()))
                     .map((w) => (
-                      <tr key={w.id} className="hover:bg-[#151F32]/30 transition-colors">
+                      <tr key={w.id} className="hover:bg-slate-900/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{w.name}</td>
                         <td className="py-3 px-4 text-blue-400">{w.type}</td>
                         <td className="py-3 px-4 text-gray-400">{w.namespace}</td>
@@ -169,7 +167,7 @@ export const AssetInventoryView: React.FC = () => {
                   data?.nodes
                     .filter((n) => n.name.toLowerCase().includes(search.toLowerCase()))
                     .map((n) => (
-                      <tr key={n.id} className="hover:bg-[#151F32]/30 transition-colors">
+                      <tr key={n.id} className="hover:bg-slate-900/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{n.name}</td>
                         <td className="py-3 px-4 text-violet-400">{n.type}</td>
                         <td className="py-3 px-4 text-gray-400">{n.roles.join(', ') || 'worker'}</td>
@@ -182,7 +180,7 @@ export const AssetInventoryView: React.FC = () => {
                   data?.namespaces
                     .filter((ns) => ns.name.toLowerCase().includes(search.toLowerCase()))
                     .map((ns) => (
-                      <tr key={ns.id} className="hover:bg-[#151F32]/30 transition-colors">
+                      <tr key={ns.id} className="hover:bg-slate-900/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium">{ns.name}</td>
                         <td className="py-3 px-4 text-violet-400">{ns.type}</td>
                         <td className="py-3 px-4 text-gray-400">Cluster Scoped</td>
@@ -195,7 +193,7 @@ export const AssetInventoryView: React.FC = () => {
                   data?.pods
                     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
                     .map((p) => (
-                      <tr key={p.id} className="hover:bg-[#151F32]/30 transition-colors">
+                      <tr key={p.id} className="hover:bg-slate-900/30 transition-colors">
                         <td className="py-3 px-4 text-white font-medium truncate max-w-xs">{p.name}</td>
                         <td className="py-3 px-4 text-violet-400">{p.type}</td>
                         <td className="py-3 px-4 text-gray-400">{p.namespace}</td>

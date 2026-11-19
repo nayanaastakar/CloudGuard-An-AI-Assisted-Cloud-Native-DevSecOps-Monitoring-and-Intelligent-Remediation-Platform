@@ -12,7 +12,6 @@ import {
   CloudIcon,
   BeakerIcon,
   ChartBarIcon,
-  ShieldCheckIcon,
   BellIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -103,7 +102,7 @@ export default function IntegrationsPage() {
         status: item.status,
         lastSync: item.last_sync ? new Date(item.last_sync).toLocaleString() : undefined,
         isManaged: item.is_managed,
-        setupUrl: item.setup_url,
+        setupUrl: item.setup_url ?? undefined,
         config: item.config as Record<string, string> | undefined,
       }));
 
@@ -224,17 +223,6 @@ export default function IntegrationsPage() {
     i => !selectedCategory || i.category === selectedCategory
   );
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'Source Control': return LinkIcon;
-      case 'CI/CD': return BeakerIcon;
-      case 'Monitoring': return ChartBarIcon;
-      case 'Logging': return ChartBarIcon;
-      case 'Notifications': return BellIcon;
-      case 'Cloud': return CloudIcon;
-      default: return LinkIcon;
-    }
-  };
 
   if (loading) {
     return (

@@ -5,6 +5,7 @@ Represents data provenance across all security signals:
 - stale: Previously collected live data that has exceeded freshness TTL
 - demo: Simulated/mock data used when real components are unavailable
 - unavailable: Target system unreachable or scanner not installed
+- error: A collection attempt failed or returned invalid data
 """
 
 from datetime import datetime, timezone
@@ -18,15 +19,16 @@ class ProvenanceState(str, Enum):
     STALE = "stale"
     DEMO = "demo"
     UNAVAILABLE = "unavailable"
+    ERROR = "error"
 
 
 class ProvenanceMetadata(BaseModel):
     state: ProvenanceState = Field(
         default=ProvenanceState.DEMO,
-        description="Data provenance: live, stale, demo, or unavailable"
+        description="Data provenance: live, stale, demo, unavailable, or error"
     )
     source: str = Field(..., description="Origin of the data (e.g., k8s-api, trivy, prowler, demo-generator)")
-    last_synced_at: datetime = Field(
+    last_synced_at: Optional[datetime] = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp of the last successful data collection"
     )
@@ -48,7 +50,7 @@ def determine_provenance(
     last_sync: Optional[datetime] = None,
     ttl_seconds: int = 120,
     error: Optional[str] = None,
-    source_name: str = "cluster"
+    source_name: str = "cluster",
 ) -> ProvenanceMetadata:
     """Helper to compute deterministic provenance metadata."""
     now = datetime.now(timezone.utc)

@@ -35,6 +35,7 @@ export interface Pod {
   node?: string;
   ip?: string;
   containers: string[];
+  labels?: Record<string, string>;
 }
 
 export interface Deployment {

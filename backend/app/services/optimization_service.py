@@ -8,10 +8,11 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 from app.core.cache import cache_service, CacheConfig
 from app.schemas.optimization import (
     ApplyOptimizationRequest,
@@ -60,16 +61,10 @@ class OptimizationService:
             return
 
         try:
-            if settings.K8S_IN_CLUSTER:
-                config.load_incluster_config()
-            elif settings.K8S_CONFIG_PATH:
-                import os
-                config_path = os.path.expanduser(settings.K8S_CONFIG_PATH)
-                config.load_kube_config(config_file=config_path)
-            else:
-                config.load_kube_config()
-
-            self._api_client = client.ApiClient()
+            self._api_client = create_kubernetes_api_client(
+                in_cluster=settings.K8S_IN_CLUSTER,
+                host_override=settings.K8S_HOST_OVERRIDE,
+            )
             self._core_v1 = client.CoreV1Api(self._api_client)
             self._apps_v1 = client.AppsV1Api(self._api_client)
             self._custom_api = client.CustomObjectsApi(self._api_client)

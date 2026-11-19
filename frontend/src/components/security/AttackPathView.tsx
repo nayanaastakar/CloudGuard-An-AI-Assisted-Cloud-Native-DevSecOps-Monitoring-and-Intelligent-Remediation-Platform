@@ -1,13 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
   CommandLineIcon,
   ShieldCheckIcon,
   ArrowDownIcon,
   ArrowRightIcon,
-  ExclamationTriangleIcon,
-  ShieldExclamationIcon,
   GlobeAltIcon,
   CubeTransparentIcon,
   KeyIcon,
@@ -15,6 +12,7 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import cloudguardApi, { AttackPath } from '../../services/cloudguardApi';
+import ProvenanceBadge from '../common/ProvenanceBadge';
 
 export default function AttackPathView() {
   const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
@@ -29,6 +27,7 @@ export default function AttackPathView() {
   });
 
   const selectedPath = paths.find((p) => p.path_id === selectedPathId) || paths[0];
+  const selectedPathProvenance = selectedPath?.provenance || 'demo';
 
   const getNodeIcon = (type: string) => {
     switch (type) {
@@ -42,16 +41,16 @@ export default function AttackPathView() {
   const getNodeColor = (type: string, status: string) => {
     if (type === 'target') return 'border-red-500/50 bg-red-500/10 text-red-400';
     if (status === 'exposed') return 'border-amber-500/50 bg-amber-500/10 text-amber-400';
-    if (status === 'overprivileged' || status === 'vulnerable') return 'border-[#05AD98]/50 bg-[#05AD98]/10 text-[#05AD98]';
-    return 'border-[#05AD98]/50 bg-[#05AD98]/10 text-[#05AD98]';
+    if (status === 'overprivileged' || status === 'vulnerable') return 'border-primary-400/50 bg-primary-400/10 text-primary-300';
+    return 'border-primary-400/50 bg-primary-400/10 text-primary-300';
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-[#131E24] border border-[#2F424E] shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="p-3.5 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] shadow-lg shadow-[#05AD98]/20">
+          <div className="p-3.5 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-500/20">
             <CommandLineIcon className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -61,7 +60,7 @@ export default function AttackPathView() {
                 Predictive Lateral Movement
               </span>
             </div>
-            <p className="text-sm text-[#BBBFBF] mt-1">
+            <p className="text-sm text-slate-300 mt-1">
               Multi-hop graph modeling mapping public ingresses, vulnerable containers, and overprivileged service accounts.
             </p>
           </div>
@@ -70,7 +69,7 @@ export default function AttackPathView() {
         <button
           onClick={() => refetch()}
           disabled={isLoading || isRefetching}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-[#1A2830] hover:bg-[#223540] border border-[#2F424E] text-white transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white transition-colors disabled:opacity-50"
         >
           <ArrowPathIcon className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
           Recalculate Paths
@@ -79,19 +78,19 @@ export default function AttackPathView() {
 
       {isLoading ? (
         <div className="py-24 text-center">
-          <ArrowPathIcon className="h-10 w-10 text-[#05AD98] animate-spin mx-auto mb-3" />
-          <p className="text-sm text-[#BBBFBF]">Traversing cluster relationship graphs and analyzing lateral vectors...</p>
+          <ArrowPathIcon className="h-10 w-10 text-primary-300 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-slate-300">Traversing cluster relationship graphs and analyzing lateral vectors...</p>
         </div>
       ) : paths.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-[#131E24] border border-[#2F424E] text-[#BBBFBF]">
-          <ShieldCheckIcon className="h-12 w-12 text-[#05AD98] mx-auto mb-2" />
+        <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-700 text-slate-300">
+          <ShieldCheckIcon className="h-12 w-12 text-primary-300 mx-auto mb-2" />
           No high-risk multi-hop attack vectors detected in the current cluster topology.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Paths List */}
           <div className="space-y-3 min-w-0">
-            <h3 className="text-xs font-semibold uppercase text-[#BBBFBF] tracking-wider mb-2">
+            <h3 className="text-xs font-semibold uppercase text-slate-300 tracking-wider mb-2">
               Identified Attack Paths ({paths.length})
             </h3>
             {paths.map((p) => {
@@ -102,18 +101,18 @@ export default function AttackPathView() {
                   onClick={() => setSelectedPathId(p.path_id)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[#1A2830] border-[#05AD98] shadow-lg shadow-[#05AD98]/15 ring-1 ring-[#05AD98]'
-                      : 'bg-[#131E24] border-[#2F424E] hover:bg-[#1A2830] hover:border-[#878787]'
+                      ? 'bg-slate-800 border-primary-500 shadow-lg shadow-primary-500/15 ring-1 ring-primary-500'
+                      : 'bg-slate-900 border-slate-700 hover:bg-slate-800 hover:border-slate-500'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-mono font-bold text-[#05AD98]">{p.path_id}</span>
+                    <span className="text-xs font-mono font-bold text-primary-300">{p.path_id}</span>
                     <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-500/10 text-red-400 border border-red-500/20 uppercase">
                       Risk: {p.risk_score}
                     </span>
                   </div>
                   <h4 className="text-sm font-semibold text-white line-clamp-1">{p.title}</h4>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-[#BBBFBF]">
+                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-300">
                     <span>{p.hop_count} Hops</span>
                     <span>•</span>
                     <span className="truncate">{p.entry_point}</span>
@@ -126,27 +125,32 @@ export default function AttackPathView() {
           {/* Interactive Graph Details View */}
           <div className="lg:col-span-2 space-y-6 min-w-0">
             {selectedPath && (
-              <div className="p-6 rounded-2xl bg-[#131E24] border border-[#2F424E] shadow-xl space-y-6">
+              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-xl space-y-6">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-500/10 text-red-400 border border-red-500/20 uppercase">
-                      Severity: {selectedPath.severity}
-                    </span>
-                    <span className="text-xs text-[#BBBFBF] font-mono">Risk Score: {selectedPath.risk_score} / 10.0</span>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-500/10 text-red-400 border border-red-500/20 uppercase">
+                        Severity: {selectedPath.severity}
+                      </span>
+                      <ProvenanceBadge state={selectedPathProvenance} />
+                    </div>
+                    <span className="text-xs text-slate-300 font-mono">Risk Score: {selectedPath.risk_score} / 10.0</span>
                   </div>
                   <h2 className="text-lg font-bold text-white mt-2">{selectedPath.title}</h2>
-                  <p className="text-xs text-[#BBBFBF] mt-1">
-                    Simulated traversal vector from public entry point to target cluster compromise.
+                  <p className="text-xs text-slate-300 mt-1">
+                    {selectedPathProvenance === 'demo'
+                      ? 'Sample traversal vector; not verified against a live cluster.'
+                      : 'Potential traversal vector derived from cluster data; validate evidence before acting.'}
                   </p>
                 </div>
 
                 {/* Graph Chain Visualizer */}
-                <div className="p-4 sm:p-6 rounded-xl bg-[#0D1418] border border-[#2F424E] min-w-0">
+                <div className="p-4 sm:p-6 rounded-xl bg-slate-950 border border-slate-700 min-w-0">
                   <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h4 className="text-xs font-semibold uppercase text-[#BBBFBF] tracking-wider">
+                    <h4 className="text-xs font-semibold uppercase text-slate-300 tracking-wider">
                       Attack Path Traversal Chain
                     </h4>
-                    <span className="text-[11px] text-[#BBBFBF] font-medium">
+                    <span className="text-[11px] text-slate-300 font-medium">
                       {selectedPath.nodes.length} Nodes • {selectedPath.hop_count} Hops
                     </span>
                   </div>
@@ -211,9 +215,9 @@ export default function AttackPathView() {
                             <div className="flex flex-col items-center justify-center shrink-0 py-2 lg:py-0 px-1 text-center w-full lg:w-16">
                               {/* Horizontal arrow for desktop */}
                               <div className="hidden lg:flex flex-col items-center justify-center w-full">
-                                <ArrowRightIcon className="h-4 w-4 text-[#05AD98] animate-pulse shrink-0" />
+                                <ArrowRightIcon className="h-4 w-4 text-primary-300 animate-pulse shrink-0" />
                                 <span
-                                  className="text-[9px] font-mono text-[#06C4AD] font-semibold tracking-tighter mt-1 text-center leading-tight max-w-[62px]"
+                                  className="text-[9px] font-mono text-secondary-300 font-semibold tracking-tighter mt-1 text-center leading-tight max-w-[62px]"
                                   style={{
                                     whiteSpace: 'normal',
                                     wordBreak: 'break-word',
@@ -226,8 +230,8 @@ export default function AttackPathView() {
 
                               {/* Vertical arrow for mobile/tablet */}
                               <div className="flex lg:hidden flex-col items-center justify-center">
-                                <ArrowDownIcon className="h-4 w-4 text-[#05AD98] animate-pulse my-0.5" />
-                                <span className="text-[10px] font-mono text-[#06C4AD] font-medium tracking-tight">
+                                <ArrowDownIcon className="h-4 w-4 text-primary-300 animate-pulse my-0.5" />
+                                <span className="text-[10px] font-mono text-secondary-300 font-medium tracking-tight">
                                   {edge?.vector || edge?.label || 'Vector'}
                                 </span>
                               </div>
@@ -240,14 +244,14 @@ export default function AttackPathView() {
                 </div>
 
                 {/* Mitigations */}
-                <div className="p-5 rounded-xl bg-[#0D1418] border border-[#2F424E] space-y-3">
-                  <h4 className="text-xs font-semibold uppercase text-[#05AD98] tracking-wider">
+                <div className="p-5 rounded-xl bg-slate-950 border border-slate-700 space-y-3">
+                  <h4 className="text-xs font-semibold uppercase text-primary-300 tracking-wider">
                     Recommended Security Mitigations
                   </h4>
                   <ul className="space-y-2">
                     {selectedPath.mitigations.map((m, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs text-[#BBBFBF]">
-                        <ShieldCheckIcon className="h-4 w-4 text-[#05AD98] shrink-0 mt-0.5" />
+                      <li key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                        <ShieldCheckIcon className="h-4 w-4 text-primary-300 shrink-0 mt-0.5" />
                         <span>{m}</span>
                       </li>
                     ))}

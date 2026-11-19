@@ -21,15 +21,14 @@ import {
   ArrowPathRoundedSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { kubernetesApi, aiApi, type WorkloadAnalysisFix, type WorkloadAnalysisResponse } from '../../services/api';
+import { kubernetesApi, aiApi, type WorkloadAnalysisResponse } from '../../services/api';
 import { logger } from '../../utils/logger';
 import GlassCard from '../common/GlassCard';
 import { useToast } from '../../contexts/ToastContext';
 import type { Deployment, StatefulSet, DaemonSet, Job, Namespace, PodMetrics, K8sEvent, Pod } from '../../types';
 
 // Import shared constants
-import { containerVariants, itemVariants, formatAge } from '../../utils/constants';
-import { StatusBadge } from '../common/StatusBadge';
+import { containerVariants, itemVariants } from '../../utils/constants';
 
 type WorkloadType = 'deployments' | 'statefulsets' | 'daemonsets' | 'jobs';
 
@@ -113,7 +112,7 @@ function WorkloadDrawer({
   const [logs, setLogs] = useState<string>('');
   const [selectedPod, setSelectedPod] = useState<string>('');
   const [selectedContainer, setSelectedContainer] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const [] = useState(false);
   const [yamlLoading, setYamlLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -893,7 +892,7 @@ export default function WorkloadsPage() {
   const [daemonsets, setDaemonsets] = useState<DaemonSet[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [namespaces, setNamespaces] = useState<Namespace[]>([]);
-  const [podMetrics, setPodMetrics] = useState<PodMetrics[]>([]);
+  const [, setPodMetrics] = useState<PodMetrics[]>([]);
   const [allPods, setAllPods] = useState<Pod[]>([]);
 
   // Operation states
@@ -901,7 +900,7 @@ export default function WorkloadsPage() {
   const [deleteModal, setDeleteModal] = useState<UnifiedWorkload | null>(null);
   const [operationLoading, setOperationLoading] = useState(false);
 
-  const { showToast } = useToast();
+  const toast = useToast();
 
   useEffect(() => {
     fetchData();
@@ -943,11 +942,11 @@ export default function WorkloadsPage() {
       } else if (workload.type === 'statefulsets') {
         await kubernetesApi.scaleStatefulSet(workload.namespace, workload.name, replicas);
       }
-      showToast(`Successfully scaled ${workload.name} to ${replicas} replicas`, 'success');
+      toast.success(`Scaled ${workload.name} to ${replicas} replicas`);
       setScaleModal(null);
       fetchData();
     } catch (error: any) {
-      showToast(`Failed to scale ${workload.name}: ${error.response?.data?.detail || error.message}`, 'error');
+      toast.error(`Failed to scale ${workload.name}: ${error.response?.data?.detail || error.message}`);
     } finally {
       setOperationLoading(false);
     }
@@ -964,10 +963,10 @@ export default function WorkloadsPage() {
       } else if (workload.type === 'daemonsets') {
         await kubernetesApi.restartDaemonSet(workload.namespace, workload.name);
       }
-      showToast(`Successfully restarted ${workload.name}`, 'success');
+      toast.success(`Restarted ${workload.name}`);
       fetchData();
     } catch (error: any) {
-      showToast(`Failed to restart ${workload.name}: ${error.response?.data?.detail || error.message}`, 'error');
+      toast.error(`Failed to restart ${workload.name}: ${error.response?.data?.detail || error.message}`);
     } finally {
       setOperationLoading(false);
     }
@@ -986,11 +985,11 @@ export default function WorkloadsPage() {
       } else if (workload.type === 'jobs') {
         await kubernetesApi.deleteJob(workload.namespace, workload.name);
       }
-      showToast(`Successfully deleted ${workload.name}`, 'success');
+      toast.success(`Deleted ${workload.name}`);
       setDeleteModal(null);
       fetchData();
     } catch (error: any) {
-      showToast(`Failed to delete ${workload.name}: ${error.response?.data?.detail || error.message}`, 'error');
+      toast.error(`Failed to delete ${workload.name}: ${error.response?.data?.detail || error.message}`);
     } finally {
       setOperationLoading(false);
     }

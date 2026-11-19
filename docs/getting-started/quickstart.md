@@ -1,13 +1,19 @@
 # Quick Start
 
-Get up and running with KubeSight in minutes.
+Get CloudGuard running locally with credentials you choose.
+
+## Configure Local Credentials
+
+1. Copy `.env.example` to `.env`.
+2. Replace the placeholders for `POSTGRES_PASSWORD`, `SECRET_KEY`, and `DEFAULT_ADMIN_PASSWORD` with unique values. Set the database URL password to match `POSTGRES_PASSWORD`.
+3. Keep `ENVIRONMENT=development` and `DEBUG=true` for local development. Leave `FALCO_WEBHOOK_SECRET` blank to keep Falco webhook ingestion disabled, or configure a separate random secret.
+4. Start the services with `docker compose up`.
 
 ## First Login
 
-1. Open **http://localhost:3000** in your browser
-2. Login with default credentials:
-   - Username: `admin`
-   - Password: `admin123`
+1. Open **http://localhost:3001** in your browser.
+2. Sign in as `admin` with the `DEFAULT_ADMIN_PASSWORD` configured in `.env`.
+3. CloudGuard creates only the initial administrator when the database has no users. Create separate accounts for other people and roles after sign-in. Existing database users are preserved.
 
 ## Dashboard Overview
 

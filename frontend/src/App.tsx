@@ -37,8 +37,10 @@ const RemediationCenterView = lazy(() => import('./components/security/Remediati
 const VulnerabilityIntelligenceView = lazy(() => import('./components/security/VulnerabilityIntelligenceView'));
 const ComplianceView = lazy(() => import('./components/security/ComplianceView'));
 const DevSecOpsPipelineView = lazy(() => import('./components/security/DevSecOpsPipelineView'));
+const RepositorySecurityView = lazy(() => import('./components/security/RepositorySecurityView'));
 const RuntimeThreatView = lazy(() => import('./components/security/RuntimeThreatView'));
 const LogExplorerView = lazy(() => import('./components/monitoring/LogExplorerView'));
+const GitHubRepositoriesPage = lazy(() => import('./components/security/GitHubRepositoriesPage'));
 // const ClusterCostDashboard = lazy(() => import('./components/cost/ClusterCostDashboard'));  // Excluded from v1.4.0
 const EventLogs = lazy(() => import('./components/events/EventLogs'));
 const NetworkingDashboard = lazy(() => import('./components/networking/NetworkingDashboard'));
@@ -198,6 +200,9 @@ function AppContent() {
                       <Route path="/vulnerabilities" element={<VulnerabilityIntelligenceView />} />
                       <Route path="/compliance" element={<ComplianceView />} />
                       <Route path="/devsecops" element={<DevSecOpsPipelineView />} />
+                      <Route path="/repository-security" element={<RepositorySecurityView />} />
+                      <Route path="/github-repos" element={<GitHubRepositoriesPage />} />
+                      <Route path="/github" element={<GitHubRepositoriesPage />} />
                       <Route path="/overview" element={<Dashboard />} />
 
                       {/* KUBERNETES MODULE */}

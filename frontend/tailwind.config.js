@@ -1,3 +1,70 @@
+const slatePalette = {
+  50: '#F8F6F4',
+  100: '#EEEAE6',
+  200: '#D7D1CC',
+  300: '#B1A296',
+  400: '#8C8287',
+  500: '#5D5C61',
+  600: '#4D4C51',
+  700: '#3E3D42',
+  800: '#2D2C31',
+  900: '#222126',
+  950: '#171619',
+};
+
+const dustyBluePalette = {
+  50: '#F1F5F7',
+  100: '#DDE7ED',
+  200: '#C0D1DC',
+  300: '#A0B7C7',
+  400: '#87A5BA',
+  500: '#7395AE',
+  600: '#557A95',
+  700: '#47677D',
+  800: '#395366',
+  900: '#2C404F',
+  950: '#1D2D39',
+};
+
+const steelBluePalette = {
+  50: '#F1F4F6',
+  100: '#D9E3E9',
+  200: '#B9CBD6',
+  300: '#96B0C0',
+  400: '#7496AD',
+  500: '#557A95',
+  600: '#47677D',
+  700: '#395366',
+  800: '#2C404F',
+  900: '#1F303D',
+  950: '#17232C',
+};
+
+const mauvePalette = {
+  50: '#EFF7F4',
+  100: '#D8ECE6',
+  200: '#B2D8CC',
+  300: '#86BFAF',
+  400: '#5BA791',
+  500: '#379683',
+  600: '#2C7E6E',
+  700: '#246556',
+  800: '#1E5146',
+  900: '#153B34',
+  950: '#102923',
+};
+
+const successPalette = {
+  ...mauvePalette,
+  400: '#379683',
+  500: '#2C7E6E',
+  600: '#246556',
+  700: '#1E5146',
+  800: '#153B34',
+  900: '#102923',
+  950: '#0B1C19',
+};
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -23,52 +90,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Vichy Theme Palette:
-        // Teal Accent: #05AD98
-        // Medium Slate: #878787
-        // Soft Light Gray: #BBBFBF
-        // Crisp White: #FFFFFF
+        cloudguard: {
+          slate: '#5D5C61',
+          mauve: '#379683',
+          'dusty-blue': '#7395AE',
+          'steel-blue': '#557A95',
+          'warm-taupe': '#B1A296',
+        },
         vichy: {
-          teal: '#05AD98',
-          'teal-light': '#06C4AD',
-          'teal-dark': '#048F7D',
-          'teal-deep': '#036B5E',
-          gray: '#878787',
-          'gray-light': '#BBBFBF',
-          white: '#FFFFFF',
+          teal: '#379683',
+          'teal-light': '#5BA791',
+          'teal-dark': '#2C7E6E',
+          'teal-deep': '#1E5146',
+          gray: '#5D5C61',
+          'gray-light': '#B1A296',
+          white: '#F7F4F1',
         },
         navy: {
-          950: '#070C10',
-          900: '#0D1418', // Main background deep charcoal/slate
-          800: '#131E24', // Sidebar & top navigation
-          700: '#1A2830', // Cards and panels
-          600: '#223540',
-          border: '#2F424E', // Borders
+          950: '#171619',
+          900: '#222126',
+          800: '#2D2C31',
+          700: '#3E3D42',
+          600: '#4D4C51',
+          border: '#5D5C61',
         },
-        primary: {
-          50: '#e6f7f5',
-          100: '#c0ebe5',
-          200: '#94ded3',
-          300: '#63cec0',
-          400: '#34bfac',
-          500: '#05AD98', // Vichy Teal primary
-          600: '#048f7d',
-          700: '#036e60',
-          800: '#03544a',
-          900: '#023c34',
-        },
-        secondary: {
-          50: '#f6f7f7',
-          100: '#e5e7e7',
-          200: '#d0d3d3',
-          300: '#BBBFBF', // Vichy Soft Gray
-          400: '#9fa3a3',
-          500: '#878787', // Vichy Medium Slate Gray
-          600: '#6e6e6e',
-          700: '#565656',
-          800: '#3f3f3f',
-          900: '#292929',
-        },
+        slate: slatePalette,
+        gray: slatePalette,
+        blue: steelBluePalette,
+        indigo: dustyBluePalette,
+        purple: steelBluePalette,
+        violet: steelBluePalette,
+        cyan: successPalette,
+        green: successPalette,
+        emerald: successPalette,
+        primary: dustyBluePalette,
+        secondary: mauvePalette,
+        success: successPalette,
         warning: {
           50: '#fffbeb',
           100: '#fef3c7',
@@ -93,28 +150,16 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
-        success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'blue-violet': 'linear-gradient(135deg, #05AD98 0%, #036B5E 100%)',
-        'vichy-gradient': 'linear-gradient(135deg, #05AD98 0%, #048F7D 100%)',
+        'blue-violet': 'linear-gradient(135deg, #557A95 0%, #5D5C61 100%)',
+        'vichy-gradient': 'linear-gradient(135deg, #7395AE 0%, #557A95 100%)',
       },
       boxShadow: {
-        'blue-glow': '0 0 15px rgba(59, 130, 246, 0.3)',
-        'violet-glow': '0 0 15px rgba(139, 92, 246, 0.3)',
+        'blue-glow': '0 0 15px rgba(85, 122, 149, 0.3)',
+        'violet-glow': '0 0 15px rgba(55, 150, 131, 0.25)',
       },
     },
   },

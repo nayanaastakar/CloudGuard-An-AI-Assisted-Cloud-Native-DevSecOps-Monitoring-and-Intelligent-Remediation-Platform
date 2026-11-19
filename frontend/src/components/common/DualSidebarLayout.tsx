@@ -4,13 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ServerStackIcon,
   RocketLaunchIcon,
-  BeakerIcon,
   ShieldCheckIcon,
   ChartBarIcon,
   Cog6ToothIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
-  ChevronDownIcon,
   MagnifyingGlassIcon,
   ArrowLeftStartOnRectangleIcon,
   Bars3Icon,
@@ -31,8 +29,11 @@ import {
   WrenchScrewdriverIcon,
   BuildingLibraryIcon,
   ArrowsRightLeftIcon,
+  CodeBracketSquareIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCluster } from '../../contexts/ClusterContext';
+import { useCloudGuardEvents } from '../../hooks/useCloudGuardEvents';
 import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
 import NotificationDropdown from './NotificationDropdown';
@@ -78,60 +79,66 @@ interface LayoutProps {
 
 const level1Navigation: Level1Item[] = [
   { id: 'dashboard', name: 'Security Center', icon: ShieldCheckIcon, href: '/' },
-  { id: 'assets', name: 'Asset Inventory', icon: ServerStackIcon, badge: 'Inv', badgeColor: 'green', href: '/assets' },
+  { id: 'monitoring', name: 'Kubernetes Monitoring', icon: ChartBarIcon, badge: 'Live', badgeColor: 'green', href: '/monitoring' },
+  { id: 'repository-security', name: 'Repository Security', icon: RocketLaunchIcon, badge: 'Git', badgeColor: 'purple', href: '/repository-security' },
   { id: 'vulnerabilities', name: 'Vulnerability Management', icon: ShieldExclamationIcon, href: '/vulnerabilities' },
   { id: 'threats', name: 'Runtime Threats', icon: ShieldExclamationIcon, badge: 'Falco', badgeColor: 'red', href: '/threats' },
-  { id: 'graph', name: 'Security Graph', icon: ServerStackIcon, badge: '360°', badgeColor: 'purple', href: '/graph' },
-  { id: 'attack-paths', name: 'Attack Paths', icon: ArrowsRightLeftIcon, badge: 'Live', badgeColor: 'red', href: '/attack-paths' },
-  { id: 'incidents', name: 'AI Investigation', icon: ShieldExclamationIcon, badge: 'AI', badgeColor: 'purple', href: '/incidents' },
-  { id: 'remediation', name: 'Remediation Center', icon: WrenchScrewdriverIcon, badge: 'Dry-Run', badgeColor: 'green', href: '/remediation' },
-  { id: 'compliance', name: 'Compliance Engine', icon: BuildingLibraryIcon, href: '/compliance' },
-  { id: 'devsecops', name: 'DevSecOps Pipeline', icon: RocketLaunchIcon, href: '/devsecops' },
-  { id: 'sbom', name: 'Scanner Health & SBOM', icon: CubeTransparentIcon, href: '/sbom' },
-  // Core Infrastructure & Deployments
-  { id: 'kubernetes', name: 'Cluster & Workloads', icon: ServerStackIcon },
-  { id: 'deploy', name: 'Deployments & Helm', icon: CubeTransparentIcon },
-  { id: 'monitoring', name: 'Observability & Metrics', icon: ChartBarIcon, href: '/monitoring' },
-  { id: 'logs', name: 'Loki Log Explorer', icon: CommandLineIcon, href: '/logs' },
-  { id: 'settings', name: 'Settings & Admin', icon: Cog6ToothIcon },
+  { id: 'attack-paths', name: 'Attack Paths & Graph', icon: ArrowsRightLeftIcon, badge: '360°', badgeColor: 'purple', href: '/attack-paths' },
+  { id: 'remediation', name: 'Remediation & Compliance', icon: WrenchScrewdriverIcon, badge: 'Dry-Run', badgeColor: 'green', href: '/remediation' },
+  { id: 'github-repos', name: 'Project & Repository', icon: CodeBracketSquareIcon, badge: 'Docs', badgeColor: 'blue', href: '/github-repos' },
+  { id: 'incidents', name: 'AI Insights & Settings', icon: Cog6ToothIcon, href: '/incidents' },
 ];
 
 const level2Configurations: Record<string, Level2Config> = {
-  kubernetes: {
-    title: 'Kubernetes Workloads',
+  monitoring: {
+    title: 'Cluster Monitoring',
     items: [
+      { name: 'Observability Dashboard', href: '/monitoring', icon: ChartBarIcon },
       { name: 'Cluster Overview', href: '/cluster-overview', icon: CloudIcon },
-      { name: 'Nodes', href: '/kubernetes/nodes', icon: ServerIcon },
-      { name: 'Namespaces', href: '/namespaces', icon: FolderIcon },
-      { name: 'Workloads', href: '/kubernetes/workloads', icon: CubeTransparentIcon },
-      { name: 'Configuration', href: '/kubernetes/configuration', icon: DocumentDuplicateIcon },
-      { name: 'Networking', href: '/kubernetes/networking', icon: GlobeAltIcon },
-      { name: 'Storage', href: '/kubernetes/storage', icon: CircleStackIcon },
-      { name: 'Terminal', href: '/kubernetes/terminal', icon: CommandLineIcon },
+      { name: 'Nodes & Utilization', href: '/kubernetes/nodes', icon: ServerIcon },
+      { name: 'Workloads & Pods', href: '/kubernetes/workloads', icon: CubeTransparentIcon },
+      { name: 'Cluster Events', href: '/events', icon: DocumentTextIcon },
+      { name: 'Loki Log Explorer', href: '/logs', icon: CommandLineIcon },
     ],
   },
-  deploy: {
-    title: 'Deploy & Packaging',
+  vulnerabilities: {
+    title: 'Vulnerability Intelligence',
     items: [
-      { name: 'YAML Deploy', href: '/deploy/yaml', icon: DocumentTextIcon },
-      { name: 'Helm Deploy', href: '/deploy/helm', icon: CubeTransparentIcon },
-      { name: 'ArgoCD Deploy', href: '/deploy/argocd', icon: CloudIcon },
+      { name: 'Vulnerability Scans', href: '/vulnerabilities', icon: ShieldExclamationIcon },
+      { name: 'Scanner Health & SBOM', href: '/sbom', icon: CubeTransparentIcon },
+      { name: 'Asset Inventory', href: '/assets', icon: ServerStackIcon },
     ],
   },
-  pipelines: {
-    title: 'Pipelines',
+  'attack-paths': {
+    title: 'Attack Paths & Graph',
     items: [
-      { name: 'All Pipelines', href: '/pipelines', icon: BeakerIcon },
+      { name: 'Attack Path Analysis', href: '/attack-paths', icon: ArrowsRightLeftIcon },
+      { name: '360° Security Graph', href: '/graph', icon: ServerStackIcon },
     ],
   },
-  settings: {
-    title: 'Platform Administration',
+  remediation: {
+    title: 'Remediation & Compliance',
     items: [
-      { name: 'General Settings', href: '/settings', icon: Cog6ToothIcon },
-      { name: 'Profile', href: '/profile', icon: UserCircleIcon },
-      { name: 'Cluster Management', href: '/clusters', icon: ServerStackIcon },
+      { name: 'Remediation Center', href: '/remediation', icon: WrenchScrewdriverIcon },
+      { name: 'Compliance Engine', href: '/compliance', icon: BuildingLibraryIcon },
+      { name: 'DevSecOps Gates', href: '/devsecops', icon: RocketLaunchIcon },
+    ],
+  },
+  incidents: {
+    title: 'AI Insights & Settings',
+    items: [
+      { name: 'AI Incident Investigation', href: '/incidents', icon: ShieldExclamationIcon },
+      { name: 'Platform Settings', href: '/settings', icon: Cog6ToothIcon },
       { name: 'User Management', href: '/admin/users', icon: UserGroupIcon, badge: 'Admin' },
-      { name: 'API Keys', href: '/admin/api-keys', icon: KeyIcon },
+      { name: 'Audit Logs', href: '/admin/audit-logs', icon: DocumentTextIcon },
+      { name: 'Profile Settings', href: '/profile', icon: UserCircleIcon },
+    ],
+  },
+  'github-repos': {
+    title: 'Project & Repository',
+    items: [
+      { name: 'Architecture & Docs', href: '/github-repos', icon: CodeBracketSquareIcon },
+      { name: 'View on GitHub', href: 'https://github.com/nayanaastakar/CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-Remediation-Platform', icon: GlobeAltIcon },
     ],
   },
 };
@@ -186,8 +193,8 @@ function Level1NavItem({
         isCollapsed ? 'justify-center w-11 h-11 px-0 mx-auto' : 'w-full h-11 px-3'
       } rounded-xl cursor-pointer transition-all duration-200 group ${
         isActive
-          ? 'bg-[#05AD98] text-white shadow-lg shadow-[#05AD98]/30 font-semibold'
-          : 'text-slate-400 hover:bg-[#1A2830] hover:text-[#05AD98]'
+          ? 'bg-primary-500 text-slate-950 shadow-lg shadow-primary-500/30 font-semibold'
+          : 'text-slate-400 hover:bg-slate-800 hover:text-primary-300'
       }`}
     >
       <item.icon className="h-5 w-5 shrink-0" />
@@ -221,9 +228,9 @@ function Level1NavItem({
       )}
 
       {/* Tooltip on hover */}
-      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#0D1418] border border-[#2F424E] text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl pointer-events-none">
+      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-950 border border-slate-700 text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-xl pointer-events-none">
         {item.name}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#0D1418]" />
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-950" />
       </div>
     </motion.div>
   );
@@ -266,8 +273,8 @@ function Level2CollapsibleGroup({
         onClick={onToggle}
         className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-colors ${
           hasActiveChild
-            ? 'text-[#05AD98] bg-[#05AD98]/10'
-            : 'text-[#BBBFBF] hover:text-white hover:bg-[#1A2830]'
+            ? 'text-primary-300 bg-primary-500/10'
+            : 'text-slate-300 hover:text-white hover:bg-slate-800'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -321,14 +328,14 @@ function Level2SimpleItem({
         whileHover={{ x: 2 }}
         className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors group mb-1 ${
           isActive
-            ? 'bg-[#05AD98] text-white font-medium shadow-md shadow-[#05AD98]/20'
-            : 'text-[#BBBFBF] hover:text-white hover:bg-[#1A2830]'
+            ? 'bg-primary-500 text-slate-950 font-medium shadow-md shadow-primary-500/20'
+            : 'text-slate-300 hover:text-white hover:bg-slate-800'
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <item.icon
             className={`h-4 w-4 flex-shrink-0 ${
-              isActive ? 'text-white' : 'text-[#BBBFBF] group-hover:text-[#05AD98]'
+              isActive ? 'text-white' : 'text-slate-300 group-hover:text-primary-300'
             }`}
           />
           <span className="truncate">{item.name}</span>
@@ -376,6 +383,10 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { activeCluster } = useCluster();
+
+  // Single authenticated real-time WebSocket connection for cluster security events
+  useCloudGuardEvents({ clusterId: activeCluster?.id || 'default' });
 
   const [activeModule, setActiveModule] = useState<string>('dashboard');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Workloads', 'Nodes']));
@@ -405,36 +416,36 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
     const path = location.pathname;
     if (path === '/' || path === '/security') {
       setActiveModule('dashboard');
-    } else if (path.startsWith('/assets')) {
-      setActiveModule('assets');
+    } else if (path.startsWith('/repository-security')) {
+      setActiveModule('repository-security');
     } else if (path.startsWith('/threats') || path.startsWith('/runtime')) {
       setActiveModule('threats');
-    } else if (path.startsWith('/graph') || path.startsWith('/security-graph')) {
-      setActiveModule('graph');
-    } else if (path.startsWith('/attack-paths')) {
+    } else if (path.startsWith('/attack-paths') || path.startsWith('/graph') || path.startsWith('/security-graph')) {
       setActiveModule('attack-paths');
-    } else if (path.startsWith('/incidents')) {
-      setActiveModule('incidents');
-    } else if (path.startsWith('/vulnerabilities')) {
+    } else if (path.startsWith('/vulnerabilities') || path.startsWith('/sbom') || path.startsWith('/scanners') || path.startsWith('/assets')) {
       setActiveModule('vulnerabilities');
-    } else if (path.startsWith('/sbom') || path.startsWith('/scanners')) {
-      setActiveModule('sbom');
-    } else if (path.startsWith('/remediation')) {
+    } else if (path.startsWith('/remediation') || path.startsWith('/compliance') || path.startsWith('/devsecops')) {
       setActiveModule('remediation');
-    } else if (path.startsWith('/compliance')) {
-      setActiveModule('compliance');
-    } else if (path.startsWith('/devsecops')) {
-      setActiveModule('devsecops');
-    } else if (path.startsWith('/logs')) {
-      setActiveModule('logs');
-    } else if (path.startsWith('/cluster-overview') || path.startsWith('/kubernetes') || path.startsWith('/namespaces') || path.startsWith('/networking') || path.startsWith('/storage') || path.startsWith('/nodes')) {
-      setActiveModule('kubernetes');
-    } else if (path.startsWith('/deploy')) {
-      setActiveModule('deploy');
-    } else if (path.startsWith('/monitoring') || path.startsWith('/events')) {
+    } else if (
+      path.startsWith('/monitoring') ||
+      path.startsWith('/events') ||
+      path.startsWith('/logs') ||
+      path.startsWith('/cluster-overview') ||
+      path.startsWith('/kubernetes') ||
+      path.startsWith('/namespaces') ||
+      path.startsWith('/networking') ||
+      path.startsWith('/storage') ||
+      path.startsWith('/nodes')
+    ) {
       setActiveModule('monitoring');
-    } else if (path.startsWith('/settings') || path.startsWith('/profile') || path.startsWith('/clusters') || path.startsWith('/admin')) {
-      setActiveModule('settings');
+    } else if (
+      path.startsWith('/incidents') ||
+      path.startsWith('/settings') ||
+      path.startsWith('/profile') ||
+      path.startsWith('/clusters') ||
+      path.startsWith('/admin')
+    ) {
+      setActiveModule('incidents');
     }
   }, [location.pathname]);
 
@@ -520,59 +531,65 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1418] text-[#FFFFFF] transition-colors duration-300">
-      {/* Subtle Vichy Teal Glows */}
+    <div className="min-h-screen bg-slate-950 text-slate-50 transition-colors duration-300">
+      {/* Subtle palette glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#05AD98]/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 left-1/4 w-96 h-96 bg-[#048F7D]/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-96 h-96 bg-secondary-500/5 rounded-full blur-3xl" />
       </div>
 
       {/* ============================================================ */}
       {/* LEVEL-1 SIDEBAR (Main Navigation) */}
       {/* ============================================================ */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 ${
+        className={`hidden lg:flex fixed left-0 top-0 bottom-0 ${
           isSidebarCollapsed ? 'w-16' : 'w-60'
-        } bg-[#131E24] border-r border-[#2F424E] z-50 flex flex-col shadow-xl transition-all duration-300`}
+        } bg-slate-900 border-r border-slate-700 z-50 flex-col shadow-xl transition-all duration-300`}
       >
         {/* CloudGuard Logo & Collapse Toggle */}
-        <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#2F424E]">
-          <div
-            className="flex items-center gap-3 cursor-pointer overflow-hidden min-w-0"
-            onClick={() => navigate('/')}
-            title="CloudGuard Security Center"
-          >
-            <motion.div
-              whileHover={{ scale: 1.08, rotate: 4 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center shadow-lg shadow-[#05AD98]/30 shrink-0"
+        <div className={`h-16 flex items-center ${isSidebarCollapsed ? 'justify-center px-1' : 'justify-between px-3.5'} border-b border-slate-700`}>
+          {!isSidebarCollapsed ? (
+            <div
+              className="flex items-center gap-3 cursor-pointer overflow-hidden min-w-0"
+              onClick={() => navigate('/')}
+              title="CloudGuard Security Center"
             >
-              <ShieldCheckIcon className="h-5 w-5 text-white" />
-            </motion.div>
-            {!isSidebarCollapsed && (
+              <motion.div
+                whileHover={{ scale: 1.08, rotate: 4 }}
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg shadow-primary-500/30 shrink-0"
+              >
+                <ShieldCheckIcon className="h-5 w-5 text-white" />
+              </motion.div>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-bold text-white tracking-tight truncate">
                   CloudGuard
                 </span>
-                <span className="text-[10px] text-[#05AD98] font-semibold tracking-wider uppercase truncate">
+                <span className="text-[10px] text-primary-300 font-semibold tracking-wider uppercase truncate">
                   DevSecOps 360°
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg shadow-primary-500/30 cursor-pointer shrink-0"
+              onClick={toggleSidebar}
+              title="Click to expand sidebar"
+            >
+              <ShieldCheckIcon className="h-5 w-5 text-white" />
+            </div>
+          )}
 
           {/* Sidebar Collapse Toggle Button */}
-          <button
-            onClick={toggleSidebar}
-            aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1.5 rounded-lg text-[#BBBFBF] hover:text-white hover:bg-[#1A2830] transition-colors shrink-0"
-          >
-            {isSidebarCollapsed ? (
-              <ChevronRightIcon className="h-4 w-4" />
-            ) : (
+          {!isSidebarCollapsed && (
+            <button
+              onClick={toggleSidebar}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+            >
               <ChevronLeftIcon className="h-4 w-4" />
-            )}
-          </button>
+            </button>
+          )}
         </div>
 
         {/* Navigation Items */}
@@ -589,29 +606,29 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-2 border-t border-[#2F424E]">
+        <div className="p-2 border-t border-slate-700">
           {user && (
             <div
               onClick={() => navigate('/profile')}
               title={`Logged in as ${user.username} (${user.role})`}
               className={`flex items-center gap-3 ${
                 isSidebarCollapsed ? 'justify-center p-1' : 'px-2 py-2'
-              } rounded-xl hover:bg-[#1A2830] cursor-pointer transition-colors`}
+              } rounded-xl hover:bg-slate-800 cursor-pointer transition-colors`}
             >
               <div className="relative shrink-0">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center shadow-md shadow-[#05AD98]/25">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md shadow-primary-500/25">
                   <span className="text-white font-bold text-xs">
                     {user.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#05AD98] rounded-full border-2 border-[#131E24]" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-success-500 rounded-full border-2 border-slate-900" />
               </div>
               {!isSidebarCollapsed && (
                 <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-xs font-semibold text-[#FFFFFF] truncate">
                     {user.username}
                   </span>
-                  <span className="text-[10px] text-[#BBBFBF] capitalize truncate">
+                  <span className="text-[10px] text-slate-300 capitalize truncate">
                     {user.role}
                   </span>
                 </div>
@@ -630,10 +647,10 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -240, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={`fixed top-0 bottom-0 w-60 ${isSidebarCollapsed ? 'left-16' : 'left-60'} bg-[#131E24]/95 backdrop-blur-xl border-r border-[#2F424E] z-40 flex flex-col shadow-2xl`}
+            className={`hidden lg:flex fixed top-0 bottom-0 w-60 ${isSidebarCollapsed ? 'left-16' : 'left-60'} bg-slate-900/95 backdrop-blur-xl border-r border-slate-700 z-40 flex-col shadow-2xl`}
           >
             {/* Header */}
-            <div className="h-16 px-4 flex items-center border-b border-[#2F424E]">
+            <div className="h-16 px-4 flex items-center border-b border-slate-700">
               <h2 className="text-base font-semibold text-white">
                 {level2Config.title}
               </h2>
@@ -641,16 +658,16 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
 
             {/* Context Panel - Cluster & Namespace */}
             {(activeModule === 'kubernetes' || activeModule === 'deploy') && (
-              <div className="px-3 py-3 border-b border-[#2F424E] space-y-2">
+              <div className="px-3 py-3 border-b border-slate-700 space-y-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-[#BBBFBF] uppercase tracking-wider">
+                  <label className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">
                     Target Cluster
                   </label>
                   <ClusterSwitcher />
                 </div>
                 {activeModule === 'kubernetes' && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-medium text-[#BBBFBF] uppercase tracking-wider">
+                    <label className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">
                       Filter NS
                     </label>
                     <NamespaceFilter />
@@ -684,15 +701,15 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-[#2D3B55]">
-              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="p-3 border-t border-slate-700">
+              <div className="p-3 rounded-xl bg-primary-500/10 border border-primary-500/20">
                 <div className="flex items-center gap-2 mb-1">
-                  <ShieldCheckIcon className="h-4 w-4 text-blue-400" />
+                  <ShieldCheckIcon className="h-4 w-4 text-primary-300" />
                   <span className="text-xs font-semibold text-slate-100">
                     AI-Assisted DevSecOps
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-slate-300">
                   CloudGuard v2.0.0 Enterprise
                 </p>
               </div>
@@ -705,25 +722,24 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
       {/* MAIN CONTENT AREA */}
       {/* ============================================================ */}
       <div
-        className={`min-h-screen flex flex-col transition-all duration-300 ${
-          isSidebarCollapsed ? (level2Config && activeModule !== 'dashboard' ? 'ml-[304px]' : 'ml-16') : (level2Config && activeModule !== 'dashboard' ? 'ml-[480px]' : 'ml-60')
+        className={`min-h-screen flex flex-col transition-all duration-300 ml-0 ${
+          isSidebarCollapsed ? (level2Config && activeModule !== 'dashboard' ? 'lg:ml-[304px]' : 'lg:ml-16') : (level2Config && activeModule !== 'dashboard' ? 'lg:ml-[480px]' : 'lg:ml-60')
         }`}
       >
         {/* ============================================================ */}
         {/* TOP HEADER */}
         {/* ============================================================ */}
-        <header className="sticky top-0 z-30 h-16 bg-[#131E24]/95 backdrop-blur-xl border-b border-[#2F424E] shadow-md">
-          {/* Vichy Teal accent line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#05AD98] via-[#06C4AD] to-[#048F7D]" />
+        <header className="sticky top-0 z-30 h-16 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700 shadow-md">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 via-primary-400 to-primary-600" />
 
           <div className="h-full px-4 lg:px-6 flex items-center gap-4">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 rounded-lg hover:bg-[#1A2830]"
+              className="lg:hidden p-2 rounded-lg hover:bg-slate-800"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
             >
-              <Bars3Icon className="h-5 w-5 text-[#BBBFBF]" />
+              <Bars3Icon className="h-5 w-5 text-slate-300" />
             </button>
 
             {/* Breadcrumbs */}
@@ -740,7 +756,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                 animate={{ width: searchFocused ? 280 : 200 }}
                 className="relative"
               >
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#878787]" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Quick search modules..."
@@ -748,7 +764,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  className="w-full pl-9 pr-4 py-2 text-sm bg-[#1A2830] border border-[#2F424E] focus:border-[#05AD98] rounded-xl text-white placeholder-[#878787] focus:outline-none focus:ring-2 focus:ring-[#05AD98]/20 transition-all"
+                  className="w-full pl-9 pr-4 py-2 text-sm bg-slate-800 border border-slate-700 focus:border-primary-400 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400/20 transition-all"
                 />
               </motion.div>
             </form>
@@ -758,12 +774,12 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
 
             {/* User Section */}
             {user && (
-              <div className="flex items-center gap-2 pl-4 border-l border-[#2F424E]">
+              <div className="flex items-center gap-2 pl-4 border-l border-slate-700">
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-sm font-medium text-white">
                     {user.username}
                   </span>
-                  <span className="text-xs text-[#BBBFBF] capitalize">
+                  <span className="text-xs text-slate-300 capitalize">
                     {user.role}
                   </span>
                 </div>
@@ -771,7 +787,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={logout}
-                  className="p-2 rounded-lg text-[#BBBFBF] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-2 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   title="Sign out"
                   aria-label="Sign out"
                 >
@@ -783,7 +799,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 flex flex-col p-4 lg:p-6 bg-[#0D1418]">
+        <main className="flex-1 flex flex-col p-4 lg:p-6 bg-slate-950">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -813,12 +829,12 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: -320 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-[#131E24] z-50 lg:hidden overflow-y-auto border-r border-[#2F424E]"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-slate-900 z-50 lg:hidden overflow-y-auto border-r border-slate-700"
             >
               {/* Mobile Header */}
-              <div className="h-16 px-4 flex items-center justify-between border-b border-[#2F424E]">
+              <div className="h-16 px-4 flex items-center justify-between border-b border-slate-700">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05AD98] to-[#036B5E] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
                     <ShieldCheckIcon className="h-5 w-5 text-white" />
                   </div>
                   <span className="text-lg font-bold text-white">
@@ -827,10 +843,10 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-lg hover:bg-[#1A2830]"
+                  className="p-2 rounded-lg hover:bg-slate-800"
                   aria-label="Close navigation"
                 >
-                  <XMarkIcon className="h-5 w-5 text-[#BBBFBF]" />
+                  <XMarkIcon className="h-5 w-5 text-slate-300" />
                 </button>
               </div>
 
@@ -848,8 +864,8 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
                         isActive
-                          ? 'bg-[#05AD98] text-white'
-                          : 'text-[#BBBFBF] hover:bg-[#1A2830] hover:text-white'
+                          ? 'bg-primary-500 text-slate-950'
+                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -857,7 +873,7 @@ export default function DualSidebarLayout({ children }: LayoutProps) {
                         <span className="font-medium text-sm">{item.name}</span>
                       </div>
                       {item.badge && (
-                        <span className="px-2 py-0.5 text-xs font-semibold rounded bg-[#05AD98]/30 text-[#06C4AD]">
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded bg-primary-500/20 text-primary-300">
                           {item.badge}
                         </span>
                       )}

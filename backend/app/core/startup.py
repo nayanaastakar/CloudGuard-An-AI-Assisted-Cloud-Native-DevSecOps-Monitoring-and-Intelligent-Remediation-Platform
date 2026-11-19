@@ -4,8 +4,11 @@ Validates configuration and performs security checks before the app starts.
 """
 
 import logging
+import math
 import os
+import re
 import sys
+from urllib.parse import urlsplit
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
@@ -41,6 +44,7 @@ class StartupValidator:
         """Run all validation checks. Returns True if no critical issues."""
         self._validate_secret_key()
         self._validate_admin_password()
+        self._validate_webhook_and_kubernetes_security()
         self._validate_database()
         self._validate_cors()
         self._validate_debug_mode()
@@ -68,6 +72,55 @@ class StartupValidator:
             )
         )
 
+    @staticmethod
+    def _is_placeholder(value: str) -> bool:
+        normalized = (value or "").strip().lower()
+        markers = ("replace-with", "change-me", "change_in", "your_", "your-", "example", "generate-a")
+        return any(marker in normalized for marker in markers)
+
+    @staticmethod
+    def _has_secret_entropy(value: str) -> bool:
+        return StartupValidator._estimated_entropy_bits(value) >= 128 and not StartupValidator._has_predictable_pattern(value)
+
+    @staticmethod
+    def _has_password_entropy(value: str) -> bool:
+        return StartupValidator._estimated_entropy_bits(value) >= 45 and not StartupValidator._has_predictable_pattern(value)
+
+    @staticmethod
+    def _estimated_entropy_bits(value: str) -> float:
+        if not value:
+            return 0.0
+        frequencies = [value.count(char) / len(value) for char in set(value)]
+        return -sum(frequency * math.log2(frequency) for frequency in frequencies) * len(value)
+
+    @staticmethod
+    def _has_predictable_pattern(value: str) -> bool:
+        normalized = (value or "").lower()
+        if any(pattern in normalized for pattern in ("qwerty", "asdfgh", "zxcvbn", "password", "admin")):
+            return True
+
+        # Reject long repeated substrings and ascending/descending alphanumeric runs.
+        for period in range(1, min(8, len(normalized) // 2) + 1):
+            if len(normalized) >= period * 4 and all(
+                normalized[index] == normalized[index % period] for index in range(period, len(normalized))
+            ):
+                return True
+
+        run_length = 1
+        run_direction = 0
+        for previous, current in zip(normalized, normalized[1:]):
+            same_class = previous.isdigit() and current.isdigit() or previous.isalpha() and current.isalpha()
+            delta = ord(current) - ord(previous)
+            if same_class and abs(delta) == 1 and (run_direction in (0, delta)):
+                run_length += 1
+                run_direction = delta
+                if run_length >= 5:
+                    return True
+            else:
+                run_length = 1
+                run_direction = 0
+        return False
+
     def _validate_secret_key(self):
         """Ensure SECRET_KEY is properly configured."""
         secret_key = getattr(self.settings, "SECRET_KEY", "")
@@ -75,6 +128,7 @@ class StartupValidator:
         # Check for default/weak keys
         weak_keys = [
             "your-secret-key-change-in-production",
+            "cloudguard-secret-key-change-in-production",
             "secret",
             "changeme",
             "password",
@@ -89,7 +143,12 @@ class StartupValidator:
                 "SECRET_KEY is not set",
                 "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(64))\"",
             )
-        elif secret_key.lower() in weak_keys or len(secret_key) < 32:
+        elif (
+            secret_key.lower() in weak_keys
+            or len(secret_key) < 32
+            or self._is_placeholder(secret_key)
+            or not self._has_secret_entropy(secret_key)
+        ):
             self._add_result(
                 "SECRET_KEY",
                 False,
@@ -107,8 +166,8 @@ class StartupValidator:
 
     def _validate_admin_password(self):
         """Ensure default admin password is changed in production."""
-        admin_password = getattr(self.settings, "DEFAULT_ADMIN_PASSWORD", "admin123")
-        debug = getattr(self.settings, "DEBUG", False)
+        admin_password = getattr(self.settings, "DEFAULT_ADMIN_PASSWORD", "") or ""
+        is_prod = is_effective_production(self.settings)
 
         # Check for default/weak passwords
         weak_passwords = [
@@ -119,8 +178,24 @@ class StartupValidator:
             "changeme",
         ]
 
-        if admin_password.lower() in weak_passwords:
-            if debug:
+        if not admin_password:
+            self._add_result(
+                "ADMIN_PASSWORD",
+                False,
+                ValidationSeverity.CRITICAL,
+                "DEFAULT_ADMIN_PASSWORD is not set",
+                "Set a unique administrator password through the environment or deployment secret store",
+            )
+        elif self._is_placeholder(admin_password):
+            self._add_result(
+                "ADMIN_PASSWORD",
+                False,
+                ValidationSeverity.CRITICAL if is_prod else ValidationSeverity.WARNING,
+                "DEFAULT_ADMIN_PASSWORD is a placeholder value",
+                "Set a unique administrator password through the environment or deployment secret store",
+            )
+        elif admin_password.lower() in weak_passwords:
+            if not is_prod:
                 self._add_result(
                     "ADMIN_PASSWORD",
                     True,
@@ -132,8 +207,27 @@ class StartupValidator:
                 self._add_result(
                     "ADMIN_PASSWORD",
                     False,
+                    ValidationSeverity.CRITICAL,
+                    "Using default/weak admin password in production",
+                    "Generate secure password: python -c \"import secrets; print(secrets.token_urlsafe(16))\"",
+                )
+        elif len(admin_password) < (12 if is_prod else 8) or (
+            is_prod and not self._has_password_entropy(admin_password)
+        ):
+            if not is_prod:
+                self._add_result(
+                    "ADMIN_PASSWORD",
+                    True,
                     ValidationSeverity.WARNING,
-                    "Using default/weak admin password",
+                    "Admin password is shorter than 8 characters (acceptable in DEBUG mode)",
+                    "Set a stronger DEFAULT_ADMIN_PASSWORD env var for production",
+                )
+            else:
+                self._add_result(
+                    "ADMIN_PASSWORD",
+                    False,
+                    ValidationSeverity.CRITICAL,
+                    "Admin password must be at least 12 characters and resist predictable patterns",
                     "Generate secure password: python -c \"import secrets; print(secrets.token_urlsafe(16))\"",
                 )
         else:
@@ -142,6 +236,56 @@ class StartupValidator:
                 True,
                 ValidationSeverity.INFO,
                 "Admin password is customized",
+            )
+
+    def _validate_webhook_and_kubernetes_security(self):
+        """Require webhook authentication in production and reject insecure Kubernetes TLS."""
+        is_prod = is_effective_production(self.settings)
+        webhook_secret = getattr(self.settings, "FALCO_WEBHOOK_SECRET", "") or ""
+        if (
+            webhook_secret
+            and (len(webhook_secret) < 32 or self._is_placeholder(webhook_secret) or not self._has_secret_entropy(webhook_secret))
+        ) or (is_prod and not webhook_secret):
+            self._add_result(
+                "FALCO_WEBHOOK_SECRET",
+                False,
+                ValidationSeverity.CRITICAL,
+                "FALCO_WEBHOOK_SECRET must contain at least 32 characters in production",
+                "Configure a high-entropy secret in the deployment secret store",
+            )
+        else:
+            self._add_result(
+                "FALCO_WEBHOOK_SECRET",
+                True,
+                ValidationSeverity.INFO if webhook_secret else ValidationSeverity.WARNING,
+                "Falco webhook authentication secret is configured" if webhook_secret else "Falco webhook endpoint is disabled until a secret is configured",
+            )
+
+        if getattr(self.settings, "K8S_SKIP_TLS_VERIFY", False) and is_prod:
+            self._add_result(
+                "K8S_SKIP_TLS_VERIFY",
+                False,
+                ValidationSeverity.CRITICAL,
+                "Kubernetes TLS certificate verification cannot be disabled in production",
+                "Set K8S_SKIP_TLS_VERIFY=false and configure the cluster CA certificate",
+            )
+        else:
+            self._add_result(
+                "K8S_SKIP_TLS_VERIFY",
+                True,
+                ValidationSeverity.INFO,
+                "Kubernetes API TLS certificate verification is enabled",
+            )
+        redis_url = getattr(self.settings, "REDIS_URL", "") or ""
+        parsed_redis_url = urlsplit(redis_url) if redis_url else None
+        redis_secure = bool(parsed_redis_url and parsed_redis_url.scheme == "rediss" and parsed_redis_url.password)
+        if is_prod and (not getattr(self.settings, "REDIS_ENABLED", True) or not redis_secure):
+            self._add_result(
+                "FALCO_REPLAY_PROTECTION",
+                False,
+                ValidationSeverity.CRITICAL,
+                "Production replay protection requires enabled Redis over TLS with authentication",
+                "Set REDIS_ENABLED=true and configure a private rediss:// URL with an ACL password",
             )
 
     def _validate_database(self):
@@ -193,15 +337,17 @@ class StartupValidator:
     def _validate_cors(self):
         """Validate CORS configuration."""
         cors_origins = getattr(self.settings, "CORS_ORIGINS", "")
-        debug = getattr(self.settings, "DEBUG", False)
+        is_prod = is_effective_production(self.settings)
 
-        if cors_origins == "*" and not debug:
+        has_wildcard = (cors_origins == "*") or (isinstance(cors_origins, (list, tuple, set)) and "*" in cors_origins)
+
+        if has_wildcard and is_prod:
             self._add_result(
                 "CORS",
                 False,
-                ValidationSeverity.WARNING,
-                "CORS allows all origins in non-debug mode",
-                "Restrict CORS_ORIGINS to specific domains",
+                ValidationSeverity.CRITICAL,
+                "CORS wildcard '*' is prohibited in production mode",
+                "Restrict CORS_ORIGINS to specific domains (e.g., https://your-domain.azurewebsites.net)",
             )
         elif not cors_origins:
             self._add_result(
@@ -281,15 +427,15 @@ class StartupValidator:
     def _validate_redis(self):
         """Validate Redis configuration."""
         redis_url = getattr(self.settings, "REDIS_URL", "")
-        use_redis = getattr(self.settings, "USE_REDIS_CACHE", False)
+        use_redis = getattr(self.settings, "REDIS_ENABLED", getattr(self.settings, "USE_REDIS_CACHE", False))
 
         if use_redis and not redis_url:
             self._add_result(
                 "REDIS",
                 False,
                 ValidationSeverity.WARNING,
-                "USE_REDIS_CACHE is enabled but REDIS_URL is not set",
-                "Set REDIS_URL or disable USE_REDIS_CACHE",
+                "REDIS_ENABLED is true but REDIS_URL is not set",
+                "Set REDIS_URL or disable REDIS_ENABLED outside production",
             )
         elif use_redis:
             self._add_result(
@@ -400,6 +546,26 @@ def validate_production_config(settings, strict: bool = False) -> bool:
     return passed
 
 
+def is_effective_production(settings=None) -> bool:
+    """
+    Check if production validation and security requirements apply.
+    Production mode is active if:
+      - ENVIRONMENT (or ENV) is 'production' or 'prod', OR
+      - (ENVIRONMENT is not 'development'/'dev'/'local'/'test' AND DEBUG is False)
+    """
+    configured_environment = os.environ.get("ENVIRONMENT", os.environ.get("ENV"))
+    if configured_environment is None and settings is not None:
+        configured_environment = getattr(settings, "ENVIRONMENT", None)
+    env_str = (configured_environment or "development").lower()
+    if env_str in {"prod", "production"}:
+        return True
+    if env_str in {"development", "dev", "local", "test", "testing", "ci"}:
+        return False
+    if settings is not None:
+        return not getattr(settings, "DEBUG", False)
+    return False
+
+
 def run_startup_checks(settings, block_on_failure: bool = True) -> bool:
     """
     Run all startup checks and optionally block if they fail.
@@ -411,16 +577,19 @@ def run_startup_checks(settings, block_on_failure: bool = True) -> bool:
     Returns:
         True if all checks pass
     """
-    is_production = not getattr(settings, "DEBUG", False)
+    effective_prod = is_effective_production(settings)
 
-    logger.info(f"Running startup checks (production={is_production})")
+    logger.info(f"Running startup checks (production={effective_prod})")
 
-    # Validate configuration
-    config_valid = validate_production_config(settings, strict=False)
-
-    if not config_valid and block_on_failure and is_production:
+    # Validate once so startup behavior and reported diagnostics use the same results.
+    validator = StartupValidator(settings)
+    config_valid = validator.validate_all()
+    mandatory_secret_failure = any(
+        not result.passed and result.name in {"SECRET_KEY", "ADMIN_PASSWORD", "FALCO_WEBHOOK_SECRET"}
+        for result in validator.results
+    )
+    if block_on_failure and (mandatory_secret_failure or (not config_valid and effective_prod)):
         logger.critical("Application startup blocked due to configuration issues")
-        logger.critical("Set DEBUG=true to bypass these checks (not recommended)")
         sys.exit(1)
 
     return config_valid
@@ -432,7 +601,12 @@ def run_startup_checks(settings, block_on_failure: bool = True) -> bool:
 
 def get_environment() -> str:
     """Detect the current environment."""
-    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development"))
+    configured_environment = os.environ.get("ENVIRONMENT", os.environ.get("ENV"))
+    if configured_environment is None:
+        from app.core.config import settings
+
+        configured_environment = settings.ENVIRONMENT
+    env = configured_environment or "development"
     return env.lower()
 
 

@@ -156,7 +156,7 @@ export default function ArgoCDDeploy() {
       const autoConnect = async () => {
         try {
           // Check if it's an internal cluster URL and convert to localhost
-          let serverUrl = deploymentStatus.server_url;
+          let serverUrl = deploymentStatus.server_url || '';
           if (serverUrl.includes('.svc.cluster.local')) {
             // Internal cluster URL - use localhost with port-forward
             serverUrl = 'http://localhost:8080';
@@ -169,7 +169,7 @@ export default function ArgoCDDeploy() {
             serverUrl: serverUrl,
             username: 'admin',
             authMethod: 'basic',
-            insecure: true,
+            insecure: false,
           }));
           logger.debug('[ArgoCDDeploy] Config form pre-filled, showing modal');
           // Show the config modal to let user enter password

@@ -214,67 +214,67 @@ class SecurityGraphEngine:
             source_node_id="net:ingress:public-gateway",
             target_node_id="net:svc:payment-api-svc",
             relationship_type="EXPOSES",
-            evidence_reference="Ingress rule /checkout routed to Service payment-api-svc:8080"
+            evidence_reference="Sample: ingress rule /checkout routes to Service payment-api-svc:8080."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="net:svc:payment-api-svc",
             target_node_id="k8s:workload:production/payment-api",
             relationship_type="CONNECTS_TO",
-            evidence_reference="Service selector app=payment-api matched deployment pod template"
+            evidence_reference="Sample: Service selector app=payment-api matches the deployment pod template."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="k8s:workload:production/payment-api",
             target_node_id="k8s:pod:production/payment-api-7b895fc69b-8k9pl",
             relationship_type="BELONGS_TO",
-            evidence_reference="ReplicaSet owner reference on pod metadata"
+            evidence_reference="Sample: ReplicaSet owner reference on pod metadata."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="k8s:pod:production/payment-api-7b895fc69b-8k9pl",
             target_node_id="k8s:container:payment-api",
             relationship_type="RUNS_ON",
-            evidence_reference="Pod spec containers[0].name == 'payment-api'"
+            evidence_reference="Sample: pod spec names container payment-api."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="k8s:container:payment-api",
             target_node_id="img:cloudguard/payment-api:v2.1.0",
             relationship_type="USES",
-            evidence_reference="Container image tag verified from containerd inspect"
+            evidence_reference="Sample: container image tag from a hypothetical containerd inspection."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="img:cloudguard/payment-api:v2.1.0",
             target_node_id="vuln:CVE-2024-21626",
             relationship_type="CONTAINS_VULNERABILITY",
-            evidence_reference="Trivy SBOM vulnerability scan detected runc < 1.1.12 with CVSS 9.8"
+            evidence_reference="Sample: hypothetical Trivy scan reports runc < 1.1.12 with CVSS 9.8."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="k8s:pod:production/payment-api-7b895fc69b-8k9pl",
             target_node_id="rbac:sa:production/payment-api-sa",
             relationship_type="USES",
-            evidence_reference="Pod spec serviceAccountName: payment-api-sa (token automounted at /var/run/secrets/...)"
+            evidence_reference="Sample: pod spec uses payment-api-sa with an example automounted token."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="rbac:sa:production/payment-api-sa",
             target_node_id="rbac:clusterrole:cluster-admin",
             relationship_type="HAS_PERMISSION_TO_ACCESS",
-            evidence_reference="ClusterRoleBinding 'payment-api-admin-binding' binds SA to cluster-admin role"
+            evidence_reference="Sample: example ClusterRoleBinding binds the service account to cluster-admin."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="rbac:clusterrole:cluster-admin",
             target_node_id="k8s:secret:production/stripe-credentials",
             relationship_type="CAN_REACH",
-            evidence_reference="Role rules permit verb 'get/list' across all Secret resources"
+            evidence_reference="Sample: example role rules permit get/list across Secret resources."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="k8s:container:payment-api",
             target_node_id="k8s:node:k8s-node-worker-01",
             relationship_type="CAN_REACH",
-            evidence_reference="Container has securityContext.privileged=true allowing direct host filesystem access"
+            evidence_reference="Sample: container securityContext.privileged is true in the example workload."
         ))
         self._add_relationship(GraphRelationship(
             source_node_id="threat:falco:evt_bash_spawn",
             target_node_id="k8s:container:payment-api",
             relationship_type="TRIGGERS",
-            evidence_reference="Falco rule 'Terminal shell in container' triggered inside container ID 4a2b91f0c29a"
+            evidence_reference="Sample: Falco rule 'Terminal shell in container' in the seeded scenario."
         ))
 
     def get_graph_data(
@@ -341,9 +341,9 @@ class SecurityGraphEngine:
             tgt = self._nodes.get(rel.target_node_id)
             if tgt:
                 if tgt.entity_type == "Vulnerability":
-                    related_vulns.append({"cve": tgt.name, "evidence": rel.evidence_reference, "props": tgt.properties})
+                    related_vulns.append({"cve": tgt.name, "evidence": rel.evidence_reference, "props": tgt.properties, "provenance": tgt.provenance})
                 elif tgt.entity_type in ["ServiceAccount", "Role"]:
-                    related_rbac.append({"identity": tgt.name, "type": tgt.entity_type, "evidence": rel.evidence_reference})
+                    related_rbac.append({"identity": tgt.name, "type": tgt.entity_type, "evidence": rel.evidence_reference, "provenance": tgt.provenance})
                 else:
                     connected_assets.append({"asset": tgt.name, "type": tgt.entity_type, "rel": rel.relationship_type})
 
@@ -419,7 +419,8 @@ class SecurityGraphEngine:
                                 "label": f"{n.entity_type}/{n.name}",
                                 "type": n.entity_type.lower(),
                                 "criticality": n.criticality,
-                                "properties": n.properties
+                                "properties": n.properties,
+                                "provenance": n.provenance,
                             })
 
                         path_edges = []
@@ -429,7 +430,8 @@ class SecurityGraphEngine:
                                 "target": h.to_node,
                                 "label": h.relationship,
                                 "vector": h.vector,
-                                "evidence": h.evidence
+                                "evidence": h.evidence,
+                                "provenance": "demo"
                             })
 
                         # Deterministic Risk Scoring Formula:

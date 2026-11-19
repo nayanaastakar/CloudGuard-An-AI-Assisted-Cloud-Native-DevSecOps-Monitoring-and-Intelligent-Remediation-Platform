@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
 import api from '../../utils/axios';
 import {
   ExclamationCircleIcon,
@@ -11,15 +10,11 @@ import {
   SparklesIcon,
   CpuChipIcon,
   ShieldCheckIcon,
-  ServerStackIcon,
-  CloudIcon,
-  ChartBarIcon,
   CommandLineIcon,
   LockClosedIcon,
 } from '@heroicons/react/24/outline';
 
 // Import shared animation variants
-import { slideUpVariants, scaleVariants, itemVariants } from '../../utils/constants';
 
 // OAuth provider icons
 const GoogleIcon = () => (
@@ -155,7 +150,6 @@ export default function LoginPage() {
   const [oauthLoading, setOAuthLoading] = useState<string | null>(null);
 
   const { login } = useAuth();
-  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 

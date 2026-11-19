@@ -43,8 +43,8 @@ export function useHelmRepos() {
   const query = useQuery({
     queryKey: ['helmRepos'],
     queryFn: async () => {
-      const response = await helmApi.getRepos();
-      return response.data;
+      const response = await helmApi.listRepositories();
+      return response.data.repositories;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000,    // 30 minutes

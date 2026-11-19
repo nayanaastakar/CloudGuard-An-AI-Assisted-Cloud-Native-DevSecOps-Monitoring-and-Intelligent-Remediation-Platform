@@ -201,7 +201,7 @@ export default function CostDashboard() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-medium rounded-lg capitalize transition-all ${
                 activeTab === tab
-                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/25'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >

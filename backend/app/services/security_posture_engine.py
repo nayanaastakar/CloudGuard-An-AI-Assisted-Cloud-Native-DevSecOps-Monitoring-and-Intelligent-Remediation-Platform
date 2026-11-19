@@ -7,62 +7,57 @@ RBAC privileges, and Network Policies using an explainable, evidence-backed scor
 import asyncio
 import logging
 import os
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-import urllib3
-from kubernetes import client, config
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from kubernetes import client
+from kubernetes.client.rest import ApiException
 
 from app.core.config import settings
-from app.schemas.provenance import determine_provenance, ProvenanceState
-from app.models.cloudguard_models import (
-    FindingCategory,
-    FindingSeverity,
-    FindingStatus,
-    SecurityFindingRecord,
-    SecurityPostureHistoryRecord,
-)
+from app.core.kubernetes_client import create_kubernetes_api_client
+from app.schemas.provenance import determine_provenance
+from app.models.cloudguard_models import FindingCategory, FindingSeverity
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 POSTURE_CACHE_TTL_SECONDS = 30
+AUDIT_API_TIMEOUT_SECONDS = 8
 _posture_cache: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
 
 
 def _get_k8s_client() -> client.CoreV1Api:
     """Initialize Kubernetes client with local and in-cluster fallback."""
-    if os.path.exists("/tmp/kubeconfig"):
-        config.load_kube_config(config_file="/tmp/kubeconfig")
-    elif settings.K8S_IN_CLUSTER:
-        config.load_incluster_config()
-    elif settings.K8S_CONFIG_PATH and os.path.exists(os.path.expanduser(settings.K8S_CONFIG_PATH)):
-        config.load_kube_config(config_file=os.path.expanduser(settings.K8S_CONFIG_PATH))
-    else:
-        try:
-            config.load_kube_config()
-        except Exception:
-            pass
-
-    configuration = client.Configuration.get_default_copy()
-    if settings.K8S_HOST_OVERRIDE and configuration.host:
-        configuration.host = configuration.host.replace("127.0.0.1", settings.K8S_HOST_OVERRIDE).replace(
-            "localhost", settings.K8S_HOST_OVERRIDE
-        )
-    configuration.verify_ssl = False
-    configuration.assert_hostname = False
-    client.Configuration.set_default(configuration)
-
-    return client.CoreV1Api()
+    api_client = create_kubernetes_api_client(
+        in_cluster=settings.K8S_IN_CLUSTER,
+        host_override=settings.K8S_HOST_OVERRIDE,
+    )
+    return client.CoreV1Api(api_client)
 
 
 class SecurityPostureEngine:
     """Evaluates cluster security posture and computes explainable security scores."""
 
-    def __init__(self, db: Optional[AsyncSession] = None):
+    def __init__(self, db=None):
         self.db = db
+
+    async def _collect(self, call) -> Tuple[Any, Optional[str]]:
+        """Run a blocking Kubernetes client request off-loop with bounded network timeouts."""
+        try:
+            result = await asyncio.wait_for(
+                asyncio.to_thread(call, _request_timeout=AUDIT_API_TIMEOUT_SECONDS),
+                timeout=AUDIT_API_TIMEOUT_SECONDS + 1,
+            )
+            return result, None
+        except asyncio.TimeoutError:
+            return None, f"Kubernetes API request exceeded {AUDIT_API_TIMEOUT_SECONDS}s timeout"
+        except ApiException as exc:
+            reason = exc.reason or "Kubernetes API request failed"
+            if exc.status:
+                reason = f"Kubernetes API returned HTTP {exc.status}: {reason}"
+            return None, reason
+        except Exception as exc:
+            return None, f"Kubernetes client error: {exc}"
 
     def calculate_score(self, critical: int, high: int, medium: int, low: int) -> Tuple[int, str]:
         """
@@ -90,29 +85,49 @@ class SecurityPostureEngine:
 
         return score, grade
 
-    async def audit_cluster(self, cluster_id: str = "default") -> Dict[str, Any]:
+    async def audit_cluster(self, cluster_id: str = "default", force: bool = False) -> Dict[str, Any]:
         """Run a full security audit across workloads, RBAC, and network policies."""
         now = datetime.utcnow()
-        if cluster_id in _posture_cache:
+        if not force and cluster_id in _posture_cache:
             cached_data, cached_at = _posture_cache[cluster_id]
             if now - cached_at < timedelta(seconds=POSTURE_CACHE_TTL_SECONDS):
                 return cached_data
 
         findings: List[Dict[str, Any]] = []
-        workload_count = 0
-        is_fallback = False
-        core_v1 = None
-
+        audit_run_id = str(uuid.uuid4())
+        checks: Dict[str, Dict[str, Any]] = {}
+        core_v1 = rbac_v1 = net_v1 = None
         try:
             core_v1 = _get_k8s_client()
-            apps_v1 = client.AppsV1Api()
-            rbac_v1 = client.RbacAuthorizationV1Api()
-            net_v1 = client.NetworkingV1Api()
+            rbac_v1 = client.RbacAuthorizationV1Api(core_v1.api_client)
+            net_v1 = client.NetworkingV1Api(core_v1.api_client)
+        except Exception as exc:
+            error = f"Unable to initialize Kubernetes client: {exc}"
+            for name in ("pods", "namespaces", "network_policies", "cluster_role_bindings", "cluster_roles", "roles", "role_bindings"):
+                checks[name] = {"status": "unavailable", "error": error}
 
-            # 1. Audit Pods and Deployments for Pod Security Standards
-            pods = core_v1.list_pod_for_all_namespaces()
-            workload_count = len(pods.items)
+        calls = {}
+        if core_v1:
+            calls = {
+                "pods": core_v1.list_pod_for_all_namespaces,
+                "namespaces": core_v1.list_namespace,
+                "network_policies": net_v1.list_network_policy_for_all_namespaces,
+                "cluster_role_bindings": rbac_v1.list_cluster_role_binding,
+                "cluster_roles": rbac_v1.list_cluster_role,
+                "roles": rbac_v1.list_role_for_all_namespaces,
+                "role_bindings": rbac_v1.list_role_binding_for_all_namespaces,
+            }
+        collected = await asyncio.gather(*(self._collect(call) for call in calls.values()))
+        results: Dict[str, Any] = {}
+        for name, (value, error) in zip(calls, collected):
+            results[name] = value
+            checks[name] = {"status": "complete" if error is None else "failed"}
+            if error:
+                checks[name]["error"] = error
 
+        pods = results.get("pods")
+        workload_count = len(pods.items) if pods is not None else None
+        if pods is not None:
             for pod in pods.items:
                 ns = pod.metadata.namespace
                 if ns in ["kube-system", "kube-public", "kube-node-lease"]:
@@ -217,8 +232,14 @@ class SecurityPostureEngine:
                             "can_auto_remediate": True,
                         })
 
-            # 2. Audit RBAC Privileges
-            crbs = rbac_v1.list_cluster_role_binding()
+        crbs = results.get("cluster_role_bindings")
+        rbac_related = ("cluster_role_bindings", "cluster_roles", "roles", "role_bindings")
+        rbac_ok = all(checks.get(name, {}).get("status") == "complete" for name in rbac_related)
+        checks["rbac"] = {"status": "complete" if rbac_ok else ("partial" if any(results.get(n) is not None for n in rbac_related) else "failed")}
+        rbac_errors = [checks[n].get("error") for n in rbac_related if checks.get(n, {}).get("error")]
+        if rbac_errors:
+            checks["rbac"]["error"] = "; ".join(rbac_errors)
+        if crbs is not None:
             for crb in crbs.items:
                 if crb.metadata.name.startswith("system:"):
                     continue
@@ -240,9 +261,59 @@ class SecurityPostureEngine:
                         "can_auto_remediate": False,
                     })
 
-            # 3. Audit Network Policies
-            namespaces = core_v1.list_namespace()
-            net_pols = net_v1.list_network_policy_for_all_namespaces()
+        role_bindings = results.get("role_bindings")
+        if role_bindings is not None:
+            for binding in role_bindings.items:
+                if binding.role_ref.kind == "ClusterRole" and binding.role_ref.name == "cluster-admin":
+                    namespace = binding.metadata.namespace
+                    subjects = ", ".join(f"{subject.kind}:{subject.name}" for subject in (binding.subjects or []))
+                    findings.append({
+                        "finding_id": f"RBAC-CADMIN-ROLEBINDING-{namespace}-{binding.metadata.name}",
+                        "category": FindingCategory.RBAC.value,
+                        "severity": FindingSeverity.CRITICAL.value,
+                        "title": f"RoleBinding '{binding.metadata.name}' in '{namespace}' grants cluster-admin",
+                        "description": f"Namespaced binding grants cluster-admin privileges to: {subjects}.",
+                        "evidence": f"roleRef: ClusterRole/cluster-admin, subjects: {subjects}",
+                        "impact": "Full control over cluster resources available to the bound subjects.",
+                        "resource_type": "RoleBinding",
+                        "resource_name": binding.metadata.name,
+                        "namespace": namespace,
+                        "remediation_guidance": "Replace cluster-admin with a least-privilege ClusterRole or Role.",
+                        "remediation_yaml": None,
+                        "can_auto_remediate": False,
+                    })
+
+        for result_key, resource_type in (("cluster_roles", "ClusterRole"), ("roles", "Role")):
+            role_list = results.get(result_key)
+            if role_list is None:
+                continue
+            for role in role_list.items:
+                wildcard_rules = [
+                    rule for rule in (role.rules or [])
+                    if "*" in (rule.verbs or []) or "*" in (rule.resources or [])
+                ]
+                if not wildcard_rules:
+                    continue
+                namespace = getattr(role.metadata, "namespace", None) or "cluster-wide"
+                findings.append({
+                    "finding_id": f"RBAC-WILDCARD-{resource_type}-{namespace}-{role.metadata.name}",
+                    "category": FindingCategory.RBAC.value,
+                    "severity": FindingSeverity.HIGH.value,
+                    "title": f"{resource_type} '{role.metadata.name}' grants wildcard permissions",
+                    "description": "Wildcard verbs or resources create broad permissions that can exceed the workload's operational need.",
+                    "evidence": f"Wildcard permission rules: {len(wildcard_rules)}",
+                    "impact": "A subject bound to this role may gain broad access to Kubernetes resources or actions.",
+                    "resource_type": resource_type,
+                    "resource_name": role.metadata.name,
+                    "namespace": namespace,
+                    "remediation_guidance": "Replace wildcard verbs and resources with the smallest required permission set.",
+                    "remediation_yaml": None,
+                    "can_auto_remediate": False,
+                })
+
+        namespaces = results.get("namespaces")
+        net_pols = results.get("network_policies")
+        if namespaces is not None and net_pols is not None:
             protected_ns = {np.metadata.namespace for np in net_pols.items}
 
             for ns in namespaces.items:
@@ -277,31 +348,35 @@ class SecurityPostureEngine:
                         "can_auto_remediate": True,
                     })
 
-        except Exception as e:
-            logger.error(f"Error auditing Kubernetes cluster: {e}")
-            workload_count = 10
-            is_fallback = True
+        successful_checks = sum(1 for item in checks.values() if item.get("status") == "complete")
+        failed_checks = sum(1 for item in checks.values() if item.get("status") in ("failed", "partial", "unavailable"))
+        audit_status = "unavailable" if successful_checks == 0 else ("partial" if failed_checks else "complete")
+        provenance = determine_provenance(
+            is_live_source=successful_checks > 0,
+            error="; ".join(f"{name}: {check['error']}" for name, check in checks.items() if check.get("error")) or None,
+            ttl_seconds=POSTURE_CACHE_TTL_SECONDS,
+            source_name="kubernetes-security-audit",
+        )
 
-        # Calculate counts and score
+        # A posture score is meaningful only when every required check completed.
         critical_count = sum(1 for f in findings if f["severity"] == FindingSeverity.CRITICAL.value)
         high_count = sum(1 for f in findings if f["severity"] == FindingSeverity.HIGH.value)
         medium_count = sum(1 for f in findings if f["severity"] == FindingSeverity.MEDIUM.value)
         low_count = sum(1 for f in findings if f["severity"] == FindingSeverity.LOW.value)
 
-        score, grade = self.calculate_score(critical_count, high_count, medium_count, low_count)
-
-        from app.core.config import settings
-        is_live_data = core_v1 is not None and not is_fallback
-        provenance = determine_provenance(
-            is_live_source=is_live_data,
-            ttl_seconds=POSTURE_CACHE_TTL_SECONDS,
-            source_name="kubernetes-pss-audit" if is_live_data else "demo-posture-generator"
-        )
+        score_available = audit_status == "complete"
+        score, grade = self.calculate_score(critical_count, high_count, medium_count, low_count) if score_available else (None, None)
 
         result = {
             "cluster_id": cluster_id,
+            "audit_run_id": audit_run_id,
+            "audit_status": audit_status,
+            "checks": checks,
+            "error": provenance.error_message if audit_status == "unavailable" else None,
+            "is_forced_refresh": force,
+            "audit_triggered_at": now.isoformat(),
             "provenance": provenance.dict(),
-            "security_score": {
+            "security_score": ({
                 "score": score,
                 "grade": grade,
                 "total_findings": len(findings),
@@ -311,16 +386,22 @@ class SecurityPostureEngine:
                 "low": low_count,
                 "scoring_formula": "Score = 100 - (15*Critical + 8*High + 3*Medium + 1*Low)",
                 "last_evaluated": now.isoformat(),
-            },
+            } if score_available else None),
             "findings": findings,
             "workloads_audited": workload_count,
-            "posture_summary": {
+            "posture_summary": ({
                 "privileged_containers": critical_count,
                 "root_containers": high_count,
                 "missing_network_policies": sum(1 for f in findings if f["category"] == FindingCategory.NETWORK_POLICY.value),
                 "rbac_violations": sum(1 for f in findings if f["category"] == FindingCategory.RBAC.value),
-            },
+            } if score_available else None),
         }
 
-        _posture_cache[cluster_id] = (result, now)
+        if score_available:
+            _posture_cache[cluster_id] = (result, now)
         return result
+
+
+# Shared by both the CloudGuard and legacy security API routes so audit
+# availability and scoring semantics cannot diverge.
+security_posture_engine = SecurityPostureEngine()

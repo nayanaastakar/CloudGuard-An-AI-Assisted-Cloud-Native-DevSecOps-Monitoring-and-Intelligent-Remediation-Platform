@@ -51,7 +51,7 @@ export default function PipelineApprovalGate({
   onApprovalChange,
 }: PipelineApprovalGateProps) {
   const [approvals, setApprovals] = useState<Approval[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [] = useState(false);
   const [comment, setComment] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);

@@ -28,6 +28,7 @@ class FalcoWebhookPayload(BaseModel):
     output_fields: Dict[str, Any] = Field(default_factory=dict)
     hostname: Optional[str] = "k8s-worker-node"
     tags: List[str] = Field(default_factory=list)
+    cluster_id: Optional[str] = None
 
 
 class RuntimeThreatEvent(BaseModel):
@@ -186,14 +187,25 @@ class RuntimeThreatService:
             "output_fields": fields,
             "tags": data.get("tags", []),
             "hostname": data.get("hostname", "k8s-node"),
+            "data_source": "falcosidekick-webhook" if is_live else "seeded-demo-sample",
             "provenance": prov.dict() if hasattr(prov, "dict") else prov.model_dump()
         }
 
-    async def ingest_falco_event(self, payload: FalcoWebhookPayload) -> Dict[str, Any]:
+    async def ingest_falco_event(self, payload: FalcoWebhookPayload, cluster_id: Optional[str] = None) -> Dict[str, Any]:
         """Ingests live webhook from Falcosidekick with deduplication window."""
         rule = payload.rule
         output = payload.output
         pod = payload.output_fields.get("k8s.pod.name")
+
+        # Determine effective cluster ID: explicit param > payload.cluster_id > output_fields > active cluster
+        effective_cluster_id = cluster_id or payload.cluster_id or payload.output_fields.get("k8s.cluster.name") or payload.output_fields.get("cluster_id")
+        if not effective_cluster_id:
+            try:
+                from app.services.cluster_service import cluster_service
+                effective_cluster_id = await cluster_service.get_active_cluster()
+            except Exception:
+                effective_cluster_id = None
+        effective_cluster_id = effective_cluster_id or "default"
 
         fingerprint = self._generate_fingerprint(rule, output, pod)
         now = datetime.now(timezone.utc)
@@ -213,11 +225,42 @@ class RuntimeThreatService:
         self._dedup_cache[fingerprint] = now
 
         event = self._normalize_event(payload.dict() if hasattr(payload, "dict") else payload.model_dump(), is_live=True)
+        event["cluster_id"] = effective_cluster_id
         self._events.insert(0, event)
 
         # Retain at most 500 events in memory
         if len(self._events) > 500:
             self._events.pop()
+
+        # Publish to real-time event pipeline (Redis Pub/Sub & WebSockets)
+        try:
+            from app.core.websocket_manager import ws_manager
+            from app.core.cache import get_redis
+            from app.core.config import settings
+
+            event_payload = {
+                "type": "runtime_threat",
+                "cluster_id": effective_cluster_id,
+                "data": event,
+            }
+
+            # 1. Publish to Redis channel if Redis enabled
+            if settings.REDIS_ENABLED:
+                try:
+                    redis_client = await get_redis()
+                    if redis_client:
+                        await redis_client.publish("cloudguard:events", json.dumps(event_payload))
+                except Exception as redis_err:
+                    logger.debug("Redis publish skipped: %s", redis_err)
+
+            # 2. Broadcast directly via local WebSocket manager
+            await ws_manager.broadcast_event(
+                event_type="runtime_threat",
+                data=event,
+                cluster_id=effective_cluster_id
+            )
+        except Exception as broadcast_err:
+            logger.debug("Real-time threat broadcast error: %s", broadcast_err)
 
         return {
             "status": "ingested",

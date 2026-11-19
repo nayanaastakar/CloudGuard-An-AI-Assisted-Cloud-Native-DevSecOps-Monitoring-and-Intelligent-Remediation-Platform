@@ -17,6 +17,14 @@ import {
   ArrowsPointingInIcon,
   ClipboardIcon,
   CheckIcon,
+  ShieldExclamationIcon,
+  ArrowsRightLeftIcon,
+  WrenchScrewdriverIcon,
+  DocumentMagnifyingGlassIcon,
+  BuildingLibraryIcon,
+  BugAntIcon,
+  CircleStackIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 
 interface Message {
@@ -31,9 +39,16 @@ interface AIChatPanelProps {
 }
 
 const quickActions = [
-  { icon: ShieldCheckIcon, label: 'Security', prompt: 'Run a security scan on my cluster' },
-  { icon: CpuChipIcon, label: 'Resources', prompt: 'Show me current resource usage' },
-  { icon: CommandLineIcon, label: 'Deploys', prompt: 'What is the status of recent deployments?' },
+  { icon: ShieldCheckIcon, label: 'Cluster Posture', prompt: 'Audit Kubernetes cluster security posture and identify critical PSS misconfigurations' },
+  { icon: ArrowsRightLeftIcon, label: 'Attack Paths', prompt: 'Analyze active attack paths and lateral movement risks from pods to cloud IAM or secrets' },
+  { icon: BugAntIcon, label: 'Vulnerabilities', prompt: 'Summarize critical CVE vulnerabilities discovered by Trivy container image scans' },
+  { icon: ShieldExclamationIcon, label: 'Falco Threats', prompt: 'Investigate recent Falco runtime security events, anomalies, and unauthorized shell executions' },
+  { icon: WrenchScrewdriverIcon, label: 'Remediation', prompt: 'Generate an automated remediation plan with Kubernetes YAML diffs for top risks' },
+  { icon: BuildingLibraryIcon, label: 'CIS Benchmark', prompt: 'Assess CIS Kubernetes benchmark compliance and generate an audit readiness report' },
+  { icon: DocumentMagnifyingGlassIcon, label: 'Root Cause', prompt: 'Perform root cause analysis on failing pods, CrashLoopBackOff, and OOMKilled events' },
+  { icon: CpuChipIcon, label: 'Resources & Limits', prompt: 'Analyze pod resource requests, limits, and cpu/memory starvation risks' },
+  { icon: CommandLineIcon, label: 'Deployments', prompt: 'Check the rollout status, replica health, and degradation of recent deployments' },
+  { icon: CurrencyDollarIcon, label: 'Cost Optimization', prompt: 'Identify overprovisioned workloads and idle resources to optimize cloud cluster costs' },
 ];
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
@@ -417,18 +432,18 @@ export default function AIChatPanel({ onClose }: AIChatPanelProps) {
           {/* Quick Actions */}
           {messages.length === 1 && (
             <div className="flex-shrink-0 px-3.5 py-2.5 sm:px-4 sm:py-3 border-t border-gray-100/50 dark:border-slate-700/50">
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">Quick actions:</p>
-              <div className="flex flex-wrap gap-1.5">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-2 font-medium uppercase tracking-wider">Quick actions:</p>
+              <div className="grid grid-cols-2 gap-1.5">
                 {quickActions.map((action, index) => (
                   <motion.button
                     key={index}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleQuickAction(action.prompt)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100/80 dark:bg-slate-700/50 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-100/80 dark:bg-slate-700/50 text-[10px] text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left"
                   >
-                    <action.icon className="h-3 w-3" />
-                    {action.label}
+                    <action.icon className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{action.label}</span>
                   </motion.button>
                 ))}
               </div>

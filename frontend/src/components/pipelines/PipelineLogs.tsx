@@ -171,7 +171,7 @@ export default function PipelineLogs() {
 
   // Auto-refresh run status
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (selectedRun?.status === 'running' && pipelineId && runId) {
       interval = setInterval(() => {
         fetchRun(pipelineId, runId);

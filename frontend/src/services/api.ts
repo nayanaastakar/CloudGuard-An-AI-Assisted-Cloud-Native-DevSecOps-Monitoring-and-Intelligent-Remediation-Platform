@@ -1,11 +1,12 @@
 import api from '../utils/axios';
+import type { RBACAnalysisDetail, NetworkPolicyDetail, SecurityTrendsDetail } from '../components/security/types';
 import type {
   Namespace, NamespaceDetail, NamespaceCreateRequest, Pod, Deployment, K8sEvent, ClusterHealth,
   Incident, IncidentAnalysis,
   TimelineEvent,
   Release, DeploymentStatus,
   SelfServiceAction, ServiceCatalogItem,
-  JenkinsJob, JenkinsBuild,
+  
   NodeInfo, NodeMetrics, PodMetrics, ClusterMetrics,
   PodLogs, PodExecResult,
   K8sService, Ingress, ConfigMap, ConfigMapDetail, ConfigMapCreateRequest, ConfigMapUpdateRequest,
@@ -336,22 +337,6 @@ export const selfServiceApi = {
     api.post<SelfServiceAction>(`/selfservice/actions/${id}/reject`, null, { params: { reason } }),
 };
 
-// Jenkins API
-export const jenkinsApi = {
-  getHealth: () => api.get('/jenkins/health'),
-  listJobs: (folder?: string) => api.get<JenkinsJob[]>('/jenkins/jobs', { params: { folder } }),
-  getJob: (name: string) => api.get<JenkinsJob>(`/jenkins/jobs/${name}`),
-  getBuild: (jobName: string, buildNumber: number) =>
-    api.get<JenkinsBuild>(`/jenkins/jobs/${jobName}/builds/${buildNumber}`),
-  getBuildLog: (jobName: string, buildNumber: number) =>
-    api.get(`/jenkins/jobs/${jobName}/builds/${buildNumber}/log`),
-  triggerBuild: (jobName: string, parameters?: Record<string, string>) =>
-    api.post(`/jenkins/jobs/${jobName}/build`, { parameters }),
-  stopBuild: (jobName: string, buildNumber: number) =>
-    api.post(`/jenkins/jobs/${jobName}/builds/${buildNumber}/stop`),
-  getQueue: () => api.get('/jenkins/queue'),
-};
-
 // Permission types
 export interface PermissionInfo {
   key: string;
@@ -398,6 +383,30 @@ export interface RoleDefaultPermissions {
 }
 
 // Auth API
+export interface AuditLogEntryResponse {
+  id: string;
+  user_id?: string;
+  username?: string;
+  user_role?: string;
+  action: string;
+  resource_type?: string;
+  resource_name?: string;
+  namespace?: string;
+  details?: string;
+  ip_address?: string;
+  user_agent?: string;
+  timestamp: string;
+  status?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AuditLogResponse {
+  logs: AuditLogEntryResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 export const authApi = {
   login: (username: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { username, password }),
@@ -406,6 +415,8 @@ export const authApi = {
   refreshToken: (refreshToken: string) =>
     api.post<RefreshTokenResponse>('/auth/refresh', { refresh_token: refreshToken }),
   getCurrentUser: () => api.get<User>('/auth/me'),
+  getAuditLogs: (page = 1, limit = 50) =>
+    api.get<AuditLogResponse>('/auth/audit', { params: { page, limit } }),
   changePassword: (data: PasswordChangeRequest) =>
     api.post('/auth/me/password', data),
   listUsers: () => api.get<User[]>('/auth/users'),
@@ -965,14 +976,20 @@ export const securityApi = {
     api.get<ImageScanResult[]>('/security/image-scans', { params: { cluster_id: clusterId } }),
   getRBACAnalysis: () =>
     api.get<RBACAnalysis>('/security/rbac'),
+  getRBACDetailed: () =>
+    api.get<RBACAnalysisDetail>('/security/rbac/detailed'),
   getRBACSummary: () =>
     api.get('/security/rbac/summary'),
   getNetworkPolicyCoverage: () =>
     api.get<NetworkPolicyCoverage>('/security/network-policies'),
+  getNetworkPoliciesDetailed: () =>
+    api.get<NetworkPolicyDetail>('/security/network-policies/detailed'),
   getNetworkPolicySummary: () =>
     api.get('/security/network-policies/summary'),
   getTrends: (days = 30) =>
     api.get<SecurityTrends>('/security/trends', { params: { days } }),
+  getTrendsDetailed: (days = 30) =>
+    api.get<SecurityTrendsDetail>('/security/trends/detailed', { params: { days } }),
   getTrendsSummary: () =>
     api.get('/security/trends/summary'),
   getRecommendations: (clusterId = 'default') =>

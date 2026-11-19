@@ -16,17 +16,13 @@ import {
   CommandLineIcon,
   EyeIcon,
   ShieldCheckIcon,
-  ExclamationTriangleIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import usePipelineStore from '../../stores/pipelineStore';
-import { useToast } from '../../contexts/ToastContext';
 import { TableSkeleton, EmptyState } from '../common/LoadingStates';
 import { getPendingApprovals, PendingApproval } from '../../services/pipelineAPI';
 
 // Import shared utilities
-import { containerVariants, itemVariants, formatAge } from '../../utils/constants';
-import { StatusBadge } from '../common/StatusBadge';
 
 type StatusFilter = 'all' | 'success' | 'failed' | 'running' | 'pending';
 
@@ -40,7 +36,7 @@ export default function PipelinesPage() {
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [isLoadingApprovals, setIsLoadingApprovals] = useState(false);
+  const [, setIsLoadingApprovals] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
@@ -106,7 +102,6 @@ export default function PipelinesPage() {
     }
   }, [openMenuId]);
 
-  const uniqueBranches = [...new Set(pipelines.map(p => p.branch || 'main'))];
 
   const filteredPipelines = pipelines.filter(pipeline => {
     const matchesSearch = pipeline.name.toLowerCase().includes(searchQuery.toLowerCase());

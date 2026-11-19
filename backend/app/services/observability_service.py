@@ -32,29 +32,24 @@ class ObservabilityService:
     async def get_observability_status(self) -> Dict[str, Any]:
         """Audits the connection status and availability of all observability endpoints."""
         async with httpx.AsyncClient(timeout=2.0) as client:
-            # Check Prometheus
-            prom_ok = False
-            try:
-                res = await client.get(f"{self.prometheus_url}/-/healthy")
-                prom_ok = res.status_code == 200
-            except Exception:
-                prom_ok = False
+            async def probe(url: str, accepted_statuses: List[int]) -> Dict[str, Any]:
+                try:
+                    response = await client.get(url)
+                except httpx.RequestError as exc:
+                    logger.warning("Observability health probe failed for %s: %s", url, exc)
+                    return {"status": "error", "provenance": "error", "error": str(exc)}
+                if response.status_code in accepted_statuses:
+                    return {"status": "operational", "provenance": "live"}
+                state = "error" if response.status_code >= 500 else "unavailable"
+                return {
+                    "status": state,
+                    "provenance": state,
+                    "error": f"Health endpoint returned HTTP {response.status_code}",
+                }
 
-            # Check Loki
-            loki_ok = False
-            try:
-                res = await client.get(f"{self.loki_url}/ready")
-                loki_ok = res.status_code == 200
-            except Exception:
-                loki_ok = False
-
-            # Check OpenTelemetry Collector
-            otel_ok = False
-            try:
-                res = await client.get(f"{self.otel_collector_url}/v1/health")
-                otel_ok = res.status_code in [200, 404]  # HTTP 404 on endpoint root indicates daemon active
-            except Exception:
-                otel_ok = False
+            prom_state = await probe(f"{self.prometheus_url}/-/healthy", [200])
+            loki_state = await probe(f"{self.loki_url}/ready", [200])
+            otel_state = await probe(f"{self.otel_collector_url}/v1/health", [200, 404])
 
         now = datetime.now(timezone.utc)
         return {
@@ -63,55 +58,112 @@ class ObservabilityService:
                 "prometheus": {
                     "name": "Prometheus Metrics Server",
                     "url": self.prometheus_url,
-                    "status": "operational" if prom_ok else "unavailable",
-                    "provenance": "live" if prom_ok else "unavailable"
+                    **prom_state
                 },
                 "grafana": {
                     "name": "Grafana Visualization",
                     "url": self.grafana_url,
-                    "status": "configured",
-                    "provenance": "demo"
+                    "status": "demo" if settings.DEMO_MODE else "unavailable",
+                    "provenance": "demo" if settings.DEMO_MODE else "unavailable",
+                    "error": None if settings.DEMO_MODE else "Grafana health checks are not configured",
                 },
                 "loki": {
                     "name": "Grafana Loki Log Aggregator",
                     "url": self.loki_url,
-                    "status": "operational" if loki_ok else "simulated",
-                    "provenance": "live" if loki_ok else "demo"
+                    **loki_state
                 },
                 "opentelemetry": {
                     "name": "OpenTelemetry Collector (OTLP)",
                     "url": self.otel_collector_url,
-                    "status": "operational" if otel_ok else "simulated",
-                    "provenance": "live" if otel_ok else "demo"
+                    **otel_state
                 }
             }
         }
 
     async def get_cluster_resource_metrics(self, cluster_id: str = "default") -> Dict[str, Any]:
         """Fetches CPU and Memory utilization trends or provides deterministic telemetry."""
-        # Try live Prometheus query first
+        live_status = "unavailable"
+        live_error = "Prometheus is unavailable"
+        live_provenance = ProvenanceState.UNAVAILABLE
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:
                 query_url = f"{self.prometheus_url}/api/v1/query"
-                cpu_res = await client.get(query_url, params={"query": "sum(rate(container_cpu_usage_seconds_total[5m]))"})
-                if cpu_res.status_code == 200:
-                    raw_cpu = cpu_res.json()
-                    prov = determine_provenance(True, source_name="prometheus", ttl_seconds=60)
+                queries = {
+                    "cpu": "sum(rate(container_cpu_usage_seconds_total[5m]))",
+                    "memory": "sum(container_memory_working_set_bytes)",
+                }
+                samples = {}
+                for metric_name, query in queries.items():
+                    response = await client.get(query_url, params={"query": query})
+                    if response.status_code != 200:
+                        live_error = f"Prometheus returned HTTP {response.status_code}"
+                        if response.status_code >= 500:
+                            live_status = "error"
+                            live_provenance = ProvenanceState.ERROR
+                        logger.warning("%s", live_error)
+                        break
+
+                    results = response.json().get("data", {}).get("result", [])
+                    if not results:
+                        live_error = f"Prometheus returned no {metric_name} metric result"
+                        logger.warning("%s", live_error)
+                        break
+
+                    value = results[0].get("value")
+                    if not isinstance(value, list) or len(value) < 2:
+                        raise ValueError(f"Prometheus returned an invalid {metric_name} metric sample")
+                    samples[metric_name] = (float(value[1]), float(value[0]))
+
+                if len(samples) == len(queries):
+                    sample_time = min(sample[1] for sample in samples.values())
+                    timestamp = datetime.fromtimestamp(sample_time, timezone.utc).isoformat()
+                    prov = ProvenanceMetadata(
+                        state=ProvenanceState.LIVE,
+                        source="prometheus",
+                        is_fresh=True,
+                        ttl_seconds=60,
+                        last_synced_at=timestamp,
+                    )
                     return {
                         "cluster_id": cluster_id,
+                        "status": "live",
                         "provenance": prov.dict(),
-                        "cpu_utilization_cores": float(raw_cpu["data"]["result"][0]["value"][1]),
-                        "memory_utilization_gb": 4.2,
+                        "cpu_utilization_cores": samples["cpu"][0],
+                        "memory_utilization_gb": samples["memory"][0] / (1024 ** 3),
+                        "timestamp": timestamp,
                         "node_metrics": []
                     }
-        except Exception:
-            pass
+        except httpx.RequestError as exc:
+            live_status = "error"
+            live_provenance = ProvenanceState.ERROR
+            live_error = f"Prometheus request failed: {exc}"
+            logger.warning("%s", live_error)
+        except (ValueError, KeyError, TypeError, IndexError, AttributeError) as exc:
+            live_status = "error"
+            live_provenance = ProvenanceState.ERROR
+            live_error = f"Invalid Prometheus response: {exc}"
+            logger.warning("%s", live_error)
+
+        if not settings.DEMO_MODE:
+            prov = ProvenanceMetadata(
+                state=live_provenance,
+                source="prometheus",
+                is_fresh=False,
+                ttl_seconds=60,
+                last_synced_at=None,
+                error_message=live_error,
+            )
+            status = "error" if live_status == "error" else "unavailable"
+            return {"cluster_id": cluster_id, "status": status, "provenance": prov.dict(), "error": live_error, "summary": None, "timeline": [], "workloads": []}
 
         # Demo / simulated resource metrics when Prometheus is not deployed
         prov = determine_provenance(False, source_name="cloudguard-demo-telemetry", ttl_seconds=60)
         return {
             "cluster_id": cluster_id,
+            "status": "demo",
             "provenance": prov.dict(),
+            "live_source_status": live_status,
+            "live_source_error": live_error,
             "summary": {
                 "cpu_usage_percent": 42.5,
                 "memory_usage_percent": 58.1,
@@ -140,7 +192,9 @@ class ObservabilityService:
         namespace: Optional[str] = None
     ) -> Dict[str, Any]:
         """Queries Loki log streams with pagination and query safety limits."""
-        # Attempt live query to Loki if running
+        live_status = "unavailable"
+        live_error = "Loki is unavailable"
+        live_provenance = ProvenanceState.UNAVAILABLE
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:
                 query_url = f"{self.loki_url}/loki/api/v1/query_range"
@@ -151,12 +205,38 @@ class ObservabilityService:
                     prov = determine_provenance(True, source_name="loki", ttl_seconds=60)
                     return {
                         "query": query,
+                        "status": "live",
                         "provenance": prov.dict(),
                         "streams": raw_data.get("data", {}).get("result", []),
                         "total_returned": len(raw_data.get("data", {}).get("result", []))
                     }
-        except Exception:
-            pass
+                live_error = f"Loki returned HTTP {res.status_code}"
+                if res.status_code >= 500:
+                    live_status = "error"
+                    live_provenance = ProvenanceState.ERROR
+                logger.warning("%s", live_error)
+        except httpx.RequestError as exc:
+            live_status = "error"
+            live_provenance = ProvenanceState.ERROR
+            live_error = f"Loki request failed: {exc}"
+            logger.warning("%s", live_error)
+        except (ValueError, KeyError, TypeError, AttributeError) as exc:
+            live_status = "error"
+            live_provenance = ProvenanceState.ERROR
+            live_error = f"Invalid Loki response: {exc}"
+            logger.warning("%s", live_error)
+
+        if not settings.DEMO_MODE:
+            prov = ProvenanceMetadata(
+                state=live_provenance,
+                source="loki",
+                is_fresh=False,
+                ttl_seconds=60,
+                last_synced_at=None,
+                error_message=live_error,
+            )
+            status = "error" if live_status == "error" else "unavailable"
+            return {"query": query, "status": status, "provenance": prov.dict(), "error": live_error, "limit": limit, "total_returned": 0, "logs": []}
 
         # Deterministic sample logs with explicit DEMO provenance
         prov = determine_provenance(False, source_name="demo-loki-aggregator", ttl_seconds=60)
@@ -171,7 +251,10 @@ class ObservabilityService:
 
         return {
             "query": query,
+            "status": "demo",
             "provenance": prov.dict(),
+            "live_source_status": live_status,
+            "live_source_error": live_error,
             "limit": limit,
             "total_returned": len(sample_logs),
             "logs": sample_logs

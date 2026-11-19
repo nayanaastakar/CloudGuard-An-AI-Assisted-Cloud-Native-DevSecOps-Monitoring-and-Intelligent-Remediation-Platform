@@ -22,6 +22,7 @@ import {
 } from 'recharts';
 import GlassCard from '../common/GlassCard';
 import { prometheusApi, getRelativeTime } from '../../services/prometheusApi';
+import { chartColors } from '../../styles/design-system';
 import type { QueryResult, MetricSample, MetricMetadata, StackStatus } from '../../types/prometheus';
 
 // Time range options
@@ -47,10 +48,7 @@ const EXAMPLE_QUERIES = [
 ];
 
 // Color palette for chart lines
-const COLORS = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
-];
+const COLORS = chartColors.series;
 
 interface ChartData {
   timestamp: number;
@@ -218,7 +216,7 @@ export default function MetricsExplorer() {
           </p>
           <a
             href="/monitoring/prometheus/setup"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             Deploy Prometheus
           </a>
@@ -313,7 +311,7 @@ export default function MetricsExplorer() {
             <button
               onClick={executeQuery}
               disabled={loading || !query.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -431,15 +429,15 @@ export default function MetricsExplorer() {
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#5D5C61" opacity={0.35} />
                       <XAxis
                         dataKey="time"
-                        tick={{ fill: '#9ca3af', fontSize: 11 }}
-                        tickLine={{ stroke: '#4b5563' }}
+                        tick={{ fill: '#B1A296', fontSize: 11 }}
+                        tickLine={{ stroke: '#5D5C61' }}
                       />
                       <YAxis
-                        tick={{ fill: '#9ca3af', fontSize: 11 }}
-                        tickLine={{ stroke: '#4b5563' }}
+                        tick={{ fill: '#B1A296', fontSize: 11 }}
+                        tickLine={{ stroke: '#5D5C61' }}
                         tickFormatter={(value) => {
                           if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}G`;
                           if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -449,12 +447,12 @@ export default function MetricsExplorer() {
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                          border: '1px solid #475569',
+                          backgroundColor: 'rgba(45, 44, 49, 0.97)',
+                          border: '1px solid #5D5C61',
                           borderRadius: '8px',
                         }}
-                        labelStyle={{ color: '#e2e8f0' }}
-                        itemStyle={{ color: '#e2e8f0' }}
+                        labelStyle={{ color: '#F7F4F1' }}
+                        itemStyle={{ color: '#F7F4F1' }}
                       />
                       <Legend wrapperStyle={{ fontSize: '12px' }} />
                       {seriesLabels.slice(0, 10).map((label, idx) => (

@@ -5,23 +5,20 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ChevronDownIcon,
   CpuChipIcon,
   CircleStackIcon,
   CubeIcon,
   SparklesIcon,
   XMarkIcon,
-  TagIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { useToast } from '../../contexts/ToastContext';
 import GlassCard from '../common/GlassCard';
 import useNodesData from '../../hooks/useNodesData';
 import type { NodeInfo, NodeMetrics, Pod } from '../../types';
 
 // Import shared constants
 import { containerVariants, itemVariants, COLOR_PALETTE } from '../../utils/constants';
-import { StatusBadge, HealthIndicator } from '../common/StatusBadge';
+import { chartColors } from '../../styles/design-system';
 
 // Mini Sparkline Chart
 function MiniSparkline({ data, color, height = 40 }: { data: number[]; color: 'blue' | 'purple'; height?: number }) {
@@ -34,7 +31,7 @@ function MiniSparkline({ data, color, height = 40 }: { data: number[]; color: 'b
     return `${x},${y}`;
   }).join(' ');
 
-  const strokeColor = color === 'blue' ? '#3B82F6' : '#8B5CF6';
+  const strokeColor = color === 'blue' ? chartColors.primary[0] : chartColors.purple[0];
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }}>
@@ -440,14 +437,6 @@ function NodeDrawer({
   );
 }
 
-// Per-node Prometheus metrics
-interface NodePrometheusMetrics {
-  nodeName: string;
-  cpuPercent: number;
-  memoryPercent: number;
-  cpuHistory: number[];
-  memoryHistory: number[];
-}
 
 export default function NodesView() {
   const [selectedNode, setSelectedNode] = useState<NodeInfo | null>(null);
@@ -458,8 +447,6 @@ export default function NodesView() {
   // Destructure data from cache
   const nodes = data?.nodes ?? [];
   const metrics = data?.metrics ?? [];
-  const prometheusAvailable = data?.prometheusAvailable ?? false;
-  const nodePrometheusMetrics = data?.nodePrometheusMetrics ?? {};
   const nodePods = data?.nodePods ?? {};
 
   function getMetricsForNode(nodeName: string): NodeMetrics | undefined {

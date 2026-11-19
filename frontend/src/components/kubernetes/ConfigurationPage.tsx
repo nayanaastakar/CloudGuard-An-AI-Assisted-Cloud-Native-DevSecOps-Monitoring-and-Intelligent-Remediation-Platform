@@ -5,7 +5,7 @@ import { kubernetesApi } from '../../services/api';
 import { logger } from '../../utils/logger';
 import { useNamespace } from '../../contexts/NamespaceContext';
 import { useAuth } from '../../contexts/AuthContext';
-import type { ConfigMap, ConfigMapDetail, Secret, SecretDetail, Namespace } from '../../types';
+import type { ConfigMap, ConfigMapDetail, Secret, Namespace } from '../../types';
 import {
   ArrowPathIcon,
   DocumentDuplicateIcon,

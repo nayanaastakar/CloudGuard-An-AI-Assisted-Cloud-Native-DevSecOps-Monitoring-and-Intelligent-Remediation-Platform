@@ -10,7 +10,6 @@ import {
   ServerStackIcon,
   ArrowsRightLeftIcon,
   MagnifyingGlassIcon,
-  PencilIcon,
   LinkIcon,
   CloudIcon,
   ComputerDesktopIcon,
@@ -25,7 +24,6 @@ import {
 import PageHeader from '../common/PageHeader';
 
 // Import shared constants
-import { containerVariants, itemVariants, COLOR_PALETTE } from '../../utils/constants';
 
 // Types
 interface NetworkStats {
@@ -579,7 +577,6 @@ function DeleteConfirmModal({
 function ServicesTable({
   services,
   loading,
-  onRefresh,
   onDelete,
   onViewYAML,
 }: {

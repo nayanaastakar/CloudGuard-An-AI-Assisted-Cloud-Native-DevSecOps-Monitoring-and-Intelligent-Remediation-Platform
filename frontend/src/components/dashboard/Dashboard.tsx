@@ -17,7 +17,6 @@ import {
   CurrencyDollarIcon,
   SparklesIcon,
   RocketLaunchIcon,
-  ChevronRightIcon,
   PlayIcon,
   PauseIcon,
   XCircleIcon,
@@ -28,9 +27,13 @@ import GlassCard from '../common/GlassCard';
 import ActionableInsightsCard from './ActionableInsightsCard';
 import useDashboardData from '../../hooks/useDashboardData';
 import { logger } from '../../utils/logger';
+import { chartColors } from '../../styles/design-system';
 
 // Import shared animation variants and utilities
 import { containerVariants, itemVariants, COLOR_PALETTE } from '../../utils/constants';
+
+const CPU_CHART_COLOR = chartColors.primary[0];
+const MEMORY_CHART_COLOR = chartColors.success[0];
 
 // Enhanced Donut Chart Component with glow effects and animations
 function DonutChart({
@@ -256,22 +259,22 @@ function AreaChart({
         <defs>
           {/* Enhanced CPU gradient */}
           <linearGradient id="cpuGradientEnhanced" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.5" />
-            <stop offset="50%" stopColor="#3B82F6" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.02" />
+            <stop offset="0%" stopColor={CPU_CHART_COLOR} stopOpacity="0.5" />
+            <stop offset="50%" stopColor={CPU_CHART_COLOR} stopOpacity="0.2" />
+            <stop offset="100%" stopColor={CPU_CHART_COLOR} stopOpacity="0.02" />
           </linearGradient>
 
           {/* Enhanced Memory gradient */}
           <linearGradient id="memoryGradientEnhanced" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.5" />
-            <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.02" />
+            <stop offset="0%" stopColor={MEMORY_CHART_COLOR} stopOpacity="0.5" />
+            <stop offset="50%" stopColor={MEMORY_CHART_COLOR} stopOpacity="0.2" />
+            <stop offset="100%" stopColor={MEMORY_CHART_COLOR} stopOpacity="0.02" />
           </linearGradient>
 
           {/* Glow filters */}
           <filter id="cpuGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2" result="blur" />
-            <feFlood floodColor="#3B82F6" floodOpacity="0.5" />
+            <feFlood floodColor={CPU_CHART_COLOR} floodOpacity="0.5" />
             <feComposite in2="blur" operator="in" />
             <feMerge>
               <feMergeNode />
@@ -281,7 +284,7 @@ function AreaChart({
 
           <filter id="memoryGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2" result="blur" />
-            <feFlood floodColor="#8B5CF6" floodOpacity="0.5" />
+            <feFlood floodColor={MEMORY_CHART_COLOR} floodOpacity="0.5" />
             <feComposite in2="blur" operator="in" />
             <feMerge>
               <feMergeNode />
@@ -349,7 +352,7 @@ function AreaChart({
         <motion.path
           d={createSmoothPath(cpuData)}
           fill="none"
-          stroke="#3B82F6"
+          stroke={CPU_CHART_COLOR}
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -363,7 +366,7 @@ function AreaChart({
         <motion.path
           d={createSmoothPath(memoryData)}
           fill="none"
-          stroke="#8B5CF6"
+          stroke={MEMORY_CHART_COLOR}
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -387,7 +390,7 @@ function AreaChart({
                     cx={coords.x}
                     cy={coords.y}
                     r={isHovered ? 6 : 5}
-                    fill="#3B82F6"
+                    fill={CPU_CHART_COLOR}
                     stroke="white"
                     strokeWidth="2"
                     filter="url(#dotGlow)"
@@ -403,7 +406,7 @@ function AreaChart({
                       cy={coords.y}
                       r="8"
                       fill="transparent"
-                      stroke="#3B82F6"
+                      stroke={CPU_CHART_COLOR}
                       strokeWidth="1"
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
@@ -430,7 +433,7 @@ function AreaChart({
                     cx={coords.x}
                     cy={coords.y}
                     r={isHovered ? 6 : 5}
-                    fill="#8B5CF6"
+                    fill={MEMORY_CHART_COLOR}
                     stroke="white"
                     strokeWidth="2"
                     filter="url(#dotGlow)"
@@ -446,7 +449,7 @@ function AreaChart({
                       cy={coords.y}
                       r="8"
                       fill="transparent"
-                      stroke="#8B5CF6"
+                      stroke={MEMORY_CHART_COLOR}
                       strokeWidth="1"
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
@@ -473,7 +476,7 @@ function AreaChart({
               width="40"
               height="20"
               rx="4"
-              fill="#3B82F6"
+              fill={CPU_CHART_COLOR}
               className="drop-shadow-md"
             />
             <text
@@ -499,7 +502,7 @@ function AreaChart({
               width="40"
               height="20"
               rx="4"
-              fill="#8B5CF6"
+              fill={MEMORY_CHART_COLOR}
               className="drop-shadow-md"
             />
             <text
@@ -527,7 +530,7 @@ function AreaChart({
             <div className="flex items-center gap-2">
               <div
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: hoveredPoint.type === 'cpu' ? '#3B82F6' : '#8B5CF6' }}
+                style={{ backgroundColor: hoveredPoint.type === 'cpu' ? CPU_CHART_COLOR : MEMORY_CHART_COLOR }}
               />
               <span className="font-medium capitalize">{hoveredPoint.type}:</span>
               <span className="font-bold">
@@ -707,7 +710,7 @@ export default function Dashboard() {
     if (!clusterHealth) {
       // Sample data to show chart structure when no data available
       return [
-        { label: 'Running', value: 24, color: '#10B981' },  // emerald-500
+        { label: 'Running', value: 24, color: chartColors.success[0] },
         { label: 'Pending', value: 3, color: '#F59E0B' },   // amber-500
         { label: 'Failed', value: 1, color: '#EF4444' },    // red-500
       ];
@@ -717,7 +720,7 @@ export default function Dashboard() {
     const pending = Math.floor((total - running) * 0.6);
     const failed = total - running - pending;
     return [
-      { label: 'Running', value: running, color: '#10B981' },  // emerald-500
+      { label: 'Running', value: running, color: chartColors.success[0] },
       { label: 'Pending', value: pending, color: '#F59E0B' },  // amber-500
       { label: 'Failed', value: failed, color: '#EF4444' },    // red-500
     ];

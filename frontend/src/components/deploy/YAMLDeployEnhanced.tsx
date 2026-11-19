@@ -51,11 +51,11 @@ interface DeploySummary {
     kind: string;
     name: string;
     namespace?: string;
-    status: 'created' | 'updated' | 'unchanged';
+    status: string;
   }>;
   duration: number;
   timestamp: Date;
-  zeroDowntime: boolean;
+  zeroDowntime: boolean | null;
   podsUpdated: number;
   podsRestarted: number;
 }
@@ -212,26 +212,24 @@ export default function YAMLDeployEnhanced() {
           // Calculate deployment metrics
           const podsUpdated = response.data.resources.filter(r =>
             (r.kind === 'Deployment' || r.kind === 'StatefulSet' || r.kind === 'DaemonSet') &&
-            r.status === 'updated'
+            r.action === 'configured'
           ).length;
           const podsRestarted = response.data.resources.filter(r =>
-            r.kind === 'Pod' && r.status === 'updated'
+            r.kind === 'Pod' && r.action === 'configured'
           ).length;
 
           // Assume zero downtime if duration < 5s and no errors
-          const zeroDowntime = duration < 5000;
-
           setDeploySummary({
             success: true,
             resources: response.data.resources.map(r => ({
               kind: r.kind,
               name: r.name,
               namespace: r.namespace,
-              status: r.status as 'created' | 'updated' | 'unchanged',
+              status: r.action,
             })),
             duration,
             timestamp: new Date(),
-            zeroDowntime,
+            zeroDowntime: null,
             podsUpdated,
             podsRestarted,
           });
@@ -989,7 +987,7 @@ export default function YAMLDeployEnhanced() {
                   >
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Zero Downtime</p>
                     <p className="text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                      {deploySummary.zeroDowntime ? '✓' : '✗'}
+                      {deploySummary.zeroDowntime === null ? 'Not measured' : deploySummary.zeroDowntime ? '✓' : '✗'}
                     </p>
                   </motion.div>
                 </div>
@@ -1055,7 +1053,7 @@ export default function YAMLDeployEnhanced() {
                       <span className="text-primary-600 dark:text-primary-400">•</span>
                       <span>Verify service connectivity and ingress rules</span>
                     </li>
-                    {!deploySummary.zeroDowntime && (
+                    {deploySummary.zeroDowntime === false && (
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 dark:text-amber-400">⚠</span>
                         <span className="text-amber-700 dark:text-amber-400">

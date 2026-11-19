@@ -22,4 +22,37 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "kubesight.serviceAccountName" . }}
     namespace: {{ .Values.namespace }}
+{{- if .Values.remediationRbac.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.remediationRbac.serviceAccountName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "kubesight.labels" . | nindent 4 }}
+    app.kubernetes.io/component: remediation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kubesight.fullname" . }}-remediation
+  namespace: {{ .Values.namespace }}
+rules:
+  {{- toYaml .Values.remediationRbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kubesight.fullname" . }}-remediation
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kubesight.fullname" . }}-remediation
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.remediationRbac.serviceAccountName }}
+    namespace: {{ .Values.namespace }}
+{{- end }}
 {{- end }}

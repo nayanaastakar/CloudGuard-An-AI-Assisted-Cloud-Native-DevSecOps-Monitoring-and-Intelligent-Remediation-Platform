@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowPathIcon, ChartBarIcon, CpuChipIcon, ServerStackIcon } from '@heroicons/react/24/outline';
 import { kubernetesApi } from '../../services/api';
-import { useToast } from '../../contexts/ToastContext';
 import GlassCard from '../common/GlassCard';
 import type { ClusterMetrics as ClusterMetricsType, PodMetrics, Namespace } from '../../types';
 
 // Import shared constants
-import { containerVariants, itemVariants, formatBytes } from '../../utils/constants';
+import { containerVariants, itemVariants } from '../../utils/constants';
 
 // Progress bar component
 function Progress({ value }: { value: number }) {

@@ -17,8 +17,10 @@ def utc_now() -> datetime:
     """Return timezone-aware UTC datetime"""
     return datetime.now(timezone.utc)
 
-from kubernetes import client, config, watch
+from kubernetes import client, watch
 from kubernetes.client.rest import ApiException
+from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 
 logger = logging.getLogger(__name__)
 
@@ -117,18 +119,19 @@ class PipelineExecutor:
             return
 
         try:
-            # Try in-cluster config first
-            config.load_incluster_config()
-        except config.ConfigException:
-            # Fall back to kubeconfig
-            try:
-                config.load_kube_config()
-            except config.ConfigException as e:
-                logger.warning(f"Could not configure Kubernetes client: {e}")
-                return
+            if settings.K8S_IN_CLUSTER:
+                api_client = create_kubernetes_api_client(in_cluster=True)
+            else:
+                try:
+                    api_client = create_kubernetes_api_client(in_cluster=True)
+                except Exception:
+                    api_client = create_kubernetes_api_client(in_cluster=False)
+        except Exception as e:
+            logger.warning("Could not configure Kubernetes client: %s", e)
+            return
 
-        self.batch_v1 = client.BatchV1Api()
-        self.core_v1 = client.CoreV1Api()
+        self.batch_v1 = client.BatchV1Api(api_client)
+        self.core_v1 = client.CoreV1Api(api_client)
         self._k8s_configured = True
 
     async def ensure_namespace(self):

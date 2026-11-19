@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AttackPathView from '../AttackPathView';
 import cloudguardApi, { AttackPath } from '../../../services/cloudguardApi';
@@ -112,6 +112,8 @@ describe('AttackPathView Traversal Chain Responsive Audit', () => {
     await waitFor(() => {
       expect(screen.getByText('Attack Path Traversal Chain')).toBeInTheDocument();
     });
+    expect(screen.getByText('DEMO / LAB')).toBeInTheDocument();
+    expect(screen.getByText('Sample traversal vector; not verified against a live cluster.')).toBeInTheDocument();
 
     // Verify all 4 nodes are in document and visible
     expect(screen.getByText('frontend-gw')).toBeInTheDocument();

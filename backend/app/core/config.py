@@ -1,6 +1,9 @@
+import json
 import sys
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Union
+
+from pydantic import field_validator
 
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,17 +18,20 @@ class Settings(BaseSettings):
     APP_TITLE: str = "CloudGuard – An AI-Assisted Cloud-Native DevSecOps Monitoring and Intelligent Remediation Platform"
     APP_TAGLINE: str = "Secure, Analyse and Optimise Your Cloud-Native Infrastructure."
     APP_VERSION: str = "2.0.0"
+    ENVIRONMENT: str = "development"
     DEBUG: bool = False
     API_PREFIX: str = "/api/v1"
     DEMO_MODE: bool = False  # Enable demo data when K8s is unavailable
 
     # Security
-    SECRET_KEY: str = "cloudguard-secret-key-change-in-production"
+    # Supplied by the environment/.env. Production startup rejects an empty value.
+    SECRET_KEY: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    DEFAULT_ADMIN_PASSWORD: str = "admin123"  # CHANGE IN PRODUCTION via env var!
+    # Supplied by the environment/.env. Do not ship a default administrator password.
+    DEFAULT_ADMIN_PASSWORD: str = ""
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://cloudguard:cloudguard_secret@localhost:5433/cloudguard_db"
+    DATABASE_URL: str = ""
     USE_DATABASE_AUTH: bool = True  # Uses PostgreSQL for auth, security findings, and audits
 
     # Redis
@@ -47,6 +53,11 @@ class Settings(BaseSettings):
     K8S_CONFIG_PATH: Optional[str] = None
     K8S_IN_CLUSTER: bool = False
     K8S_HOST_OVERRIDE: Optional[str] = None  # Use 'host.docker.internal' for Docker Desktop
+    # Development only: explicitly opt out of API server certificate verification.
+    K8S_SKIP_TLS_VERIFY: bool = False
+
+    # Falco/Falcosidekick must sign each webhook request with this shared secret.
+    FALCO_WEBHOOK_SECRET: str = ""
 
     # Jenkins
     JENKINS_URL: str = "http://localhost:8080"
@@ -77,13 +88,33 @@ class Settings(BaseSettings):
     GITLEAKS_ENABLED: bool = True
 
     # CORS
-    CORS_ORIGINS: list[str] = [
+    CORS_ORIGINS: Union[list[str], str] = [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:5173",
         "http://localhost:8000",
         "http://localhost:8001",
     ]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, list[str]]) -> list[str]:
+        if isinstance(v, str):
+            v_trimmed = v.strip()
+            if not v_trimmed:
+                return []
+            if v_trimmed.startswith("[") and v_trimmed.endswith("]"):
+                try:
+                    parsed = json.loads(v_trimmed)
+                    if isinstance(parsed, list):
+                        return [str(item).strip() for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            # Split comma-separated string
+            return [orig.strip() for orig in v_trimmed.split(",") if orig.strip()]
+        elif isinstance(v, list):
+            return [str(item).strip() for item in v if str(item).strip()]
+        return []
 
     if SettingsConfigDict is not None:
         model_config = SettingsConfigDict(

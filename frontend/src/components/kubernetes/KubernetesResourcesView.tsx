@@ -7,10 +7,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import 'xterm/css/xterm.css';
 import {
-  GlobeAltIcon,
-  CircleStackIcon,
   DocumentDuplicateIcon,
-  KeyIcon,
   ServerStackIcon,
   CpuChipIcon,
   ClockIcon,
@@ -19,7 +16,6 @@ import {
   ArrowsPointingInIcon,
   ArrowPathIcon,
   CubeIcon,
-  Cog6ToothIcon,
   MagnifyingGlassIcon,
   PlayIcon,
   StopIcon,
@@ -40,10 +36,7 @@ import {
   SignalSlashIcon,
   WrenchScrewdriverIcon,
   ExclamationTriangleIcon,
-  EyeIcon,
   PencilSquareIcon,
-  PlusIcon,
-  EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 import { kubernetesApi } from '../../services/api';
 import {
@@ -68,25 +61,15 @@ import { logger } from '../../utils/logger';
 import PageHeader from '../common/PageHeader';
 import PodLogsViewer from './PodLogsViewer';
 import type {
-  Namespace,
-  K8sService,
-  Ingress,
-  ConfigMap,
-  Secret,
-  SecretDetail,
-  PVC,
   StatefulSet,
   DaemonSet,
   Job,
   CronJob,
-  HPA,
   Deployment,
   Pod,
 } from '../../types';
 
 // Import shared constants
-import { containerVariants, itemVariants, scaleVariants, formatAge } from '../../utils/constants';
-import { StatusBadge } from '../common/StatusBadge';
 
 // Table row animation variant (extends shared patterns)
 const tableRowVariants = {
@@ -488,8 +471,8 @@ function PodExecModal({ isOpen, onClose, pod }: PodExecModalProps) {
         red: '#ef4444',
         green: '#22c55e',
         yellow: '#eab308',
-        blue: '#3b82f6',
-        magenta: '#a855f7',
+        blue: '#7395AE',
+        magenta: '#557A95',
         cyan: '#06b6d4',
         white: '#e2e8f0',
         brightBlack: '#475569',
@@ -932,13 +915,6 @@ type WorkloadTab = 'deployments' | 'pods' | 'statefulsets' | 'daemonsets' | 'job
 type NetworkTab = 'services' | 'ingresses';
 type ConfigTab = 'configmaps' | 'secrets';
 
-const categories: { id: CategoryType; label: string; icon: typeof CubeIcon }[] = [
-  { id: 'workloads', label: 'Workloads', icon: CubeIcon },
-  { id: 'networking', label: 'Networking', icon: GlobeAltIcon },
-  { id: 'config', label: 'Config', icon: Cog6ToothIcon },
-  { id: 'storage', label: 'Storage', icon: CircleStackIcon },
-  { id: 'scaling', label: 'Scaling', icon: ArrowsPointingOutIcon },
-];
 
 const workloadTabs: { id: WorkloadTab; label: string; icon: typeof CubeIcon }[] = [
   { id: 'deployments', label: 'Deployments', icon: ServerStackIcon },
@@ -949,15 +925,7 @@ const workloadTabs: { id: WorkloadTab; label: string; icon: typeof CubeIcon }[] 
   { id: 'cronjobs', label: 'CronJobs', icon: CalendarIcon },
 ];
 
-const networkTabs: { id: NetworkTab; label: string; icon: typeof GlobeAltIcon }[] = [
-  { id: 'services', label: 'Services', icon: GlobeAltIcon },
-  { id: 'ingresses', label: 'Ingresses', icon: GlobeAltIcon },
-];
 
-const configTabs: { id: ConfigTab; label: string; icon: typeof DocumentDuplicateIcon }[] = [
-  { id: 'configmaps', label: 'ConfigMaps', icon: DocumentDuplicateIcon },
-  { id: 'secrets', label: 'Secrets', icon: KeyIcon },
-];
 
 // Auto-refresh interval options
 const autoRefreshOptions = [
@@ -1021,7 +989,7 @@ function getHealthIndicators(
 
 export default function KubernetesResourcesView() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { selectedNamespace } = useNamespace();
+  const { selectedNamespace, setSelectedNamespace } = useNamespace();
 
   // Map URL tab param to category and sub-tab
   const getInitialState = () => {
@@ -1065,7 +1033,7 @@ export default function KubernetesResourcesView() {
   }, [setSearchParams]);
 
   // Cache invalidation
-  const { invalidateByNamespace } = useInvalidateWorkloads();
+  useInvalidateWorkloads();
 
   // Cached data hooks - only fetch when tab is active (enabled)
   const ns = selectedNamespace || undefined;
@@ -1089,23 +1057,23 @@ export default function KubernetesResourcesView() {
     useCronJobs(ns, activeCategory === 'workloads' && activeWorkloadTab === 'cronjobs');
 
   // Networking
-  const { data: services = [], isLoading: servicesLoading, refetch: refetchServices } =
+  const { isLoading: servicesLoading, refetch: refetchServices } =
     useServices(ns, activeCategory === 'networking' && activeNetworkTab === 'services');
-  const { data: ingresses = [], isLoading: ingressesLoading, refetch: refetchIngresses } =
+  const { isLoading: ingressesLoading, refetch: refetchIngresses } =
     useIngresses(ns, activeCategory === 'networking' && activeNetworkTab === 'ingresses');
 
   // Config
-  const { data: configMaps = [], isLoading: configMapsLoading, refetch: refetchConfigMaps } =
+  const { isLoading: configMapsLoading, refetch: refetchConfigMaps } =
     useConfigMaps(ns, activeCategory === 'config' && activeConfigTab === 'configmaps');
-  const { data: secrets = [], isLoading: secretsLoading, refetch: refetchSecrets } =
+  const { isLoading: secretsLoading, refetch: refetchSecrets } =
     useSecrets(ns, activeCategory === 'config' && activeConfigTab === 'secrets');
 
   // Storage
-  const { data: pvcs = [], isLoading: pvcsLoading, refetch: refetchPVCs } =
+  const { isLoading: pvcsLoading, refetch: refetchPVCs } =
     usePVCs(ns, activeCategory === 'storage');
 
   // Scaling
-  const { data: hpas = [], isLoading: hpasLoading, refetch: refetchHPAs } =
+  const { isLoading: hpasLoading, refetch: refetchHPAs } =
     useHPAs(ns, activeCategory === 'scaling');
 
   // Compute loading state based on active tab
@@ -1166,33 +1134,6 @@ export default function KubernetesResourcesView() {
   }, [searchParams]);
 
   // Get current resource count based on active category and sub-tab
-  function getCurrentResourceCount(): number {
-    if (activeCategory === 'workloads') {
-      switch (activeWorkloadTab) {
-        case 'deployments': return deployments.length;
-        case 'pods': return pods.length;
-        case 'statefulsets': return statefulSets.length;
-        case 'daemonsets': return daemonSets.length;
-        case 'jobs': return jobs.length;
-        case 'cronjobs': return cronJobs.length;
-      }
-    } else if (activeCategory === 'networking') {
-      switch (activeNetworkTab) {
-        case 'services': return services.length;
-        case 'ingresses': return ingresses.length;
-      }
-    } else if (activeCategory === 'config') {
-      switch (activeConfigTab) {
-        case 'configmaps': return configMaps.length;
-        case 'secrets': return secrets.length;
-      }
-    } else if (activeCategory === 'storage') {
-      return pvcs.length;
-    } else if (activeCategory === 'scaling') {
-      return hpas.length;
-    }
-    return 0;
-  }
 
   // Refetch current tab data
   const fetchResourceData = useCallback(() => {
@@ -1318,7 +1259,7 @@ export default function KubernetesResourcesView() {
                   onClick={() => setAutoRefreshInterval(option.value)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                     autoRefreshInterval === option.value
-                      ? 'bg-primary-500 text-white shadow-sm'
+                      ? 'bg-primary-600 text-white shadow-sm'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -1349,7 +1290,7 @@ export default function KubernetesResourcesView() {
               }}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
                 activeWorkloadTab === tab.id
-                  ? 'bg-primary-500 text-white shadow-sm'
+                  ? 'bg-primary-600 text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
@@ -1896,7 +1837,7 @@ function DeploymentsTable({ data, searchQuery, onRefresh, pods }: { data: Deploy
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [scaleModal, setScaleModal] = useState<{ dep: Deployment; replicas: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortConfig, setSortConfig] = useState<SortConfig<Deployment>>({ key: null, direction: null });
+  const [sortConfig] = useState<SortConfig<Deployment>>({ key: null, direction: null });
   const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
   const [rollbackModal, setRollbackModal] = useState<Deployment | null>(null);
 
@@ -1918,12 +1859,6 @@ function DeploymentsTable({ data, searchQuery, onRefresh, pods }: { data: Deploy
   // Sort data
   const sortedData = useMemo(() => sortData(statusFiltered, sortConfig), [statusFiltered, sortConfig]);
 
-  const handleSort = (key: keyof Deployment) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
 
   const handleScale = async (dep: Deployment, replicas: number) => {
     setActionLoading(`scale-${dep.namespace}-${dep.name}`);
@@ -2271,7 +2206,7 @@ function PodsTable({ data, searchQuery, onRefresh }: { data: Pod[]; searchQuery:
   const toast = useToast();
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortConfig, setSortConfig] = useState<SortConfig<Pod>>({ key: null, direction: null });
+  const [sortConfig] = useState<SortConfig<Pod>>({ key: null, direction: null });
   const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
   const [logsModal, setLogsModal] = useState<Pod | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
@@ -2297,12 +2232,6 @@ function PodsTable({ data, searchQuery, onRefresh }: { data: Pod[]; searchQuery:
   // Sort data
   const sortedData = useMemo(() => sortData(statusFiltered, sortConfig), [statusFiltered, sortConfig]);
 
-  const handleSort = (key: keyof Pod) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
 
   const handleDelete = async (pod: Pod) => {
     if (!confirm(`Are you sure you want to delete pod "${pod.name}"?`)) return;
@@ -2529,1227 +2458,12 @@ function PodsTable({ data, searchQuery, onRefresh }: { data: Pod[]; searchQuery:
   );
 }
 
-function ServicesTable({ data, searchQuery, onRefresh }: { data: K8sService[]; searchQuery: string; onRefresh?: () => void }) {
-  const toast = useToast();
-  const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
-  const [deleteModal, setDeleteModal] = useState<K8sService | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
-  const filteredData = data.filter(svc =>
-    svc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    svc.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    svc.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    svc.cluster_ip?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
-  const handleDelete = async (svc: K8sService) => {
-    setDeleting(true);
-    try {
-      await kubernetesApi.deleteService(svc.namespace, svc.name);
-      toast.success(`Service ${svc.name} deleted successfully`);
-      setDeleteModal(null);
-      onRefresh?.();
-    } catch (error: any) {
-      toast.error(`Failed to delete service: ${error.response?.data?.detail || error.message}`);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (filteredData.length === 0) {
-    return <EmptyState icon={GlobeAltIcon} title={searchQuery ? "No matching services" : "No services found"} />;
-  }
-  return (
-    <>
-      <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-slate-700">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cluster IP</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">External IP</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ports</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {filteredData.map((svc, index) => (
-              <motion.tr
-                key={`${svc.namespace}-${svc.name}`}
-                custom={index}
-                variants={tableRowVariants}
-                initial="hidden"
-                animate="visible"
-                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{svc.name}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                    {svc.namespace}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/20">
-                    {svc.type}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 font-mono text-sm">{svc.cluster_ip || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 font-mono text-sm">{svc.external_ip || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">
-                  {svc.ports.map((p, i) => (
-                    <span key={i} className="inline-block mr-2 px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-700 font-mono text-xs">
-                      {p.port}:{p.targetPort}/{p.protocol}
-                    </span>
-                  ))}
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setYamlModal({ namespace: svc.namespace, name: svc.name })}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                      title="View/Edit YAML"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setDeleteModal(svc)}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
-                      title="Delete"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* YAML Modal */}
-      <AnimatePresence>
-        {yamlModal && (
-          <YAMLModal
-            isOpen={!!yamlModal}
-            onClose={() => setYamlModal(null)}
-            resourceType="service"
-            namespace={yamlModal.namespace}
-            name={yamlModal.name}
-            onRefresh={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setDeleteModal(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-200 dark:border-slate-700"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-danger-100 dark:bg-danger-900/30">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-danger-600 dark:text-danger-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Delete Service</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Are you sure you want to delete <span className="font-semibold">{deleteModal.name}</span> in namespace{' '}
-                <span className="font-semibold">{deleteModal.namespace}</span>?
-              </p>
-              <div className="flex justify-end gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setDeleteModal(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleDelete(deleteModal)}
-                  disabled={deleting}
-                  className="px-5 py-2 text-sm font-medium rounded-xl bg-danger-600 text-white hover:bg-danger-700 transition-all shadow-lg shadow-danger-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deleting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-function IngressesTable({ data, searchQuery, onRefresh }: { data: Ingress[]; searchQuery: string; onRefresh?: () => void }) {
-  const toast = useToast();
-  const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
-  const [deleteModal, setDeleteModal] = useState<Ingress | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const filteredData = data.filter(ing =>
-    ing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ing.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ing.class_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ing.hosts.some(h => h.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  const handleDelete = async (ing: Ingress) => {
-    setDeleting(true);
-    try {
-      await kubernetesApi.deleteIngress(ing.namespace, ing.name);
-      toast.success(`Ingress ${ing.name} deleted successfully`);
-      setDeleteModal(null);
-      onRefresh?.();
-    } catch (error: any) {
-      toast.error(`Failed to delete ingress: ${error.response?.data?.detail || error.message}`);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (filteredData.length === 0) {
-    return <EmptyState icon={GlobeAltIcon} title={searchQuery ? "No matching ingresses" : "No ingresses found"} />;
-  }
-  return (
-    <>
-      <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-slate-700">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hosts</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Address</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {filteredData.map((ing, index) => (
-              <motion.tr
-                key={`${ing.namespace}-${ing.name}`}
-                custom={index}
-                variants={tableRowVariants}
-                initial="hidden"
-                animate="visible"
-                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{ing.name}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                    {ing.namespace}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{ing.class_name || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{ing.hosts.join(', ') || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 font-mono text-sm">{ing.address || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{ing.age}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setYamlModal({ namespace: ing.namespace, name: ing.name })}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                      title="View/Edit YAML"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setDeleteModal(ing)}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
-                      title="Delete"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* YAML Modal */}
-      <AnimatePresence>
-        {yamlModal && (
-          <YAMLModal
-            isOpen={!!yamlModal}
-            onClose={() => setYamlModal(null)}
-            resourceType="ingress"
-            namespace={yamlModal.namespace}
-            name={yamlModal.name}
-            onRefresh={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setDeleteModal(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-200 dark:border-slate-700"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-danger-100 dark:bg-danger-900/30">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-danger-600 dark:text-danger-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Delete Ingress</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Are you sure you want to delete <span className="font-semibold">{deleteModal.name}</span> in namespace{' '}
-                <span className="font-semibold">{deleteModal.namespace}</span>?
-              </p>
-              <div className="flex justify-end gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setDeleteModal(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleDelete(deleteModal)}
-                  disabled={deleting}
-                  className="px-5 py-2 text-sm font-medium rounded-xl bg-danger-600 text-white hover:bg-danger-700 transition-all shadow-lg shadow-danger-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deleting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-function ConfigMapsTable({ data, searchQuery, onRefresh }: { data: ConfigMap[]; searchQuery: string; onRefresh?: () => void }) {
-  const toast = useToast();
-  const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
-  const [deleteModal, setDeleteModal] = useState<ConfigMap | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const filteredData = data.filter(cm =>
-    cm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cm.namespace.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleDelete = async (cm: ConfigMap) => {
-    setDeleting(true);
-    try {
-      await kubernetesApi.deleteConfigMap(cm.namespace, cm.name);
-      toast.success(`ConfigMap ${cm.name} deleted successfully`);
-      setDeleteModal(null);
-      onRefresh?.();
-    } catch (error: any) {
-      toast.error(`Failed to delete configmap: ${error.response?.data?.detail || error.message}`);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (filteredData.length === 0) {
-    return <EmptyState icon={DocumentDuplicateIcon} title={searchQuery ? "No matching configmaps" : "No configmaps found"} />;
-  }
-  return (
-    <>
-      <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-slate-700">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Data Keys</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {filteredData.map((cm, index) => (
-              <motion.tr
-                key={`${cm.namespace}-${cm.name}`}
-                custom={index}
-                variants={tableRowVariants}
-                initial="hidden"
-                animate="visible"
-                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{cm.name}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                    {cm.namespace}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/20">
-                    {cm.data_count} keys
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{cm.age}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setYamlModal({ namespace: cm.namespace, name: cm.name })}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                      title="View/Edit YAML"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setDeleteModal(cm)}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
-                      title="Delete"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* YAML Modal */}
-      <AnimatePresence>
-        {yamlModal && (
-          <YAMLModal
-            isOpen={!!yamlModal}
-            onClose={() => setYamlModal(null)}
-            resourceType="configmap"
-            namespace={yamlModal.namespace}
-            name={yamlModal.name}
-            onRefresh={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setDeleteModal(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-200 dark:border-slate-700"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-danger-100 dark:bg-danger-900/30">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-danger-600 dark:text-danger-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Delete ConfigMap</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Are you sure you want to delete <span className="font-semibold">{deleteModal.name}</span> in namespace{' '}
-                <span className="font-semibold">{deleteModal.namespace}</span>?
-              </p>
-              <div className="flex justify-end gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setDeleteModal(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleDelete(deleteModal)}
-                  disabled={deleting}
-                  className="px-5 py-2 text-sm font-medium rounded-xl bg-danger-600 text-white hover:bg-danger-700 transition-all shadow-lg shadow-danger-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deleting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
 
 // Secret Modal for viewing and editing secrets
-function SecretModal({
-  secret,
-  mode,
-  namespaces,
-  onClose,
-  onSaved,
-}: {
-  secret: Secret | null;
-  mode: 'view' | 'edit' | 'create';
-  namespaces: Namespace[];
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const toast = useToast();
-  const [loading, setLoading] = useState(false);
-  const [secretDetail, setSecretDetail] = useState<SecretDetail | null>(null);
-  const [editData, setEditData] = useState<Record<string, string>>({});
-  const [showValues, setShowValues] = useState<Record<string, boolean>>({});
-  const [newKey, setNewKey] = useState('');
-  const [newValue, setNewValue] = useState('');
-  const [createForm, setCreateForm] = useState({
-    name: '',
-    namespace: namespaces[0]?.name || 'default',
-    type: 'Opaque',
-  });
 
-  useEffect(() => {
-    if (mode !== 'create' && secret) {
-      loadSecretDetail();
-    }
-  }, [secret, mode]);
 
-  const loadSecretDetail = async () => {
-    if (!secret) return;
-    setLoading(true);
-    try {
-      const response = await kubernetesApi.getSecret(secret.namespace, secret.name);
-      setSecretDetail(response.data);
-      setEditData({ ...response.data.data });
-    } catch (err) {
-      toast.error('Failed to load secret details');
-      logger.error('Failed to load secret details', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      if (mode === 'create') {
-        await kubernetesApi.createSecret({
-          name: createForm.name,
-          namespace: createForm.namespace,
-          type: createForm.type,
-          data: editData,
-        });
-        toast.success('Secret created successfully');
-      } else if (mode === 'edit' && secret) {
-        await kubernetesApi.updateSecret(secret.namespace, secret.name, {
-          data: editData,
-        });
-        toast.success('Secret updated successfully');
-      }
-      onSaved();
-      onClose();
-    } catch (err) {
-      toast.error(`Failed to ${mode === 'create' ? 'create' : 'update'} secret`);
-      logger.error(`Failed to ${mode === 'create' ? 'create' : 'update'} secret`, err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddKey = () => {
-    if (newKey && !editData[newKey]) {
-      setEditData({ ...editData, [newKey]: newValue });
-      setNewKey('');
-      setNewValue('');
-    }
-  };
-
-  const handleRemoveKey = (key: string) => {
-    const newData = { ...editData };
-    delete newData[key];
-    setEditData(newData);
-  };
-
-  const toggleShowValue = (key: string) => {
-    setShowValues({ ...showValues, [key]: !showValues[key] });
-  };
-
-  const isEditable = mode === 'edit' || mode === 'create';
-
-  return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-              <KeyIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {mode === 'create' ? 'Create Secret' : mode === 'edit' ? 'Edit Secret' : 'View Secret'}
-              </h3>
-              {secret && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {secret.namespace}/{secret.name}
-                </p>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <ArrowPathIcon className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          )}
-
-          {!loading && mode === 'create' && (
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={createForm.name}
-                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                    placeholder="my-secret"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Namespace
-                  </label>
-                  <select
-                    value={createForm.namespace}
-                    onChange={(e) => setCreateForm({ ...createForm, namespace: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                  >
-                    {namespaces.map((ns) => (
-                      <option key={ns.name} value={ns.name}>{ns.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Type
-                </label>
-                <select
-                  value={createForm.type}
-                  onChange={(e) => setCreateForm({ ...createForm, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="Opaque">Opaque</option>
-                  <option value="kubernetes.io/tls">kubernetes.io/tls</option>
-                  <option value="kubernetes.io/dockerconfigjson">kubernetes.io/dockerconfigjson</option>
-                  <option value="kubernetes.io/basic-auth">kubernetes.io/basic-auth</option>
-                  <option value="kubernetes.io/ssh-auth">kubernetes.io/ssh-auth</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {!loading && (mode === 'view' || mode === 'edit') && secretDetail && (
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Type:</span>
-                  <span className="ml-2 text-gray-900 dark:text-white">{secretDetail.type}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Created:</span>
-                  <span className="ml-2 text-gray-900 dark:text-white">
-                    {secretDetail.created_at ? new Date(secretDetail.created_at).toLocaleString() : 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Keys:</span>
-                  <span className="ml-2 text-gray-900 dark:text-white">{Object.keys(editData).length}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!loading && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Data</h4>
-                {isEditable && (
-                  <button
-                    onClick={() => setShowValues(Object.keys(editData).reduce((acc, k) => ({ ...acc, [k]: true }), {}))}
-                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Show all values
-                  </button>
-                )}
-              </div>
-
-              {Object.entries(editData).map(([key, value]) => (
-                <div key={key} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{key}</span>
-                      <button
-                        onClick={() => toggleShowValue(key)}
-                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        {showValues[key] ? (
-                          <EyeSlashIcon className="h-4 w-4" />
-                        ) : (
-                          <EyeIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                    {isEditable ? (
-                      <textarea
-                        value={value}
-                        onChange={(e) => setEditData({ ...editData, [key]: e.target.value })}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-mono"
-                        rows={showValues[key] ? 3 : 1}
-                        style={{ WebkitTextSecurity: showValues[key] ? 'none' : 'disc' } as React.CSSProperties}
-                      />
-                    ) : (
-                      <div
-                        className="text-sm text-gray-600 dark:text-gray-400 font-mono break-all"
-                        style={{ WebkitTextSecurity: showValues[key] ? 'none' : 'disc' } as React.CSSProperties}
-                      >
-                        {value || '(empty)'}
-                      </div>
-                    )}
-                  </div>
-                  {isEditable && (
-                    <button
-                      onClick={() => handleRemoveKey(key)}
-                      className="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {Object.keys(editData).length === 0 && (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No data keys
-                </div>
-              )}
-
-              {isEditable && (
-                <div className="flex items-end gap-2 p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
-                  <div className="flex-1">
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Key</label>
-                    <input
-                      type="text"
-                      value={newKey}
-                      onChange={(e) => setNewKey(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                      placeholder="new-key"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Value</label>
-                    <input
-                      type="text"
-                      value={newValue}
-                      onChange={(e) => setNewValue(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                      placeholder="value"
-                    />
-                  </div>
-                  <button
-                    onClick={handleAddKey}
-                    disabled={!newKey}
-                    className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded disabled:opacity-50"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-          >
-            {isEditable ? 'Cancel' : 'Close'}
-          </button>
-          {isEditable && (
-            <button
-              onClick={handleSave}
-              disabled={loading || (mode === 'create' && !createForm.name)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <CheckIcon className="h-4 w-4" />
-                  {mode === 'create' ? 'Create' : 'Save Changes'}
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>,
-    document.body
-  );
-}
-
-function SecretsTable({ data, searchQuery, namespaces, onRefresh }: { data: Secret[]; searchQuery: string; namespaces: Namespace[]; onRefresh: () => void }) {
-  const toast = useToast();
-  const [selectedSecret, setSelectedSecret] = useState<Secret | null>(null);
-  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'create'>('view');
-  const [showModal, setShowModal] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<Secret | null>(null);
-
-  const handleView = (secret: Secret) => {
-    setSelectedSecret(secret);
-    setModalMode('view');
-    setShowModal(true);
-  };
-
-  const handleEdit = (secret: Secret) => {
-    setSelectedSecret(secret);
-    setModalMode('edit');
-    setShowModal(true);
-  };
-
-  const handleCreate = () => {
-    setSelectedSecret(null);
-    setModalMode('create');
-    setShowModal(true);
-  };
-
-  const handleDelete = async (secret: Secret) => {
-    try {
-      await kubernetesApi.deleteSecret(secret.namespace, secret.name);
-      toast.success('Secret deleted successfully');
-      setDeleteConfirm(null);
-      onRefresh();
-    } catch (err) {
-      toast.error('Failed to delete secret');
-      logger.error('Failed to delete secret', err);
-    }
-  };
-
-  const filteredData = data.filter(sec =>
-    sec.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    sec.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    sec.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  return (
-    <>
-      {/* Header with Create Button */}
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {filteredData.length} secret{filteredData.length !== 1 ? 's' : ''}
-        </span>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-xl transition-colors"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Create Secret
-        </button>
-      </div>
-
-      {filteredData.length === 0 ? (
-        <EmptyState icon={KeyIcon} title={searchQuery ? "No matching secrets" : "No secrets found"} />
-      ) : (
-        <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-slate-700">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Data</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {filteredData.map((sec, index) => (
-                <motion.tr
-                  key={`${sec.namespace}-${sec.name}`}
-                  custom={index}
-                  variants={tableRowVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-                >
-                  <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{sec.name}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                      {sec.namespace}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20">
-                      {sec.type}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-xs">
-                      {sec.data_count} keys
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{sec.age}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => handleView(sec)}
-                        className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
-                        title="View"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleEdit(sec)}
-                        className="p-1.5 text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
-                        title="Edit"
-                      >
-                        <PencilSquareIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm(sec)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Secret Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <SecretModal
-            secret={selectedSecret}
-            mode={modalMode}
-            namespaces={namespaces}
-            onClose={() => setShowModal(false)}
-            onSaved={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={() => setDeleteConfirm(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Secret</h3>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Are you sure you want to delete the secret <strong>{deleteConfirm.namespace}/{deleteConfirm.name}</strong>?
-                This action cannot be undone.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDelete(deleteConfirm)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-function PVCsTable({ data, searchQuery, onRefresh }: { data: PVC[]; searchQuery: string; onRefresh?: () => void }) {
-  const toast = useToast();
-  const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
-  const [deleteModal, setDeleteModal] = useState<PVC | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const filteredData = data.filter(pvc =>
-    pvc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pvc.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pvc.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pvc.storage_class?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleDelete = async (pvc: PVC) => {
-    setDeleting(true);
-    try {
-      await kubernetesApi.deletePVC(pvc.namespace, pvc.name);
-      toast.success(`PVC ${pvc.name} deleted successfully`);
-      setDeleteModal(null);
-      onRefresh?.();
-    } catch (error: any) {
-      toast.error(`Failed to delete PVC: ${error.response?.data?.detail || error.message}`);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (filteredData.length === 0) {
-    return <EmptyState icon={CircleStackIcon} title={searchQuery ? "No matching PVCs" : "No PVCs found"} />;
-  }
-  return (
-    <>
-      <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-slate-700">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Capacity</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Access Modes</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Storage Class</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {filteredData.map((pvc, index) => (
-              <motion.tr
-                key={`${pvc.namespace}-${pvc.name}`}
-                custom={index}
-                variants={tableRowVariants}
-                initial="hidden"
-                animate="visible"
-                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{pvc.name}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                    {pvc.namespace}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ${
-                    pvc.status === 'Bound'
-                      ? 'bg-success-500/10 text-success-600 dark:text-success-400 ring-success-500/20'
-                      : 'bg-warning-500/10 text-warning-600 dark:text-warning-400 ring-warning-500/20'
-                  }`}>
-                    {pvc.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-600 dark:text-gray-400 font-mono text-sm">{pvc.capacity || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{pvc.access_modes.join(', ')}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{pvc.storage_class || '-'}</td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{pvc.age}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setYamlModal({ namespace: pvc.namespace, name: pvc.name })}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                      title="View/Edit YAML"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setDeleteModal(pvc)}
-                      className="p-1.5 rounded-xl text-gray-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
-                      title="Delete"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* YAML Modal */}
-      <AnimatePresence>
-        {yamlModal && (
-          <YAMLModal
-            isOpen={!!yamlModal}
-            onClose={() => setYamlModal(null)}
-            resourceType="pvc"
-            namespace={yamlModal.namespace}
-            name={yamlModal.name}
-            onRefresh={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setDeleteModal(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-200 dark:border-slate-700"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-danger-100 dark:bg-danger-900/30">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-danger-600 dark:text-danger-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Delete PVC</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-2">
-                Are you sure you want to delete <span className="font-semibold">{deleteModal.name}</span> in namespace{' '}
-                <span className="font-semibold">{deleteModal.namespace}</span>?
-              </p>
-              <p className="text-sm text-warning-600 dark:text-warning-400 mb-6">
-                Warning: Deleting a PVC may result in data loss if the underlying PersistentVolume uses a delete reclaim policy.
-              </p>
-              <div className="flex justify-end gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setDeleteModal(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleDelete(deleteModal)}
-                  disabled={deleting}
-                  className="px-5 py-2 text-sm font-medium rounded-xl bg-danger-600 text-white hover:bg-danger-700 transition-all shadow-lg shadow-danger-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deleting && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
 
 // Filter options for StatefulSets
 const statefulSetFilterOptions: StatusFilterOption[] = [
@@ -4554,93 +3268,3 @@ function CronJobsTable({ data, searchQuery, onRefresh }: { data: CronJob[]; sear
   );
 }
 
-function HPAsTable({ data, searchQuery, onRefresh }: { data: HPA[]; searchQuery: string; onRefresh?: () => void }) {
-  const [yamlModal, setYamlModal] = useState<{ namespace: string; name: string } | null>(null);
-
-  const filteredData = data.filter(hpa =>
-    hpa.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hpa.namespace.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hpa.reference.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  if (filteredData.length === 0) {
-    return <EmptyState icon={ArrowsPointingOutIcon} title={searchQuery ? "No matching HPAs" : "No HPAs found"} />;
-  }
-  return (
-    <>
-      <div className="overflow-x-auto rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-slate-700">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Namespace</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reference</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Min/Max</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Replicas</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">CPU</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {filteredData.map((hpa, index) => (
-              <motion.tr
-                key={`${hpa.namespace}-${hpa.name}`}
-                custom={index}
-                variants={tableRowVariants}
-                initial="hidden"
-                animate="visible"
-                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{hpa.name}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 rounded-xl text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
-                    {hpa.namespace}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{hpa.reference}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-0.5 rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 font-mono text-xs">
-                    {hpa.min_replicas}/{hpa.max_replicas}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 ring-1 ring-primary-500/20">
-                    {hpa.current_replicas}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm font-mono">
-                  {hpa.current_cpu || '-'} / {hpa.target_cpu || '-'}
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{hpa.age}</td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={() => setYamlModal({ namespace: hpa.namespace, name: hpa.name })}
-                    className="p-1.5 rounded-xl text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-                    title="View/Edit YAML"
-                  >
-                    <PencilSquareIcon className="h-4 w-4" />
-                  </button>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* YAML Modal */}
-      <AnimatePresence>
-        {yamlModal && (
-          <YAMLModal
-            isOpen={!!yamlModal}
-            onClose={() => setYamlModal(null)}
-            resourceType="hpa"
-            namespace={yamlModal.namespace}
-            name={yamlModal.name}
-            onRefresh={onRefresh}
-          />
-        )}
-      </AnimatePresence>
-    </>
-  );
-}

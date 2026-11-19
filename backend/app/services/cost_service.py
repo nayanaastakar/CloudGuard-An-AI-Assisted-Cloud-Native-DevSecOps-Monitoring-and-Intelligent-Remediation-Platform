@@ -13,6 +13,9 @@ from typing import Dict, List, Optional, Tuple
 from kubernetes import client
 from kubernetes.client import ApiException
 
+from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
+
 from app.schemas.cost import (
     ClusterCostSummary,
     CostBreakdown,
@@ -42,11 +45,14 @@ class CostService:
         """Get or create CoreV1Api client."""
         if not self._k8s_core_v1:
             try:
-                client.Configuration.set_default(client.Configuration())
-                self._k8s_core_v1 = client.CoreV1Api()
+                api_client = create_kubernetes_api_client(
+                    in_cluster=settings.K8S_IN_CLUSTER,
+                    host_override=settings.K8S_HOST_OVERRIDE,
+                )
+                self._k8s_core_v1 = client.CoreV1Api(api_client)
             except Exception as e:
                 logger.warning(f"Failed to create CoreV1Api: {e}")
-                self._k8s_core_v1 = client.CoreV1Api()
+                raise
         return self._k8s_core_v1
 
     def _parse_resource_value(self, value: str, resource_type: str) -> float:

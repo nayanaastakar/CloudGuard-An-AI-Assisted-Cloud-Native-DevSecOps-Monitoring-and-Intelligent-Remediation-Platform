@@ -10,6 +10,8 @@ import string
 from typing import Any, Dict, Optional, Tuple
 
 from app.services.helm_service import HelmService
+from app.core.config import settings
+from app.core.startup import is_effective_production
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +151,7 @@ class ArgoCDDeploymentService:
         expose_type: str = "ClusterIP",  # ClusterIP, LoadBalancer, NodePort
         admin_password: Optional[str] = None,
         ha_enabled: bool = False,
-        insecure: bool = True,  # Disable TLS for easier local dev
+        insecure: bool = False,
     ) -> Dict[str, Any]:
         """
         Deploy ArgoCD to the cluster.
@@ -162,12 +164,14 @@ class ArgoCDDeploymentService:
             expose_type: Service type for ArgoCD server
             admin_password: Admin password (generated if not provided)
             ha_enabled: Enable high availability mode
-            insecure: Run server without TLS (for local development)
+            insecure: Explicit development-only opt-out of TLS verification
 
         Returns:
             Deployment result with connection details
         """
         try:
+            if insecure and is_effective_production(settings):
+                raise ValueError("Argo CD TLS verification cannot be disabled in production")
             # Ensure repo is added
             success, msg = await self._ensure_repo_added()
             if not success:

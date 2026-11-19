@@ -12,6 +12,7 @@ from kubernetes import client, watch
 from kubernetes.client.rest import ApiException
 
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +73,14 @@ ALERT_RULES = {
 class K8sWatcherService:
     """Watches Kubernetes for events and creates incidents automatically"""
 
-    def __init__(self):
+    def __init__(self, cluster_id: Optional[str] = None):
         self._core_v1 = None
         self._apps_v1 = None
         self._initialized = False
         self._watching = False
         self._incident_callback = None
         self._timeline_callback = None
+        self._cluster_id = cluster_id
         self._recent_incidents: Dict[str, datetime] = {}  # Dedup cache
         self._dedup_window_seconds = 300  # 5 minutes
 
@@ -87,17 +89,12 @@ class K8sWatcherService:
             return
 
         try:
-            from kubernetes import config
-
-            if settings.K8S_IN_CLUSTER:
-                config.load_incluster_config()
-            elif settings.K8S_CONFIG_PATH:
-                config.load_kube_config(config_file=settings.K8S_CONFIG_PATH)
-            else:
-                config.load_kube_config()
-
-            self._core_v1 = client.CoreV1Api()
-            self._apps_v1 = client.AppsV1Api()
+            api_client = create_kubernetes_api_client(
+                in_cluster=settings.K8S_IN_CLUSTER,
+                host_override=settings.K8S_HOST_OVERRIDE,
+            )
+            self._core_v1 = client.CoreV1Api(api_client)
+            self._apps_v1 = client.AppsV1Api(api_client)
             self._initialized = True
             logger.info("K8s Watcher initialized successfully")
         except Exception as e:
@@ -386,6 +383,56 @@ class K8sWatcherService:
 
             created_incidents.append(incident_data)
             logger.info(f"Auto-created incident: {title}")
+
+            # Publish Kubernetes incident/issue event to Redis and WebSocket bus
+            try:
+                import json
+                from app.core.websocket_manager import ws_manager
+                from app.core.cache import get_redis
+                from app.core.config import settings
+
+                # Determine effective cluster ID: self._cluster_id > active cluster
+                effective_cluster_id = self._cluster_id
+                if not effective_cluster_id:
+                    try:
+                        from app.services.cluster_service import cluster_service
+                        effective_cluster_id = await cluster_service.get_active_cluster()
+                    except Exception:
+                        effective_cluster_id = None
+                effective_cluster_id = effective_cluster_id or "default"
+
+                k8s_event_payload = {
+                    "type": "k8s_event",
+                    "cluster_id": effective_cluster_id,
+                    "data": {
+                        "issue_type": issue_type,
+                        "title": title,
+                        "description": description,
+                        "severity": rule["severity"],
+                        "namespace": issue.get("namespace"),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "details": issue,
+                    },
+                }
+
+                if settings.REDIS_ENABLED:
+                    try:
+                        redis_client = await get_redis()
+                        if redis_client:
+                            await redis_client.publish(
+                                "cloudguard:events",
+                                json.dumps(k8s_event_payload)
+                            )
+                    except Exception as redis_err:
+                        logger.debug("Redis publish skipped for k8s event: %s", redis_err)
+
+                await ws_manager.broadcast_event(
+                    event_type="k8s_event",
+                    data=k8s_event_payload["data"],
+                    cluster_id=effective_cluster_id
+                )
+            except Exception as broadcast_err:
+                logger.debug("Failed broadcasting k8s event: %s", broadcast_err)
 
             # Call incident callback if set
             if self._incident_callback:

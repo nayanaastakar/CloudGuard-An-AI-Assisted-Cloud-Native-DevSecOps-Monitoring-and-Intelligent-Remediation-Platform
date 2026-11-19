@@ -24,7 +24,14 @@ backend:
   env:
     APP_NAME: "KubeSight"
     DEBUG: "false"
+    ENVIRONMENT: "production"
     K8S_IN_CLUSTER: "true"
+    K8S_SKIP_TLS_VERIFY: "false"
+    REDIS_ENABLED: "true"
+  # Name of a pre-created Kubernetes Secret containing required application settings:
+  # SECRET_KEY, DEFAULT_ADMIN_PASSWORD, DATABASE_URL, REDIS_URL, CORS_ORIGINS,
+  # FALCO_WEBHOOK_SECRET.
+  existingSecret: ""
   # Extra environment variables (for secrets)
   extraEnv: []
   #  - name: GEMINI_API_KEY
@@ -84,15 +91,18 @@ serviceAccount:
 # RBAC configuration
 rbac:
   create: true
-  # Cluster-wide read access for Kubernetes resources
+  # Read-only access for monitoring and audit. Remediation never uses this identity.
   clusterRole:
     rules:
       - apiGroups: [""]
-        resources: ["pods", "services", "configmaps", "secrets", "namespaces", "nodes", "events", "persistentvolumeclaims"]
+        resources: ["pods", "services", "endpoints", "configmaps", "namespaces", "nodes", "events", "persistentvolumeclaims"]
         verbs: ["get", "list", "watch"]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get"]
       - apiGroups: ["apps"]
         resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
-        verbs: ["get", "list", "watch", "update", "patch"]
+        verbs: ["get", "list", "watch"]
       - apiGroups: ["batch"]
         resources: ["jobs", "cronjobs"]
         verbs: ["get", "list", "watch"]
@@ -104,7 +114,17 @@ rbac:
         verbs: ["get", "list", "watch"]
       - apiGroups: ["rbac.authorization.k8s.io"]
         resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
-        verbs: ["get", "list", "watch"]
+        verbs: ["get", "list"]
+
+# Separate namespace-scoped identity for the approved deployment-scale action.
+# Disabled by default; it is not the backend's monitoring service account.
+remediationRbac:
+  enabled: false
+  serviceAccountName: kubesight-remediation
+  rules:
+    - apiGroups: ["apps"]
+      resources: ["deployments/scale"]
+      verbs: ["get", "patch"]
 
 # NetworkPolicy configuration
 networkPolicy:

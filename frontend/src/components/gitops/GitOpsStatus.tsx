@@ -20,7 +20,6 @@ import { logger } from '../../utils/logger';
 import type { ArgoCDApplicationSummary, ArgoCDStatus, ArgoCDSyncStatus, ArgoCDHealthStatus } from '../../types';
 
 // Import shared constants
-import { containerVariants, itemVariants } from '../../utils/constants';
 
 export default function GitOpsStatus() {
   const [applications, setApplications] = useState<ArgoCDApplicationSummary[]>([]);

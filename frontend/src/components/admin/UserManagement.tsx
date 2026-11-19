@@ -1058,10 +1058,10 @@ export default function UserManagement() {
                           <td className={`px-4 py-3 border-r border-gray-200 dark:border-slate-600 sticky left-0 z-10 ${rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800/50'}`}>
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full bg-${row.color}-500`} style={{
-                                backgroundColor: row.color === 'blue' ? '#3b82f6' :
-                                  row.color === 'orange' ? '#f97316' :
-                                  row.color === 'purple' ? '#a855f7' :
-                                  row.color === 'red' ? '#ef4444' : '#6b7280'
+                                backgroundColor: row.color === 'blue' ? '#7395AE' :
+                                  row.color === 'orange' ? '#F59E0B' :
+                                  row.color === 'purple' ? '#557A95' :
+                                  row.color === 'red' ? '#EF4444' : '#5D5C61'
                               }} />
                               <span className="font-medium text-gray-900 dark:text-white text-sm">
                                 {row.category}
@@ -1415,10 +1415,10 @@ export default function UserManagement() {
                                 <td className={`px-3 py-2 border-r border-gray-200 dark:border-slate-600 sticky left-0 z-10 ${rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800/50'}`}>
                                   <div className="flex items-center gap-1.5">
                                     <div className="w-2 h-2 rounded-full" style={{
-                                      backgroundColor: row.color === 'blue' ? '#3b82f6' :
-                                        row.color === 'orange' ? '#f97316' :
-                                        row.color === 'purple' ? '#a855f7' :
-                                        row.color === 'red' ? '#ef4444' : '#6b7280'
+                                      backgroundColor: row.color === 'blue' ? '#7395AE' :
+                                        row.color === 'orange' ? '#F59E0B' :
+                                        row.color === 'purple' ? '#557A95' :
+                                        row.color === 'red' ? '#EF4444' : '#5D5C61'
                                     }} />
                                     <span className="font-medium text-gray-900 dark:text-white text-xs whitespace-nowrap">
                                       {row.category}

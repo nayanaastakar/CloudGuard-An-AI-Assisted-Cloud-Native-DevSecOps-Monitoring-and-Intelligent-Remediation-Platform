@@ -48,14 +48,15 @@ The fastest way to get started is using Docker Compose:
 git clone https://github.com/kubesight-ai/kubesight.git
 cd kubesight
 
-# Start the application
-docker-compose up -d
+# Copy .env.example to .env and replace its placeholders with unique local credentials.
+# Then start the application.
+docker compose up -d
 
 # View logs
 docker-compose logs -f
 ```
 
-Access KubeSight at **http://localhost:3000**
+Access CloudGuard at **http://localhost:3001**
 
 ## Using Makefile
 
@@ -109,19 +110,9 @@ helm uninstall kubesight -n kubesight
 
 See the [Helm Chart documentation](../deployment/helm.md) for all configuration options.
 
-## Default Credentials
+## First-Time Credentials
 
-KubeSight comes with default test users:
-
-| Username | Password | Role |
-|----------|----------|------|
-| admin | admin123 | Admin |
-| developer | developer123 | Developer |
-| operator | operator123 | Operator |
-| viewer | viewer123 | Viewer |
-
-!!! warning "Security Notice"
-    Change these default credentials before deploying to production!
+There are no built-in login credentials. Configure a unique `DEFAULT_ADMIN_PASSWORD` in `.env` before starting Compose. When the database has no users, CloudGuard creates the `admin` account with that password. It does not reset or replace existing users. Create separate user accounts after signing in; the administrator password is not reused for other accounts.
 
 ## Installing Optional Components
 

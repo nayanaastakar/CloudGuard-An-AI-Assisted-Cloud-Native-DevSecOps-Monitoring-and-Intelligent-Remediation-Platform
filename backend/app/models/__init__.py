@@ -36,6 +36,8 @@ from app.models.cloudguard_models import (
     ComplianceCheckRecord,
     SecurityPostureHistoryRecord,
 )
+# Repo‑Intel models
+from app.models.repo_intel.repository import RepoIntelRepository, RepoIntelAnalysis
 
 __all__ = [
     "Base",
@@ -79,4 +81,7 @@ __all__ = [
     "RemediationStatus",
     "ComplianceCheckRecord",
     "SecurityPostureHistoryRecord",
+    # Repo‑Intel models
+    "RepoIntelRepository",
+    "RepoIntelAnalysis",
 ]

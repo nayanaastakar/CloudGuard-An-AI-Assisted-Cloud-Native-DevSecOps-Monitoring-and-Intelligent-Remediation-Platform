@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckBadgeIcon,
   CheckCircleIcon,
@@ -78,7 +77,7 @@ export default function ComplianceView() {
           <button
             onClick={() => refetch()}
             disabled={isLoading || isFetching}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#151F32] hover:bg-gray-700 text-gray-200 border border-[#2D3B55] text-sm transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-gray-200 border border-slate-700 text-sm transition"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
             Run Audit
@@ -123,7 +122,7 @@ export default function ComplianceView() {
       {/* KPI Overview */}
       {compliance && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-xl bg-[#0B1220] border border-gray-800 flex items-center justify-between">
+          <div className="p-5 rounded-xl bg-slate-950 border border-gray-800 flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-400 font-medium">Compliance Score</p>
               <p className="text-3xl font-extrabold text-white mt-1">
@@ -166,7 +165,7 @@ export default function ComplianceView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           {/* Filter Bar */}
-          <div className="flex items-center justify-between bg-[#0B1220] p-3 rounded-xl border border-gray-800">
+          <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-gray-800">
             <span className="text-xs text-gray-400 font-medium">Filter by Status:</span>
             <div className="flex gap-2">
               {['all', 'fail', 'warn', 'pass'].map((st) => (
@@ -176,7 +175,7 @@ export default function ComplianceView() {
                   className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
                     statusFilter === st
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
+                      : 'bg-slate-900 text-gray-400 hover:text-gray-200'
                   }`}
                 >
                   {st}
@@ -188,12 +187,12 @@ export default function ComplianceView() {
           {/* Checks List */}
           <div className="space-y-3">
             {isLoading ? (
-              <div className="p-8 text-center text-gray-400 bg-[#0B1220] rounded-xl border border-gray-800">
+              <div className="p-8 text-center text-gray-400 bg-slate-950 rounded-xl border border-gray-800">
                 <ArrowPathIcon className="w-6 h-6 animate-spin mx-auto text-blue-400 mb-2" />
                 <p>Auditing cluster against {framework}...</p>
               </div>
             ) : filteredChecks.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 bg-[#0B1220] rounded-xl border border-gray-800">
+              <div className="p-8 text-center text-gray-400 bg-slate-950 rounded-xl border border-gray-800">
                 <ShieldCheckIcon className="w-8 h-8 text-blue-400 mx-auto mb-2" />
                 <p>No checks match this filter</p>
               </div>
@@ -205,7 +204,7 @@ export default function ComplianceView() {
                   className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                     selectedCheck?.check_id === check.check_id
                       ? 'bg-indigo-950/30 border-indigo-500'
-                      : 'bg-[#0B1220] border-gray-800 hover:border-[#2D3B55]'
+                      : 'bg-slate-950 border-gray-800 hover:border-slate-600'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -230,7 +229,7 @@ export default function ComplianceView() {
         </div>
 
         {/* Selected Check Details */}
-        <div className="bg-[#0B1220] p-5 rounded-xl border border-gray-800 h-fit sticky top-6">
+        <div className="bg-slate-950 p-5 rounded-xl border border-gray-800 h-fit sticky top-6">
           {selectedCheck ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">

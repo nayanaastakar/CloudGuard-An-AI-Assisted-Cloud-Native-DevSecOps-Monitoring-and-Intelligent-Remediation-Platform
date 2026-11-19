@@ -7,11 +7,13 @@ with continuous tracking of provenance (live, stale, demo, unavailable) and fres
 import asyncio
 import json
 import logging
-import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from kubernetes import client
+
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 from app.schemas.provenance import ProvenanceMetadata, ProvenanceState, determine_provenance
 
 logger = logging.getLogger(__name__)
@@ -30,16 +32,11 @@ class AssetDiscoveryService:
     def _check_k8s_client(self):
         """Attempts to load a live Kubernetes client."""
         try:
-            from kubernetes import client, config
-            if os.path.exists("/tmp/kubeconfig"):
-                config.load_kube_config(config_file="/tmp/kubeconfig")
-            elif settings.K8S_IN_CLUSTER:
-                config.load_incluster_config()
-            elif settings.K8S_CONFIG_PATH and os.path.exists(os.path.expanduser(settings.K8S_CONFIG_PATH)):
-                config.load_kube_config(config_file=os.path.expanduser(settings.K8S_CONFIG_PATH))
-            else:
-                config.load_kube_config()
-            return client.CoreV1Api(), client.AppsV1Api()
+            api_client = create_kubernetes_api_client(
+                in_cluster=settings.K8S_IN_CLUSTER,
+                host_override=settings.K8S_HOST_OVERRIDE,
+            )
+            return client.CoreV1Api(api_client), client.AppsV1Api(api_client)
         except Exception as e:
             logger.debug(f"Kubernetes cluster connection unavailable: {e}")
             return None, None
@@ -48,6 +45,8 @@ class AssetDiscoveryService:
         """Returns the full multi-tier asset hierarchy with provenance tagging."""
         core_api, apps_api = self._check_k8s_client()
         global _last_sync_timestamp
+        live_error = "Kubernetes client is unavailable"
+        live_status = "unavailable"
 
         if core_api and apps_api:
             try:
@@ -120,6 +119,7 @@ class AssetDiscoveryService:
                 return {
                     "cluster_id": cluster_id,
                     "cluster_name": "production-k8s-cluster",
+                    "status": "live",
                     "provenance": provenance.dict(),
                     "summary": {
                         "total_nodes": len(nodes),
@@ -133,7 +133,27 @@ class AssetDiscoveryService:
                     "pods": pods,
                 }
             except Exception as e:
+                live_error = f"Kubernetes inventory request failed: {e}"
+                live_status = "error"
                 logger.warning(f"Live cluster discovery failed, falling back to demo state: {e}")
+
+        if not settings.DEMO_MODE:
+            provenance = ProvenanceMetadata(
+                state=ProvenanceState.ERROR if live_status == "error" else ProvenanceState.UNAVAILABLE,
+                source="kubernetes-api",
+                is_fresh=False,
+                ttl_seconds=ASSET_FRESHNESS_TTL_SECONDS,
+                last_synced_at=None,
+                error_message=live_error,
+            )
+            return {
+                "cluster_id": cluster_id,
+                "cluster_name": None,
+                "status": live_status,
+                "provenance": provenance.dict(),
+                "summary": {"total_nodes": None, "total_namespaces": None, "total_workloads": None, "total_pods": None},
+                "nodes": [], "namespaces": [], "workloads": [], "pods": [],
+            }
 
         # When K8s is not reachable: return deterministic demo assets clearly marked with provenance DEMO
         provenance = determine_provenance(
@@ -145,7 +165,10 @@ class AssetDiscoveryService:
         return {
             "cluster_id": cluster_id,
             "cluster_name": "cloudguard-demo-cluster",
+            "status": "demo",
             "provenance": provenance.dict(),
+            "live_source_status": live_status,
+            "live_source_error": live_error if live_status == "error" else None,
             "summary": {
                 "total_nodes": 3,
                 "total_namespaces": 4,

@@ -60,6 +60,7 @@ class PodInfo(BaseModel):
     node: Optional[str] = None
     ip: Optional[str] = None
     containers: List[str] = []
+    labels: Dict[str, str] = {}
 
 
 class DeploymentInfo(BaseModel):

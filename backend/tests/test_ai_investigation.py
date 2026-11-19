@@ -49,7 +49,8 @@ class TestAIInvestigationEngine:
         assert len(report.recommended_remediation) >= 1
         assert report.confidence > 0.5
         assert report.uncertainty is not None and len(report.uncertainty) > 0
-        assert report.provider_metadata["execution_mode"] == "analyst-read-only"
+        assert report.provider_metadata["execution_mode"] == "rule-based-fallback"
+        assert "evidence_provenance" in report.provider_metadata
 
     @pytest.mark.asyncio
     async def test_execute_investigation_mocked_gemini(self, monkeypatch):

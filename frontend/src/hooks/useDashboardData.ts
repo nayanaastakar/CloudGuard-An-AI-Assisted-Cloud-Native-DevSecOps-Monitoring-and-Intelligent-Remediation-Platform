@@ -79,7 +79,7 @@ async function fetchDashboardData(): Promise<DashboardData> {
   const prometheusAvailable = promStatusRes?.data?.status === 'running';
 
   // Log successful data fetches for debugging
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.debug('[Dashboard] Data fetch results:', {
       health: healthRes?.data ? 'OK' : 'NULL',
       deployments: deploymentsRes?.data?.length ?? 0,

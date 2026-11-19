@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { optimizationApi, kubernetesApi } from '../../services/api';
 import { logger } from '../../utils/logger';
-import { useToast } from '../../contexts/ToastContext';
 import type {
   OptimizationDashboardResponse,
   OptimizationRecommendation,
@@ -36,8 +35,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Import shared utilities
-import { formatBytes, formatCurrency, containerVariants, itemVariants } from '../../utils/constants';
-import { SeverityBadge } from '../common/StatusBadge';
+import { formatBytes, formatCurrency,  } from '../../utils/constants';
 
 // Local utility for millicores formatting
 function formatMillicores(m: number): string {

@@ -82,3 +82,8 @@ GITHUB_ACTIONS_OPTIMIZATION.md
 
 # MkDocs build output
 site/
+ 
+cloudguard-secrets-patch.yaml
+*.log
+*.tmp
+

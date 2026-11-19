@@ -13,19 +13,7 @@ metadata:
   namespace: cloudguard
 data:
   ENVIRONMENT: "production"
-  DATABASE_URL: "postgresql+asyncpg://cloudguard:cloudguard_secret_change_me@host.docker.internal:5433/cloudguard_db"
-  REDIS_URL: "redis://host.docker.internal:6380/0"
-  CORS_ORIGINS: '["http://localhost:3001","http://127.0.0.1:3001"]'
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudguard-secrets
-  namespace: cloudguard
-type: Opaque
-stringData:
-  SECRET_KEY: "cloudguard_production_secret_key_change_in_real_vault"
-  POSTGRES_PASSWORD: "cloudguard_secret_change_me"
+  REDIS_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -44,6 +32,7 @@ spec:
       labels:
         app: backend
     spec:
+      serviceAccountName: cloudguard-monitor
       containers:
       - name: backend
         image: cloudguard-backend:latest
@@ -56,6 +45,34 @@ spec:
             name: cloudguard-config
         - secretRef:
             name: cloudguard-secrets
+        env:
+        - name: K8S_IN_CLUSTER
+          value: "true"
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cloudguard-secrets
+              key: SECRET_KEY
+        - name: DEFAULT_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cloudguard-secrets
+              key: DEFAULT_ADMIN_PASSWORD
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: cloudguard-secrets
+              key: DATABASE_URL
+        - name: FALCO_WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: cloudguard-secrets
+              key: FALCO_WEBHOOK_SECRET
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: cloudguard-secrets
+              key: REDIS_URL
         resources:
           requests:
             cpu: 100m

@@ -24,8 +24,8 @@ class ComplianceEngine:
 
         try:
             core_v1 = _get_k8s_client()
-            rbac_v1 = client.RbacAuthorizationV1Api()
-            net_v1 = client.NetworkingV1Api()
+            rbac_v1 = client.RbacAuthorizationV1Api(core_v1.api_client)
+            net_v1 = client.NetworkingV1Api(core_v1.api_client)
 
             # 1. CIS Check 5.1.1: Ensure that the cluster-admin role is only used where strictly necessary
             crbs = rbac_v1.list_cluster_role_binding()

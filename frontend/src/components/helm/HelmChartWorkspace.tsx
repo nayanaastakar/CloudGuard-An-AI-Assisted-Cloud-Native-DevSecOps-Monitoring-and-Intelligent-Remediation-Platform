@@ -2,10 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import GlassCard from '../common/GlassCard';
 import { helmApi } from '../../services/api';
 import { logger } from '../../utils/logger';
-import type { HelmRelease, HelmReleaseHistory, HelmChartSearchResult } from '../../types';
+import type { HelmRelease, HelmReleaseHistory } from '../../types';
 import {
   CubeIcon,
   RocketLaunchIcon,
@@ -13,14 +12,10 @@ import {
   ArrowUturnLeftIcon,
   TrashIcon,
   DocumentTextIcon,
-  EyeIcon,
   CodeBracketIcon,
   ClockIcon,
   SparklesIcon,
-  FolderIcon,
   DocumentIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
   CloudArrowUpIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -34,16 +29,12 @@ import {
   BeakerIcon,
   MagnifyingGlassCircleIcon,
   HeartIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 // Types
 type TabType = 'values' | 'rendered' | 'diff' | 'history' | 'resources' | 'ai' | 'health';
 
-interface TemplateFile {
-  name: string;
-  type: 'file' | 'folder';
-  children?: TemplateFile[];
-}
 
 interface AIInsight {
   type: 'warning' | 'suggestion' | 'info';
@@ -94,105 +85,9 @@ affinity: {}
 `;
 
 // Mock template files structure
-const mockTemplateFiles: TemplateFile[] = [
-  { name: 'values.yaml', type: 'file' },
-  { name: 'values-production.yaml', type: 'file' },
-  {
-    name: 'templates',
-    type: 'folder',
-    children: [
-      { name: 'deployment.yaml', type: 'file' },
-      { name: 'service.yaml', type: 'file' },
-      { name: 'ingress.yaml', type: 'file' },
-      { name: 'configmap.yaml', type: 'file' },
-      { name: 'secret.yaml', type: 'file' },
-      { name: 'hpa.yaml', type: 'file' },
-      { name: 'serviceaccount.yaml', type: 'file' },
-      { name: '_helpers.tpl', type: 'file' },
-      { name: 'NOTES.txt', type: 'file' },
-    ],
-  },
-  { name: 'Chart.yaml', type: 'file' },
-  { name: 'README.md', type: 'file' },
-];
 
 
 // Template Tree Component
-function TemplateTree({
-  files,
-  selectedFile,
-  onSelectFile,
-  level = 0,
-}: {
-  files: TemplateFile[];
-  selectedFile: string | null;
-  onSelectFile: (name: string) => void;
-  level?: number;
-}) {
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['templates']));
-
-  const toggleFolder = (name: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
-      return next;
-    });
-  };
-
-  return (
-    <div className="space-y-0.5">
-      {files.map((file) => (
-        <div key={file.name}>
-          <motion.button
-            whileHover={{ x: 2 }}
-            onClick={() => {
-              if (file.type === 'folder') {
-                toggleFolder(file.name);
-              } else {
-                onSelectFile(file.name);
-              }
-            }}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${
-              selectedFile === file.name
-                ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400'
-                : 'hover:bg-gray-100 dark:hover:bg-slate-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-            }`}
-            style={{ paddingLeft: `${level * 12 + 8}px` }}
-          >
-            {file.type === 'folder' ? (
-              <>
-                {expandedFolders.has(file.name) ? (
-                  <ChevronDownIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-                ) : (
-                  <ChevronRightIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-                )}
-                <FolderIcon className="h-4 w-4 text-amber-500 dark:text-amber-400" />
-              </>
-            ) : (
-              <>
-                <span className="w-3" />
-                <DocumentIcon className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-              </>
-            )}
-            <span className="text-xs truncate">{file.name}</span>
-          </motion.button>
-          {file.type === 'folder' && expandedFolders.has(file.name) && file.children && (
-            <TemplateTree
-              files={file.children}
-              selectedFile={selectedFile}
-              onSelectFile={onSelectFile}
-              level={level + 1}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // Status Badge Component
 function StatusBadge({ status }: { status: string }) {
@@ -267,7 +162,7 @@ export default function HelmChartWorkspace() {
   const [release, setRelease] = useState<HelmRelease | null>(null);
   const [history, setHistory] = useState<HelmReleaseHistory[]>([]);
   const [chartInfo, setChartInfo] = useState<{ name: string; version: string; repository: string; description?: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deploymentProgress, setDeploymentProgress] = useState<{
@@ -971,7 +866,7 @@ export default function HelmChartWorkspace() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleRollback}
+                onClick={() => handleRollback()}
                 disabled={saving || !release || release.revision <= 1}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-50 transition-all"
               >
@@ -1191,7 +1086,7 @@ export default function HelmChartWorkspace() {
 
                   <div className="flex-1 overflow-y-auto min-h-0">
                     <div className="p-3 space-y-1">
-                      {['deployment.yaml', 'service.yaml', 'ingress.yaml', 'configmap.yaml', 'hpa.yaml', 'secret.yaml'].map((template, idx) => (
+                      {['deployment.yaml', 'service.yaml', 'ingress.yaml', 'configmap.yaml', 'hpa.yaml', 'secret.yaml'].map((template) => (
                         <motion.button
                           key={template}
                           whileHover={{ x: 2 }}
@@ -2396,7 +2291,7 @@ spec:
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={(e) => {
+            onClick={() => {
               if (deploymentProgress.stage === 'error') {
                 setDeploymentProgress({ show: false, message: '', stage: 'validating' });
               }

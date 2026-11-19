@@ -16,6 +16,16 @@ else:
     os.environ.setdefault("USE_DATABASE_AUTH", "false")
     os.environ.setdefault("REDIS_ENABLED", "false")
     os.environ.setdefault("DEBUG", "true")
+    os.environ.setdefault("SECRET_KEY", "cloudguard-test-only-secret-key-not-for-deployments")
+    os.environ.setdefault("DEFAULT_ADMIN_PASSWORD", "cloudguard-test-only-admin-password")
+
+# Keep the test process independent of real credentials and user databases,
+# even when a local .env.test exists but omits values required by imports.
+os.environ["SECRET_KEY"] = "Pytest-only-Qx7Pz9Lm4Vt2N6-Wa8Rc3Yj5Hk1-Bf4Ds7Gn9"
+if not os.environ.get("DEFAULT_ADMIN_PASSWORD"):
+    os.environ["DEFAULT_ADMIN_PASSWORD"] = "Test-only-admin-passphrase-7xQ"
+if not os.environ.get("DATABASE_URL"):
+    os.environ["DATABASE_URL"] = "postgresql+asyncpg://test_only:test_only@127.0.0.1:65432/cloudguard_test"
 
 # Set flag early
 APP_AVAILABLE = False

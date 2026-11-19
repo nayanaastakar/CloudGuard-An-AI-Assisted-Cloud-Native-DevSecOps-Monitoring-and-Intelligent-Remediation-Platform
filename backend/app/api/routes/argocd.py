@@ -35,7 +35,7 @@ class ArgoCDDeployRequest(BaseModel):
     expose_type: str = Field(default="ClusterIP", description="Service type: ClusterIP, LoadBalancer, NodePort")
     admin_password: Optional[str] = Field(default=None, description="Admin password (auto-generated if not provided)")
     ha_enabled: bool = Field(default=False, description="Enable high availability")
-    insecure: bool = Field(default=True, description="Run without TLS (for development)")
+    insecure: bool = Field(default=False, description="Explicit development-only TLS verification opt-out")
     values: Optional[Dict[str, Any]] = Field(default=None, description="Custom Helm values")
 
 
@@ -101,13 +101,16 @@ async def configure_argocd(
     """
     global _argocd_config
 
-    service = ArgoCDService(
-        server_url=config.server_url,
-        token=config.token,
-        username=config.username,
-        password=config.password,
-        insecure=config.insecure,
-    )
+    try:
+        service = ArgoCDService(
+            server_url=config.server_url,
+            token=config.token,
+            username=config.username,
+            password=config.password,
+            insecure=config.insecure,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     # Verify connection
     status = await service.check_connection()

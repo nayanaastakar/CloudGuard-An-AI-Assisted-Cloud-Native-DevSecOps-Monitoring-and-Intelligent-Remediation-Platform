@@ -7,7 +7,6 @@ import {
   XMarkIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
-  SignalIcon,
   SignalSlashIcon,
   ClockIcon,
   ExclamationTriangleIcon,
@@ -23,13 +22,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { kubernetesApi } from '../../services/api';
 import { logger } from '../../utils/logger';
-import { useToast } from '../../contexts/ToastContext';
 import { useWebSocketLogs } from '../../hooks/useWebSocketLogs';
 import type { Pod, PodLogs, K8sEvent } from '../../types';
 
 // Import shared constants
-import { scaleVariants, STATUS_CONFIG, getStatusConfig } from '../../utils/constants';
-import { StatusBadge } from '../common/StatusBadge';
 
 // Pod status type
 type PodStatus = 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
@@ -76,6 +72,7 @@ const NON_RUNNING_STATUS_INFO: Record<PodStatus, { icon: typeof ClockIcon; color
 interface PodLogsViewerProps {
   pod: Pod;
   onClose: () => void;
+  defaultExpanded?: boolean;
 }
 
 // Check if pod can have logs
@@ -88,7 +85,7 @@ function getStatusInfo(status: PodStatus) {
   return NON_RUNNING_STATUS_INFO[status];
 }
 
-export default function PodLogsViewer({ pod, onClose }: PodLogsViewerProps) {
+export default function PodLogsViewer({ pod, onClose, defaultExpanded = false }: PodLogsViewerProps) {
   const [logs, setLogs] = useState<PodLogs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +99,7 @@ export default function PodLogsViewer({ pod, onClose }: PodLogsViewerProps) {
   const [tryFetchAnyway, setTryFetchAnyway] = useState(false);
   const [events, setEvents] = useState<K8sEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Check if logs can be fetched based on pod status

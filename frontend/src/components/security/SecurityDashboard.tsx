@@ -23,25 +23,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import GlassCard, { SectionHeader } from '../common/GlassCard';
 import { Spinner, ProgressBar, CircularProgress, SecuritySkeleton, ConnectionError } from '../common/LoadingStates';
-import { useToast } from '../../contexts/ToastContext';
 import { useCluster } from '../../contexts/ClusterContext';
 import { useSecurityDashboard } from '../../hooks/useSecurityData';
 
 // Import shared constants
-import { containerVariants, itemVariants, scaleVariants, SEVERITY_CONFIG, getSeverityConfig } from '../../utils/constants';
-import { SeverityBadge } from '../common/StatusBadge';
+import { containerVariants, itemVariants, scaleVariants,  } from '../../utils/constants';
 
-// Types and Interfaces
-interface SecurityScore {
-  score: number;
-  grade: string;
-  total_findings: number;
-  critical_issues: number;
-  high_issues: number;
-  medium_issues: number;
-  low_issues: number;
-  last_scan: string;
-}
 
 interface VulnerabilitySummary {
   critical: number;
@@ -86,31 +73,7 @@ interface ImageScanResult {
   scan_time: string;
 }
 
-interface SecurityDashboardData {
-  security_score: SecurityScore;
-  vulnerability_summary: VulnerabilitySummary;
-  top_findings: SecurityFinding[];
-  compliance_summary: {
-    passed: number;
-    failed: number;
-    total: number;
-  };
-  risky_namespaces: string[];
-  total_images_scanned: number;
-  last_scan: string;
-}
 
-interface RBACSummary {
-  total_service_accounts: number;
-  risky_service_accounts: number;
-  total_role_bindings: number;
-  risky_role_bindings: number;
-  cluster_admin_bindings: number;
-  wildcard_permissions: number;
-  risk_level: string;
-  recommendations: string[];
-  analyzed_at: string;
-}
 
 interface ServiceAccountRisk {
   name: string;
@@ -151,18 +114,6 @@ interface RBACAnalysisDetail {
   analyzed_at: string;
 }
 
-interface NetworkPolicySummary {
-  total_namespaces: number;
-  protected_namespaces: number;
-  partial_namespaces: number;
-  unprotected_namespaces: number;
-  total_pods: number;
-  covered_pods: number;
-  coverage_percentage: number;
-  status: string;
-  recommendations: string[];
-  analyzed_at: string;
-}
 
 interface NamespaceNetworkPolicy {
   namespace: string;
@@ -189,18 +140,6 @@ interface NetworkPolicyDetail {
   analyzed_at: string;
 }
 
-interface TrendsSummary {
-  current_score: number;
-  current_vulnerabilities: number;
-  score_change_7d: number;
-  score_change_30d: number;
-  vulnerabilities_fixed_7d: number;
-  vulnerabilities_new_7d: number;
-  trend_direction: string;
-  trend_icon: string;
-  data_points: number;
-  generated_at: string;
-}
 
 interface SecurityTrendPoint {
   timestamp: string;
@@ -252,7 +191,6 @@ const modalVariants = {
 };
 
 export default function SecurityDashboard() {
-  const toast = useToast();
   const { activeCluster } = useCluster();
 
   // Use cached hook for main security data - cluster-aware caching
@@ -265,11 +203,10 @@ export default function SecurityDashboard() {
     isRefetching,
     error: queryError,
     refresh: refreshSecurityData,
-    hardReset,
   } = useSecurityDashboard(activeCluster?.id);
 
   const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [selectedFinding, setSelectedFinding] = useState<SecurityFinding | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [imageScans, setImageScans] = useState<ImageScanResult[]>([]);
@@ -659,7 +596,7 @@ export default function SecurityDashboard() {
       case 'high': return 'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-400';
       case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'low': return 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-[#0B1220]/30 dark:text-gray-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-slate-950/30 dark:text-gray-400';
     }
   };
 
@@ -732,8 +669,24 @@ export default function SecurityDashboard() {
   }
 
   // Error State - check for query error or missing/incomplete dashboard data
-  const hasValidData = data && data.security_score && data.vulnerability_summary;
-  if (queryError || !hasValidData) {
+  if (data?.audit_status) {
+    const auditUnavailable = data.audit_status === 'unavailable';
+    const auditPartial = data.audit_status === 'partial';
+    return (
+      <div role={auditUnavailable ? 'alert' : 'status'} className={`m-6 rounded-xl border p-5 ${auditUnavailable ? 'border-rose-500/30 bg-rose-950/20 text-rose-200' : auditPartial ? 'border-amber-500/30 bg-amber-950/20 text-amber-100' : 'border-emerald-500/30 bg-emerald-950/20 text-emerald-100'}`}>
+        <h2 className="font-semibold">{auditUnavailable ? 'Security audit unavailable' : auditPartial ? 'Security audit partially complete' : 'Security audit complete'}</h2>
+        <p className="mt-2 text-sm">{data.error || data.provenance?.error_message || (auditPartial ? 'Some Kubernetes security checks could not be completed.' : auditUnavailable ? 'Kubernetes security checks could not be completed.' : 'All configured Kubernetes security checks completed.')}</p>
+        <p className="mt-2 text-xs">Source: {data.provenance?.source || 'Kubernetes API'} · {auditUnavailable || auditPartial ? 'No complete security score is available.' : `Score: ${data.security_score?.score ?? '—'} (${data.security_score?.grade ?? '—'})`}</p>
+        <p className="mt-1 text-xs">Findings: {data.audit_findings?.length ?? 0}</p>
+        <ul className="mt-3 space-y-1 text-xs">
+          {Object.entries(data.checks || {}).map(([name, check]) => <li key={name}>{name}: {check.status}{check.error ? ` — ${check.error}` : ''}</li>)}
+        </ul>
+        {(data.audit_findings || []).length > 0 && <ul className="mt-3 space-y-1 text-sm">{data.audit_findings?.map((finding) => <li key={finding.finding_id}>{finding.severity.toUpperCase()}: {finding.title} — {finding.resource_type}/{finding.resource_name} ({finding.namespace})</li>)}</ul>}
+        <button onClick={refreshSecurityData} className="mt-4 rounded-md border border-current/30 px-3 py-1.5 text-sm">Retry audit</button>
+      </div>
+    );
+  }
+  if (queryError || !data?.security_score || !data.vulnerability_summary) {
     logger.debug('[SecurityDashboard] Showing error state - data invalid or error');
     return (
       <div className="p-6">
@@ -746,10 +699,9 @@ export default function SecurityDashboard() {
     );
   }
 
-  // Safely destructure with defaults to prevent crashes
   const {
-    security_score = { score: 0, grade: 'N/A', total_findings: 0, critical_issues: 0, high_issues: 0, medium_issues: 0, low_issues: 0, last_scan: '' },
-    vulnerability_summary = { critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
+    security_score,
+    vulnerability_summary,
     top_findings = [],
     compliance_summary = { passed: 0, failed: 0, total: 0 },
     risky_namespaces = []
@@ -1158,7 +1110,7 @@ export default function SecurityDashboard() {
                 <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
                   trendsSummary.trend_direction === 'improving' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' :
                   trendsSummary.trend_direction === 'declining' ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' :
-                  'bg-gray-100 text-gray-700 dark:bg-[#0B1220]/30 dark:text-gray-400'
+                  'bg-gray-100 text-gray-700 dark:bg-slate-950/30 dark:text-gray-400'
                 }`}>
                   {trendsSummary.trend_direction === 'improving' ? '↑' : trendsSummary.trend_direction === 'declining' ? '↓' : '→'}
                   <span className="ml-1 capitalize">{trendsSummary.trend_direction}</span>

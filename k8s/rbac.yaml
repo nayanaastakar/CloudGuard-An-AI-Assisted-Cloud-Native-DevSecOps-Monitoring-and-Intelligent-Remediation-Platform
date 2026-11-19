@@ -1,78 +1,44 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kubesight
-  namespace: kubesight
+  name: cloudguard-monitor
+  namespace: cloudguard
   labels:
-    app.kubernetes.io/name: kubesight
+    app.kubernetes.io/name: cloudguard
+    app.kubernetes.io/component: monitoring
+automountServiceAccountToken: true
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kubesight-cluster-role
+  name: cloudguard-monitor-readonly
   labels:
-    app.kubernetes.io/name: kubesight
+    app.kubernetes.io/name: cloudguard
 rules:
-  # Core resources
   - apiGroups: [""]
-    resources:
-      - pods
-      - pods/log
-      - pods/exec
-      - services
-      - endpoints
-      - configmaps
-      - secrets
-      - persistentvolumeclaims
-      - namespaces
-      - nodes
-      - events
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Apps resources
+    resources: ["nodes", "namespaces", "pods", "services", "endpoints", "events"]
+    verbs: ["get", "list"]
   - apiGroups: ["apps"]
-    resources:
-      - deployments
-      - deployments/scale
-      - statefulsets
-      - statefulsets/scale
-      - daemonsets
-      - replicasets
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Batch resources
-  - apiGroups: ["batch"]
-    resources:
-      - jobs
-      - cronjobs
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Networking resources
-  - apiGroups: ["networking.k8s.io"]
-    resources:
-      - ingresses
-      - networkpolicies
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Autoscaling resources
-  - apiGroups: ["autoscaling"]
-    resources:
-      - horizontalpodautoscalers
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Metrics
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list"]
   - apiGroups: ["metrics.k8s.io"]
-    resources:
-      - nodes
-      - pods
+    resources: ["nodes", "pods"]
     verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kubesight-cluster-role-binding
+  name: cloudguard-monitor-readonly
   labels:
-    app.kubernetes.io/name: kubesight
+    app.kubernetes.io/name: cloudguard
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kubesight-cluster-role
+  name: cloudguard-monitor-readonly
 subjects:
   - kind: ServiceAccount
-    name: kubesight
-    namespace: kubesight
+    name: cloudguard-monitor
+    namespace: cloudguard

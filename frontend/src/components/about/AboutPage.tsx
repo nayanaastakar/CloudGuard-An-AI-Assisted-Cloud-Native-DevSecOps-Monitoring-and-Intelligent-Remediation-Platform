@@ -4,7 +4,6 @@ import {
   SparklesIcon,
   CodeBracketIcon,
   ShieldCheckIcon,
-  CpuChipIcon,
   RocketLaunchIcon,
   HeartIcon,
   GlobeAltIcon,

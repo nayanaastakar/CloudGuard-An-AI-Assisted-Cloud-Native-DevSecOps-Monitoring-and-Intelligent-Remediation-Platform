@@ -8,7 +8,6 @@ import {
   CheckCircleIcon,
   ClockIcon,
   ArrowPathIcon,
-  FunnelIcon,
   MagnifyingGlassIcon,
   BellAlertIcon,
   DocumentTextIcon,
@@ -22,8 +21,6 @@ import {
   ServerIcon,
 } from '@heroicons/react/24/outline';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -37,11 +34,11 @@ import { kubernetesApi, aiApi } from '../../services/api';
 import { prometheusApi } from '../../services/prometheusApi';
 import { logger } from '../../utils/logger';
 import { useWebSocketLogs } from '../../hooks/useWebSocketLogs';
-import type { ClusterMetrics, K8sEvent, NodeMetrics, Pod } from '../../types';
-import type { PrometheusStackStatus, QueryResult, Alert as PrometheusAlert } from '../../types/prometheus';
+import { chartColors } from '../../styles/design-system';
+import type { K8sEvent, Pod } from '../../types';
+import type { PrometheusStackStatus, Alert as PrometheusAlert } from '../../types/prometheus';
 
 // Import shared constants
-import { SEVERITY_CONFIG, getSeverityConfig } from '../../utils/constants';
 
 interface MetricCard {
   name: string;
@@ -125,51 +122,6 @@ function formatTimestamp(timestamp: string): string {
 }
 
 // Mini Sparkline Component
-function MiniSparkline({ data, color = 'blue' }: { data: number[]; color?: string }) {
-  const height = 24;
-
-  const colorMap: Record<string, string> = {
-    blue: 'stroke-blue-500',
-    green: 'stroke-green-500',
-    amber: 'stroke-amber-500',
-    red: 'stroke-red-500',
-  };
-
-  // Filter out NaN/undefined values and ensure we have valid data
-  const validData = data.filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
-
-  // Need at least 2 points to draw a line
-  if (validData.length < 2) {
-    return (
-      <svg width="60" height={height} className="overflow-visible">
-        <line x1="0" y1={height / 2} x2="60" y2={height / 2} className={colorMap[color]} strokeWidth="1.5" strokeDasharray="4 2" />
-      </svg>
-    );
-  }
-
-  const max = Math.max(...validData);
-  const min = Math.min(...validData);
-  const range = max - min || 1;
-
-  const points = validData.map((value, index) => {
-    const x = (index / (validData.length - 1)) * 60;
-    const y = height - ((value - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <svg width="60" height={height} className="overflow-visible">
-      <polyline
-        points={points}
-        fill="none"
-        className={colorMap[color]}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 // Chart data types
 interface ChartDataPoint {
@@ -178,6 +130,15 @@ interface ChartDataPoint {
   cpu?: number;
   memory?: number;
   value?: number;
+}
+
+type MetricsSourceStatus = 'live' | 'unavailable' | 'error';
+
+function getHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return undefined;
+  const response = error.response;
+  if (typeof response !== 'object' || response === null || !('status' in response)) return undefined;
+  return typeof response.status === 'number' ? response.status : undefined;
 }
 
 export default function MonitoringDashboard() {
@@ -194,9 +155,12 @@ export default function MonitoringDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [metricsSourceStatus, setMetricsSourceStatus] = useState<MetricsSourceStatus>('unavailable');
+  const [metricsTimestamp, setMetricsTimestamp] = useState<string | null>(null);
+  const [metricsCheckedAt, setMetricsCheckedAt] = useState<string | null>(null);
 
   // Prometheus state
-  const [prometheusStatus, setPrometheusStatus] = useState<PrometheusStackStatus | null>(null);
+  const [, setPrometheusStatus] = useState<PrometheusStackStatus | null>(null);
   const [prometheusAvailable, setPrometheusAvailable] = useState(false);
   const [cpuChartData, setCpuChartData] = useState<ChartDataPoint[]>([]);
   const [memoryChartData, setMemoryChartData] = useState<ChartDataPoint[]>([]);
@@ -227,10 +191,7 @@ export default function MonitoringDashboard() {
   // WebSocket logs hook (only enabled when viewing pod logs)
   const {
     logs: wsLogs,
-    connected: wsConnected,
     error: wsError,
-    status: wsStatus,
-    connect: wsConnect,
     disconnect: wsDisconnect,
     clearLogs: wsClearLogs,
   } = useWebSocketLogs({
@@ -322,11 +283,32 @@ export default function MonitoringDashboard() {
       const promAvailable = await checkPrometheusStatus();
 
       // Fetch cluster metrics, events, and pods
+      let metricsRequestError: unknown = null;
+      const metricsRequest = kubernetesApi.getClusterMetrics().catch((requestError: unknown) => {
+        metricsRequestError = requestError;
+        return null;
+      });
       const [metricsRes, eventsRes, podsRes] = await Promise.all([
-        kubernetesApi.getClusterMetrics().catch(() => null),
+        metricsRequest,
         kubernetesApi.getEvents(undefined, 100).catch(() => null),
         kubernetesApi.getPods().catch(() => null),
       ]);
+
+      setMetricsCheckedAt(new Date().toISOString());
+      if (metricsRes?.data) {
+        setMetricsSourceStatus('live');
+        setMetricsTimestamp(metricsRes.data.timestamp);
+      } else {
+        setMetricsTimestamp(null);
+        const statusCode = getHttpStatus(metricsRequestError);
+        setMetricsSourceStatus(
+          !metricsRequestError || statusCode === 503 ? 'unavailable' : 'error'
+        );
+      }
+
+      if (!metricsRes || !podsRes) {
+        setError('Kubernetes metrics or pod data is unavailable. No live resource metrics are being displayed.');
+      }
 
       // Process metrics
       if (metricsRes?.data && podsRes?.data) {
@@ -407,6 +389,9 @@ export default function MonitoringDashboard() {
       }
     } catch (err) {
       logger.error('Failed to fetch monitoring data', err);
+      setMetricsSourceStatus('error');
+      setMetricsTimestamp(null);
+      setMetricsCheckedAt(new Date().toISOString());
       setError('Failed to fetch monitoring data');
     } finally {
       setLoading(false);
@@ -466,21 +451,13 @@ export default function MonitoringDashboard() {
     return SignalIcon;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'text-green-500';
-      case 'warning': return 'text-amber-500';
-      case 'critical': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
 
   const getSeverityStyles = (severity: string) => {
     switch (severity) {
       case 'critical': return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-800' };
       case 'warning': return { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800' };
       case 'info': return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-violet-400', border: 'border-blue-200 dark:border-blue-800' };
-      default: return { bg: 'bg-gray-100 dark:bg-[#0B1220]/30', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-800' };
+      default: return { bg: 'bg-gray-100 dark:bg-slate-950/30', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-800' };
     }
   };
 
@@ -554,6 +531,25 @@ export default function MonitoringDashboard() {
           ))}
         </div>
       </div>
+
+      {!loading && (
+        <div
+          role="status"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            metricsSourceStatus === 'live'
+              ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300'
+              : metricsSourceStatus === 'error'
+                ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
+                : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+          }`}
+        >
+          <strong>{metricsSourceStatus.toUpperCase()}</strong>
+          {' · Source: Kubernetes Metrics API'}
+          {metricsTimestamp && ` · Data timestamp: ${new Date(metricsTimestamp).toLocaleString()}`}
+          {metricsCheckedAt && ` · Checked: ${new Date(metricsCheckedAt).toLocaleString()}`}
+          {metricsSourceStatus === 'unavailable' && ' · No sample values are substituted.'}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
@@ -717,37 +713,37 @@ export default function MonitoringDashboard() {
                   <AreaChart data={selectedMetric === 'cpu' ? cpuChartData : memoryChartData}>
                     <defs>
                       <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={selectedMetric === 'cpu' ? '#3b82f6' : '#10b981'} stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor={selectedMetric === 'cpu' ? '#3b82f6' : '#10b981'} stopOpacity={0}/>
+                        <stop offset="5%" stopColor={selectedMetric === 'cpu' ? chartColors.primary[0] : chartColors.success[0]} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={selectedMetric === 'cpu' ? chartColors.primary[0] : chartColors.success[0]} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#5D5C61" opacity={0.35} />
                     <XAxis
                       dataKey="time"
-                      tick={{ fill: '#9ca3af', fontSize: 10 }}
-                      tickLine={{ stroke: '#4b5563' }}
+                      tick={{ fill: '#B1A296', fontSize: 10 }}
+                      tickLine={{ stroke: '#5D5C61' }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
                       domain={[0, 100]}
-                      tick={{ fill: '#9ca3af', fontSize: 10 }}
-                      tickLine={{ stroke: '#4b5563' }}
+                      tick={{ fill: '#B1A296', fontSize: 10 }}
+                      tickLine={{ stroke: '#5D5C61' }}
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                        border: '1px solid #475569',
+                        backgroundColor: 'rgba(45, 44, 49, 0.97)',
+                        border: '1px solid #5D5C61',
                         borderRadius: '8px',
                         fontSize: '12px',
                       }}
-                      labelStyle={{ color: '#e2e8f0' }}
+                      labelStyle={{ color: '#F7F4F1' }}
                       formatter={(value: number) => [`${value.toFixed(1)}%`, selectedMetric === 'cpu' ? 'CPU' : 'Memory']}
                     />
                     <Area
                       type="monotone"
                       dataKey={selectedMetric}
-                      stroke={selectedMetric === 'cpu' ? '#3b82f6' : '#10b981'}
+                      stroke={selectedMetric === 'cpu' ? chartColors.primary[0] : chartColors.success[0]}
                       strokeWidth={2}
                       fill="url(#metricGradient)"
                     />

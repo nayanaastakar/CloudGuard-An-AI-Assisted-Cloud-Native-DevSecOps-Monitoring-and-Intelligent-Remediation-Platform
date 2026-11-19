@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   WrenchScrewdriverIcon,
-  ShieldCheckIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ArrowPathIcon,
   CheckBadgeIcon,
-  LockClosedIcon,
   DocumentTextIcon,
-  ClockIcon,
   ArrowUturnLeftIcon,
-  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '../common/PageHeader';
 
@@ -24,6 +18,8 @@ interface AuditEntry {
 
 interface RemediationPlan {
   remediation_id: string;
+  provenance: string;
+  data_source: string;
   source_type: string;
   source_id: string;
   title: string;
@@ -88,6 +84,18 @@ export default function RemediationCenterView() {
 
   useEffect(() => {
     fetchPlans();
+  }, [selectedStatus]);
+
+  // Real-time event listener to refresh on remediation_update events
+  useEffect(() => {
+    const handleRemediationUpdateEvent = () => {
+      fetchPlans();
+    };
+
+    window.addEventListener('cloudguard:remediation_update', handleRemediationUpdateEvent);
+    return () => {
+      window.removeEventListener('cloudguard:remediation_update', handleRemediationUpdateEvent);
+    };
   }, [selectedStatus]);
 
   const handleApprove = async (planId: string) => {
@@ -191,7 +199,7 @@ export default function RemediationCenterView() {
       >
         <button
           onClick={fetchPlans}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-gray-200 hover:bg-slate-800 border border-slate-700 transition-colors"
         >
           <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh Plans
@@ -213,7 +221,7 @@ export default function RemediationCenterView() {
           { label: 'Completed & Verified', count: plans.filter((p) => p.status === 'completed').length, color: 'text-blue-400' },
           { label: 'Rolled Back', count: plans.filter((p) => p.status === 'rolled_back').length, color: 'text-violet-400' },
         ].map((kpi, idx) => (
-          <div key={idx} className="p-4 bg-[#0B1220]/60 border border-gray-800 rounded-xl">
+          <div key={idx} className="p-4 bg-slate-950/60 border border-gray-800 rounded-xl">
             <span className="text-xs text-gray-400 font-medium">{kpi.label}</span>
             <div className={`text-2xl font-bold mt-1 ${kpi.color}`}>{kpi.count}</div>
           </div>
@@ -221,14 +229,14 @@ export default function RemediationCenterView() {
       </div>
 
       {/* Filter Strip */}
-      <div className="flex items-center gap-2 bg-[#0B1220]/60 p-3 rounded-xl border border-gray-800">
+      <div className="flex items-center gap-2 bg-slate-950/60 p-3 rounded-xl border border-gray-800">
         <span className="text-xs text-gray-400">Filter Status:</span>
         {['ALL', 'pending_approval', 'approved', 'completed', 'rolled_back'].map((s) => (
           <button
             key={s}
             onClick={() => setSelectedStatus(s)}
             className={`px-2.5 py-1 text-xs rounded-md font-medium uppercase transition-colors ${
-              selectedStatus === s ? 'bg-emerald-600 text-white' : 'bg-[#151F32] text-gray-400 hover:text-gray-200'
+              selectedStatus === s ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-gray-400 hover:text-gray-200'
             }`}
           >
             {s.replace('_', ' ')}
@@ -239,7 +247,7 @@ export default function RemediationCenterView() {
       {/* Two Column Layout: Plan Selection (Left) + Remediation Workspace & YAML Diff (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plans List */}
-        <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="bg-slate-950/60 border border-gray-800 rounded-xl p-4 space-y-3">
           <div className="text-xs font-semibold text-gray-400 pb-2 border-b border-gray-800 flex justify-between">
             <span>REMEDIATION QUEUE ({plans.length})</span>
             <span className="text-[10px] text-gray-500 font-mono">Four-Eyes Active</span>
@@ -255,7 +263,7 @@ export default function RemediationCenterView() {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-emerald-500 bg-emerald-950/20 shadow-md shadow-emerald-500/10'
-                      : 'border-gray-800 bg-gray-950/40 hover:border-[#2D3B55] hover:bg-[#151F32]/30'
+                      : 'border-gray-800 bg-gray-950/40 hover:border-slate-600 hover:bg-slate-900/30'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -276,7 +284,7 @@ export default function RemediationCenterView() {
         </div>
 
         {/* Plan Details, Side-by-Side YAML Diff & Execution Controls */}
-        <div className="lg:col-span-2 bg-[#0B1220]/60 border border-gray-800 rounded-xl p-6 space-y-6">
+        <div className="lg:col-span-2 bg-slate-950/60 border border-gray-800 rounded-xl p-6 space-y-6">
           {selectedPlan ? (
             <>
               {/* Header & Lifecycle Actions */}
@@ -289,6 +297,11 @@ export default function RemediationCenterView() {
                     {selectedPlan.is_sensitive && (
                       <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-violet-500/10 text-violet-400 border border-violet-500/30">
                         Four-Eyes Required
+                      </span>
+                    )}
+                    {selectedPlan.provenance === 'demo' && (
+                      <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                        Sample Plan
                       </span>
                     )}
                   </div>
@@ -378,7 +391,7 @@ export default function RemediationCenterView() {
                     <div key={idx} className="py-2 flex items-start justify-between text-xs gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-200 uppercase text-[10px] bg-[#151F32] px-1.5 py-0.5 rounded">
+                          <span className="font-bold text-gray-200 uppercase text-[10px] bg-slate-900 px-1.5 py-0.5 rounded">
                             {entry.action}
                           </span>
                           <span className="text-gray-400">by {entry.performed_by}</span>

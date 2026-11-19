@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  WrenchScrewdriverIcon,
-  DocumentMagnifyingGlassIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
@@ -14,7 +12,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
   const [scannerHealth, setScannerHealth] = useState<ScannerHealthResponse | null>(null);
   const [sbomData, setSbomData] = useState<SBOMResponse | null>(null);
   const [targetImage, setTargetImage] = useState<string>('nginx:latest');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [loadingSbom, setLoadingSbom] = useState<boolean>(false);
 
   const loadHealth = async () => {
@@ -71,7 +69,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {scannerHealth &&
           Object.entries(scannerHealth.scanners).map(([key, scanner]) => (
-            <div key={key} className="bg-[#0B1220] border border-gray-800 rounded-xl p-4 space-y-3">
+            <div key={key} className="bg-slate-950 border border-gray-800 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-400">{key}</span>
                 <span
@@ -91,7 +89,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
               </div>
               <div className="flex flex-wrap gap-1 pt-1">
                 {scanner.supported_capabilities.map((cap) => (
-                  <span key={cap} className="px-1.5 py-0.5 rounded bg-[#151F32] text-[10px] text-gray-300 font-mono">
+                  <span key={cap} className="px-1.5 py-0.5 rounded bg-slate-900 text-[10px] text-gray-300 font-mono">
                     {cap}
                   </span>
                 ))}
@@ -101,7 +99,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
       </div>
 
       {/* SBOM Explorer Section */}
-      <div className="bg-[#0B1220] border border-gray-800 rounded-xl p-5 space-y-4">
+      <div className="bg-slate-950 border border-gray-800 rounded-xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-950 text-blue-400 rounded-lg border border-emerald-800/40">
@@ -148,7 +146,7 @@ export const ScannerHealthAndSBOMView: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-800/60">
               {sbomData?.packages.map((pkg, idx) => (
-                <tr key={idx} className="hover:bg-[#151F32]/30 transition-colors">
+                <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
                   <td className="py-2.5 px-4 text-white font-medium">{pkg.name}</td>
                   <td className="py-2.5 px-4 text-blue-400">{pkg.version}</td>
                   <td className="py-2.5 px-4 text-gray-400 uppercase">{pkg.type}</td>

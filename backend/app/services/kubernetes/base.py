@@ -1,14 +1,14 @@
 """Base class for Kubernetes services with shared initialization and utilities."""
 
 import logging
-import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 
 from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 
 logger = logging.getLogger(__name__)
 
@@ -40,25 +40,10 @@ class KubernetesBase:
             return
 
         try:
-            if settings.K8S_IN_CLUSTER:
-                config.load_incluster_config()
-            elif settings.K8S_CONFIG_PATH:
-                config_path = os.path.expanduser(settings.K8S_CONFIG_PATH)
-                config.load_kube_config(config_file=config_path)
-            else:
-                config.load_kube_config()
-
-            # Override host for Docker Desktop compatibility
-            if settings.K8S_HOST_OVERRIDE:
-                configuration = client.Configuration.get_default_copy()
-                if configuration.host:
-                    configuration.host = configuration.host.replace(
-                        "127.0.0.1", settings.K8S_HOST_OVERRIDE
-                    ).replace("localhost", settings.K8S_HOST_OVERRIDE)
-                    client.Configuration.set_default(configuration)
-                    logger.info(f"K8s host overridden to: {configuration.host}")
-
-            self._api_client = client.ApiClient()
+            self._api_client = create_kubernetes_api_client(
+                in_cluster=settings.K8S_IN_CLUSTER,
+                host_override=settings.K8S_HOST_OVERRIDE,
+            )
             self._core_v1 = client.CoreV1Api(self._api_client)
             self._apps_v1 = client.AppsV1Api(self._api_client)
             self._networking_v1 = client.NetworkingV1Api(self._api_client)

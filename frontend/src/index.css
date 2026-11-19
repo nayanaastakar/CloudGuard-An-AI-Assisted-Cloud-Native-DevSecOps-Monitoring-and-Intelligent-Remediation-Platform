@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CloudGuard Vichy Theme: Teal (#05AD98) + Medium Slate (#878787) + Soft Gray (#BBBFBF) + Crisp White (#FFFFFF) */
+/* CloudGuard palette: slate, mauve, dusty blue, steel blue, and warm taupe. */
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -16,30 +16,37 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  color-scheme: dark;
 
-  /* Vichy Theme Tokens */
-  --bg-primary: #0D1418;       /* Deep slate/charcoal background */
-  --bg-secondary: #131E24;     /* Sidebar & top navigation */
-  --bg-card: #1A2830;          /* Cards and panels */
-  --bg-card-hover: #223540;
-  --text-primary: #FFFFFF;     /* Crisp white */
-  --text-secondary: #BBBFBF;   /* Soft light gray */
-  --text-muted: #878787;       /* Slate medium gray */
-  --border-color: #2F424E;     /* Border subtle tone */
-  --accent-teal: #05AD98;      /* Primary Vichy teal */
-  --accent-blue: #05AD98;      /* Primary brand accent */
-  --accent-violet: #048F7D;    /* Secondary brand accent */
-  --accent-warning: #F59E0B;   /* Warning amber */
-  --accent-danger: #EF4444;    /* Critical red */
-  --accent-success: #05AD98;   /* Success teal */
+  --palette-slate: #5D5C61;
+  --palette-mauve: #379683;
+  --palette-dusty-blue: #7395AE;
+  --palette-steel-blue: #557A95;
+  --palette-warm-taupe: #B1A296;
+
+  --bg-primary: #171619;
+  --bg-secondary: #222126;
+  --bg-card: #2D2C31;
+  --bg-card-hover: #3E3D42;
+  --text-primary: #F7F4F1;
+  --text-secondary: #D7D1CC;
+  --text-muted: #B1A296;
+  --border-color: #5D5C61;
+  --accent-teal: #379683;
+  --accent-blue: #7395AE;
+  --accent-violet: #557A95;
+  --accent-warning: #F59E0B;
+  --accent-danger: #EF4444;
+  --accent-success: #379683;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #0D1418 !important;
-  color: #FFFFFF !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 body {
@@ -48,39 +55,36 @@ body {
 
 #root {
   min-height: 100vh;
-  background-color: #0D1418;
+  background-color: var(--bg-primary);
 }
 
 @layer components {
-  /* Buttons */
   .btn-primary {
-    @apply bg-[#05AD98] text-white px-4 py-2 rounded-xl hover:bg-[#048F7D] transition-all font-medium shadow-lg shadow-[#05AD98]/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-primary-600 text-white px-4 py-2 rounded-xl hover:bg-primary-700 transition-all font-medium shadow-lg shadow-primary-600/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-[#131E24] text-[#BBBFBF] border border-[#2F424E] px-4 py-2 rounded-xl hover:bg-[#1A2830] hover:text-white transition-colors font-medium active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-slate-800 text-slate-200 border border-slate-600 px-4 py-2 rounded-xl hover:bg-slate-700 hover:text-white transition-colors font-medium active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
     @apply bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-500 transition-colors font-medium shadow-lg shadow-red-600/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Cards */
   .card {
-    @apply bg-[#1A2830] rounded-2xl shadow-md border border-[#2F424E] p-6 backdrop-blur-md;
+    @apply bg-slate-800 rounded-2xl shadow-md border border-slate-700 p-6 backdrop-blur-md;
   }
 
   .glass-card {
-    @apply bg-[#1A2830]/90 backdrop-blur-xl rounded-2xl border border-[#2F424E] shadow-xl;
+    @apply bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-slate-700 shadow-xl;
   }
 
   .glass-panel {
-    @apply bg-[#131E24]/95 backdrop-blur-xl border border-[#2F424E];
+    @apply bg-slate-900/95 backdrop-blur-xl border border-slate-700;
   }
 
-  /* Status Badges */
   .status-healthy {
-    @apply bg-[#05AD98]/10 text-[#05AD98] border border-[#05AD98]/30 px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply bg-success-500/10 text-success-300 border border-success-500/30 px-2.5 py-1 rounded-full text-xs font-medium;
   }
 
   .status-warning {
@@ -92,19 +96,18 @@ body {
   }
 
   .status-info {
-    @apply bg-[#05AD98]/10 text-[#05AD98] border border-[#05AD98]/25 px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply bg-primary-500/10 text-primary-300 border border-primary-500/25 px-2.5 py-1 rounded-full text-xs font-medium;
   }
 
-  /* Inputs */
   .input-glass {
-    @apply w-full px-4 py-2.5 text-sm rounded-xl bg-[#131E24] text-white border border-[#2F424E] focus:ring-2 focus:ring-[#05AD98] focus:border-[#05AD98] outline-none transition-all placeholder-[#878787];
+    @apply w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 text-slate-50 border border-slate-600 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none transition-all placeholder-slate-400;
   }
 }
 
 *:focus-visible {
-  @apply outline-none ring-2 ring-[#05AD98] ring-offset-2 ring-offset-[#0D1418];
+  @apply outline-none ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-950;
 }
 
 ::selection {
-  @apply bg-[#05AD98]/30 text-white;
+  @apply bg-primary-500/30 text-slate-50;
 }

@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   CommandLineIcon,
   ArrowPathIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  DocumentArrowDownIcon,
-  ServerIcon,
-  SignalIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '../common/PageHeader';
 import ProvenanceBadge from '../common/ProvenanceBadge';
@@ -88,7 +82,7 @@ export default function LogExplorerView() {
           {provenance && <ProvenanceBadge provenance={provenance} />}
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-gray-200 hover:bg-slate-800 border border-slate-700 transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Run Query
@@ -107,7 +101,7 @@ export default function LogExplorerView() {
           const detail = servicesHealth[svc.key] || {};
           const isLive = detail.provenance === 'live';
           return (
-            <div key={svc.key} className="p-3.5 bg-[#0B1220]/60 border border-gray-800 rounded-xl flex items-center justify-between">
+            <div key={svc.key} className="p-3.5 bg-slate-950/60 border border-gray-800 rounded-xl flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-gray-200">{svc.title}</div>
                 <div className="text-[11px] text-gray-400">{svc.role}</div>
@@ -127,7 +121,7 @@ export default function LogExplorerView() {
       </div>
 
       {/* Query Bar */}
-      <div className="p-4 bg-[#0B1220]/60 border border-gray-800 rounded-xl space-y-3">
+      <div className="p-4 bg-slate-950/60 border border-gray-800 rounded-xl space-y-3">
         <label className="text-xs font-semibold text-gray-300 flex items-center gap-2">
           <CommandLineIcon className="w-4 h-4 text-violet-400" />
           LogQL Query Expression:
@@ -161,7 +155,7 @@ export default function LogExplorerView() {
 
       {/* Log Feed */}
       <div className="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden font-mono text-xs">
-        <div className="bg-[#0B1220]/80 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-gray-400 text-[11px]">
+        <div className="bg-slate-950/80 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-gray-400 text-[11px]">
           <span>STREAM / LOG OUTPUT</span>
           <span>TIMESTAMP (UTC)</span>
         </div>
@@ -172,7 +166,7 @@ export default function LogExplorerView() {
         ) : (
           <div className="divide-y divide-gray-900 max-h-[600px] overflow-y-auto">
             {logs.map((log, idx) => (
-              <div key={idx} className="p-3 hover:bg-[#0B1220]/50 flex items-start justify-between gap-4">
+              <div key={idx} className="p-3 hover:bg-slate-950/50 flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${getLogLevelClass(log.level)}`}>

@@ -695,7 +695,7 @@ export default function PrometheusSetup() {
                   onClick={() => setCurrentStep(index)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                     currentStep === index
-                      ? 'bg-primary-500 text-white'
+                      ? 'bg-primary-600 text-white'
                       : currentStep > index
                       ? 'bg-green-500/10 text-green-500'
                       : 'bg-gray-100 dark:bg-slate-700 text-gray-500'
@@ -759,7 +759,7 @@ export default function PrometheusSetup() {
             {currentStep < steps.length - 1 ? (
               <button
                 onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 Next
                 <ArrowRightIcon className="w-4 h-4" />

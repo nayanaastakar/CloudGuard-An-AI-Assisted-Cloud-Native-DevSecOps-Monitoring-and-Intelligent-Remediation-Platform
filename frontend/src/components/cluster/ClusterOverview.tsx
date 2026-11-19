@@ -24,7 +24,7 @@ import { CheckCircleIcon as CheckCircleSolid, SignalIcon as SignalSolid } from '
 import { useCluster } from '../../contexts/ClusterContext';
 import { useClusterOverviewData } from '../../hooks/useClusterOverviewData';
 import GlassCard from '../common/GlassCard';
-import type { K8sEvent } from '../../types';
+import { chartColors } from '../../styles/design-system';
 
 // Animation variants
 const containerVariants = {
@@ -48,9 +48,9 @@ const pulseVariants = {
 // Compact Mini Chart for inline metrics
 function MiniChart({ data, color }: { data: number[]; color: 'blue' | 'purple' | 'green' }) {
   const colorMap = {
-    blue: { stroke: '#3B82F6', bg: 'from-blue-500/20 to-blue-500/5' },
-    purple: { stroke: '#8B5CF6', bg: 'from-purple-500/20 to-purple-500/5' },
-    green: { stroke: '#10B981', bg: 'from-green-500/20 to-green-500/5' },
+    blue: { stroke: chartColors.primary[0], bg: 'from-blue-500/20 to-blue-500/5' },
+    purple: { stroke: chartColors.purple[0], bg: 'from-purple-500/20 to-purple-500/5' },
+    green: { stroke: chartColors.success[0], bg: 'from-green-500/20 to-green-500/5' },
   };
 
   // Handle empty data gracefully
@@ -140,7 +140,7 @@ function AlertItem({ type, message, resource, time }: {
 }
 
 // AI Insight Card Component
-function AIInsightCard({ title, description, category, impact, source, index }: {
+function AIInsightCard({ title, description, impact, source, index }: {
   title: string;
   description: string;
   category: string;
@@ -195,7 +195,7 @@ function SecurityScoreRing({ score, size = 80 }: { score: number; size?: number 
   const progress = (score / 100) * circumference;
 
   const getColor = () => {
-    if (score >= 80) return { main: '#10B981', label: 'Good' };
+    if (score >= 80) return { main: chartColors.success[0], label: 'Good' };
     if (score >= 60) return { main: '#F59E0B', label: 'Fair' };
     return { main: '#EF4444', label: 'Poor' };
   };
@@ -289,14 +289,6 @@ function QuickActionButton({ icon: Icon, label, description, href, gradient }: {
   );
 }
 
-// AI Insight type
-interface AIInsight {
-  title: string;
-  description: string;
-  category: string;
-  impact: 'high' | 'medium' | 'low';
-  source: 'optimization' | 'security' | 'ai';
-}
 
 export default function ClusterOverview() {
   const { clusters, activeCluster, setActiveCluster } = useCluster();
@@ -342,8 +334,8 @@ export default function ClusterOverview() {
     events.forEach(event => {
       const eventData = {
         message: event.message || event.reason || 'Unknown event',
-        resource: `${event.kind || 'resource'}/${event.name}`,
-        time: event.age || 'recently',
+        resource: `${event.involved_object?.kind || 'resource'}/${event.involved_object?.name || event.name}`,
+        time: event.last_timestamp ? new Date(event.last_timestamp).toLocaleString() : 'Time unavailable',
       };
 
       if (event.type === 'Warning') {

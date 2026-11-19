@@ -39,10 +39,15 @@ interface CoverageData {
 }
 
 interface CoverageSummary {
-  lineCoverage?: number;
-  branchCoverage?: number;
-  coverageChange?: number;
-  coverageTool?: string;
+  lineCoverage?: number | null;
+  branchCoverage?: number | null;
+  statementCoverage?: number;
+  functionCoverage?: number;
+  totalLines?: number;
+  coveredLines?: number;
+  missingLines?: number;
+  coverageChange?: number | null;
+  coverageTool?: string | null;
 }
 
 interface CoverageReportProps {
@@ -52,21 +57,21 @@ interface CoverageReportProps {
 }
 
 export default function CoverageReport({ coverageData, coverageSummary, isLoading }: CoverageReportProps) {
-  const getCoverageColor = (coverage?: number) => {
+  const getCoverageColor = (coverage?: number | null) => {
     if (coverage === undefined || coverage === null) return 'text-gray-400';
     if (coverage >= 80) return 'text-emerald-500';
     if (coverage >= 60) return 'text-amber-500';
     return 'text-red-500';
   };
 
-  const getCoverageBg = (coverage?: number) => {
+  const getCoverageBg = (coverage?: number | null) => {
     if (coverage === undefined || coverage === null) return 'bg-gray-300 dark:bg-gray-600';
     if (coverage >= 80) return 'bg-emerald-500';
     if (coverage >= 60) return 'bg-amber-500';
     return 'bg-red-500';
   };
 
-  const getCoverageRingColor = (coverage?: number) => {
+  const getCoverageRingColor = (coverage?: number | null) => {
     if (coverage === undefined || coverage === null) return 'stroke-gray-300 dark:stroke-gray-600';
     if (coverage >= 80) return 'stroke-emerald-500';
     if (coverage >= 60) return 'stroke-amber-500';
@@ -121,8 +126,8 @@ export default function CoverageReport({ coverageData, coverageSummary, isLoadin
   // Calculate circumference for circular progress
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const lineOffset = lineCoverage !== undefined ? circumference - (lineCoverage / 100) * circumference : circumference;
-  const branchOffset = branchCoverage !== undefined ? circumference - (branchCoverage / 100) * circumference : circumference;
+  const lineOffset = lineCoverage != null ? circumference - (lineCoverage / 100) * circumference : circumference;
+  const branchOffset = branchCoverage != null ? circumference - (branchCoverage / 100) * circumference : circumference;
 
   return (
     <div className="space-y-6">
@@ -159,7 +164,7 @@ export default function CoverageReport({ coverageData, coverageSummary, isLoadin
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <span className={`text-xl font-bold ${getCoverageColor(lineCoverage)}`}>
-                {lineCoverage !== undefined ? `${lineCoverage.toFixed(1)}%` : '-'}
+                {lineCoverage != null ? `${lineCoverage.toFixed(1)}%` : '-'}
               </span>
             </div>
           </div>
@@ -203,7 +208,7 @@ export default function CoverageReport({ coverageData, coverageSummary, isLoadin
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <span className={`text-xl font-bold ${getCoverageColor(branchCoverage)}`}>
-                {branchCoverage !== undefined ? `${branchCoverage.toFixed(1)}%` : '-'}
+                {branchCoverage != null ? `${branchCoverage.toFixed(1)}%` : '-'}
               </span>
             </div>
           </div>

@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -25,7 +24,7 @@ import {
   XCircleIcon as XCircleSolidIcon,
   ExclamationTriangleIcon as ExclamationTriangleSolidIcon,
 } from '@heroicons/react/24/solid';
-import { getStatusConfig, getSeverityConfig, type StatusType, type SeverityType } from '../../utils/constants';
+import { getStatusConfig, getSeverityConfig, type StatusType } from '../../utils/constants';
 
 // =============================================================================
 // TYPES

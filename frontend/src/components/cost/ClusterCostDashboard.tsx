@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { kubernetesApi } from '../../services/api';
 import {
   CurrencyDollarIcon,
   ArrowPathIcon,
@@ -11,8 +10,8 @@ import {
   CubeIcon,
   FolderIcon,
   CalendarIcon,
-  FunnelIcon,
 } from '@heroicons/react/24/outline';
+import { chartColors } from '../../styles/design-system';
 
 // Types
 interface NamespaceCost {
@@ -545,9 +544,9 @@ export default function ClusterCostDashboard() {
         </div>
         <CostBreakdownChart
           data={[
-            { label: 'Compute', value: summary.compute_cost, color: '#3B82F6' },
-            { label: 'Storage', value: summary.storage_cost, color: '#10B981' },
-            { label: 'Network', value: summary.network_cost, color: '#8B5CF6' },
+            { label: 'Compute', value: summary.compute_cost, color: chartColors.primary[0] },
+            { label: 'Storage', value: summary.storage_cost, color: chartColors.success[0] },
+            { label: 'Network', value: summary.network_cost, color: chartColors.purple[0] },
           ]}
         />
       </div>

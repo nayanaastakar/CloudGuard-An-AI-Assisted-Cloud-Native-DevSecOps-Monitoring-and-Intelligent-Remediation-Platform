@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DualSidebarLayout from '../DualSidebarLayout';
 import { ThemeProvider } from '../../../contexts/ThemeContext';
 import { AuthProvider } from '../../../contexts/AuthContext';
@@ -8,22 +9,32 @@ import { NotificationProvider } from '../../../contexts/NotificationContext';
 import { ClusterProvider } from '../../../contexts/ClusterContext';
 import { NamespaceProvider } from '../../../contexts/NamespaceContext';
 
-// Helper to render with required providers
+// Helper to render with required providers and an isolated QueryClient per test
 function renderWithProviders(ui: React.ReactElement, initialRoute = '/') {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
   return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <ClusterProvider>
-              <NamespaceProvider>
-                {ui}
-              </NamespaceProvider>
-            </ClusterProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialRoute]}>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <ClusterProvider>
+                <NamespaceProvider>
+                  {ui}
+                </NamespaceProvider>
+              </ClusterProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -34,8 +45,8 @@ describe('DualSidebarLayout Navigation Audit', () => {
       '/'
     );
     expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
-    // Verify level-1 active item has Vichy Teal active styling
-    const activeItem = container.querySelector('.bg-\\[\\#05AD98\\]');
+    // Verify the active item uses the primary palette color.
+    const activeItem = container.querySelector('.bg-primary-500');
     expect(activeItem).toBeInTheDocument();
   });
 
@@ -45,7 +56,7 @@ describe('DualSidebarLayout Navigation Audit', () => {
       '/assets'
     );
     expect(screen.getByText('Assets Content')).toBeInTheDocument();
-    const activeItem = container.querySelector('.bg-\\[\\#05AD98\\]');
+    const activeItem = container.querySelector('.bg-primary-500');
     expect(activeItem).toBeInTheDocument();
   });
 
@@ -55,79 +66,79 @@ describe('DualSidebarLayout Navigation Audit', () => {
       '/threats'
     );
     expect(screen.getByText('Threats Content')).toBeInTheDocument();
-    const activeItem = container.querySelector('.bg-\\[\\#05AD98\\]');
+    const activeItem = container.querySelector('.bg-primary-500');
     expect(activeItem).toBeInTheDocument();
   });
 
   it('highlights Security Graph when route is /graph', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Graph Content</div></DualSidebarLayout>,
-      '/graph'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Graph Content</div></DualSidebarLayout>,
+'/graph'
+);
     expect(screen.getByText('Graph Content')).toBeInTheDocument();
   });
 
   it('highlights Attack Path Analysis when route is /attack-paths', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Attack Paths Content</div></DualSidebarLayout>,
-      '/attack-paths'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Attack Paths Content</div></DualSidebarLayout>,
+'/attack-paths'
+);
     expect(screen.getByText('Attack Paths Content')).toBeInTheDocument();
   });
 
   it('highlights AI Incident Investigation when route is /incidents', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Incidents Content</div></DualSidebarLayout>,
-      '/incidents'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Incidents Content</div></DualSidebarLayout>,
+'/incidents'
+);
     expect(screen.getByText('Incidents Content')).toBeInTheDocument();
   });
 
   it('highlights Vulnerability Intelligence when route is /vulnerabilities', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Vulnerabilities Content</div></DualSidebarLayout>,
-      '/vulnerabilities'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Vulnerabilities Content</div></DualSidebarLayout>,
+'/vulnerabilities'
+);
     expect(screen.getByText('Vulnerabilities Content')).toBeInTheDocument();
   });
 
   it('highlights Scanner Health & SBOM when route is /sbom', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>SBOM Content</div></DualSidebarLayout>,
-      '/sbom'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>SBOM Content</div></DualSidebarLayout>,
+'/sbom'
+);
     expect(screen.getByText('SBOM Content')).toBeInTheDocument();
   });
 
   it('highlights Remediation Center when route is /remediation', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Remediation Content</div></DualSidebarLayout>,
-      '/remediation'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Remediation Content</div></DualSidebarLayout>,
+'/remediation'
+);
     expect(screen.getByText('Remediation Content')).toBeInTheDocument();
   });
 
   it('highlights Compliance Engine when route is /compliance', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Compliance Content</div></DualSidebarLayout>,
-      '/compliance'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Compliance Content</div></DualSidebarLayout>,
+'/compliance'
+);
     expect(screen.getByText('Compliance Content')).toBeInTheDocument();
   });
 
   it('highlights DevSecOps Pipeline when route is /devsecops', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>DevSecOps Content</div></DualSidebarLayout>,
-      '/devsecops'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>DevSecOps Content</div></DualSidebarLayout>,
+'/devsecops'
+);
     expect(screen.getByText('DevSecOps Content')).toBeInTheDocument();
   });
 
   it('highlights Loki Log Explorer when route is /logs', () => {
-    const { container } = renderWithProviders(
-      <DualSidebarLayout><div>Logs Content</div></DualSidebarLayout>,
-      '/logs'
-    );
+    renderWithProviders(
+<DualSidebarLayout><div>Logs Content</div></DualSidebarLayout>,
+'/logs'
+);
     expect(screen.getByText('Logs Content')).toBeInTheDocument();
   });
 
@@ -137,23 +148,15 @@ describe('DualSidebarLayout Navigation Audit', () => {
       '/'
     );
 
-    // Verify all primary module labels are rendered and visible in the DOM
+    // Verify all 8 consolidated primary module labels are rendered and visible in the DOM
     expect(screen.getAllByText('Security Center').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Asset Inventory').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Kubernetes Monitoring').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Repository Security').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Vulnerability Management').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Runtime Threats').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Security Graph').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Attack Paths').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('AI Investigation').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Remediation Center').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Compliance Engine').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('DevSecOps Pipeline').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Scanner Health & SBOM').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Cluster & Workloads').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Deployments & Helm').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Observability & Metrics').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Loki Log Explorer').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Settings & Admin').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Attack Paths & Graph').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Remediation & Compliance').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('AI Insights & Settings').length).toBeGreaterThan(0);
 
     // Toggle collapse
     const collapseButton = screen.getByLabelText('Collapse sidebar');

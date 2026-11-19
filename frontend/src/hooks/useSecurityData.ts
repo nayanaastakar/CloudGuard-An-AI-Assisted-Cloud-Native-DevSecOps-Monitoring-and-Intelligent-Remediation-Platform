@@ -41,8 +41,14 @@ interface SecurityFinding {
 }
 
 interface SecurityDashboardData {
-  security_score: SecurityScore;
-  vulnerability_summary: VulnerabilitySummary;
+  cluster_id?: string;
+  audit_status?: 'complete' | 'partial' | 'unavailable' | 'demo';
+  error?: string | null;
+  provenance?: { state: string; source: string; error_message?: string };
+  checks?: Record<string, { status: string; error?: string }>;
+  audit_findings?: Array<{ finding_id: string; title: string; severity: string; resource_type: string; resource_name: string; namespace: string }>;
+  security_score: SecurityScore | null;
+  vulnerability_summary: VulnerabilitySummary | null;
   top_findings: SecurityFinding[];
   compliance_summary: {
     passed: number;
@@ -125,7 +131,7 @@ async function fetchSecurityData(): Promise<CombinedSecurityData> {
   ]);
 
   // Log results for debugging
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.debug('[Security] Data fetch results:', {
       dashboard: dashboardRes.data ? 'OK' : 'NULL',
       rbac: rbacRes.data ? 'OK' : 'NULL',
@@ -134,15 +140,8 @@ async function fetchSecurityData(): Promise<CombinedSecurityData> {
     });
   }
 
-  const dashboardData = dashboardRes.data || {
-    security_score: { score: 100, grade: 'A', total_findings: 0, critical_issues: 0, high_issues: 0, medium_issues: 0, low_issues: 0, last_scan: new Date().toISOString() },
-    vulnerability_summary: { critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-    top_findings: [],
-    compliance_summary: { passed: 0, failed: 0, total: 0 },
-    risky_namespaces: [],
-    total_images_scanned: 0,
-    last_scan: new Date().toISOString(),
-  };
+  // Missing API data is unavailable, not evidence of a clean cluster.
+  const dashboardData = dashboardRes.data;
 
   return {
     dashboard: dashboardData,

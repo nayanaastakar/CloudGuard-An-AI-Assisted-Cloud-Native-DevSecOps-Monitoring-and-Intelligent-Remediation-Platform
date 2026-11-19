@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { kubernetesApi } from '../services/api';
 import { prometheusApi } from '../services/prometheusApi';
 import type { NodeInfo, NodeMetrics, Pod } from '../types';
+import type { MetricSample } from '../types/prometheus';
 
 interface NodePrometheusMetrics {
   nodeName: string;
@@ -76,7 +77,7 @@ async function fetchNodesData(): Promise<NodesData> {
 
     // Process CPU metrics
     if (cpuRes?.data?.result) {
-      cpuRes.data.result.forEach((result: { metric: { instance: string }; values: Array<{ value: string }> }) => {
+      cpuRes.data.result.forEach((result: MetricSample) => {
         const instance = result.metric?.instance || '';
         const nodeName = instance.split(':')[0];
 
@@ -90,7 +91,7 @@ async function fetchNodesData(): Promise<NodesData> {
           };
         }
 
-        const values = result.values.map((v: { value: string }) => Math.round(parseFloat(v.value)));
+        const values = (result.values ?? (result.value ? [result.value] : [])).map((v) => Math.round(parseFloat(v.value)));
         nodePrometheusMetrics[nodeName].cpuHistory = values.slice(-10);
         nodePrometheusMetrics[nodeName].cpuPercent = values[values.length - 1] || 0;
       });
@@ -98,7 +99,7 @@ async function fetchNodesData(): Promise<NodesData> {
 
     // Process Memory metrics
     if (memRes?.data?.result) {
-      memRes.data.result.forEach((result: { metric: { instance: string }; values: Array<{ value: string }> }) => {
+      memRes.data.result.forEach((result: MetricSample) => {
         const instance = result.metric?.instance || '';
         const nodeName = instance.split(':')[0];
 
@@ -112,7 +113,7 @@ async function fetchNodesData(): Promise<NodesData> {
           };
         }
 
-        const values = result.values.map((v: { value: string }) => Math.round(parseFloat(v.value)));
+        const values = (result.values ?? (result.value ? [result.value] : [])).map((v) => Math.round(parseFloat(v.value)));
         nodePrometheusMetrics[nodeName].memoryHistory = values.slice(-10);
         nodePrometheusMetrics[nodeName].memoryPercent = values[values.length - 1] || 0;
       });

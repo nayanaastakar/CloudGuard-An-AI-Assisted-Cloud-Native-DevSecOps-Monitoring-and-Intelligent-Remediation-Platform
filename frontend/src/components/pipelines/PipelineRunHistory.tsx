@@ -46,7 +46,7 @@ export default function PipelineRunHistory() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [branchFilter, setBranchFilter] = useState<string>('all');
   const [triggerFilter, setTriggerFilter] = useState<TriggerFilter>('all');
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh] = useState(true);
 
   // Fetch data on mount
   useEffect(() => {

@@ -61,14 +61,14 @@ interface PipelineStore {
   // Variables
   fetchVariables: (pipelineId?: string) => Promise<void>;
   addVariable: (variable: Omit<api.Variable, 'id'>, pipelineId?: string) => Promise<void>;
-  updateVariable: (id: string, variable: Partial<api.Variable>, pipelineId?: string) => Promise<void>;
-  removeVariable: (id: string, pipelineId?: string) => Promise<void>;
+  updateVariable: (id: string, variable: Partial<api.Variable>) => Promise<void>;
+  removeVariable: (id: string) => Promise<void>;
 
   // Secrets
   fetchSecrets: (pipelineId?: string) => Promise<void>;
   addSecret: (secret: Omit<api.Secret, 'id'> & { value: string }, pipelineId?: string) => Promise<void>;
-  updateSecret: (id: string, secret: { value?: string; scope?: string }, pipelineId?: string) => Promise<void>;
-  removeSecret: (id: string, pipelineId?: string) => Promise<void>;
+  updateSecret: (id: string, secret: { value?: string; scope?: string }) => Promise<void>;
+  removeSecret: (id: string) => Promise<void>;
 
   // Triggers
   fetchTriggers: (pipelineId: string) => Promise<void>;
@@ -208,8 +208,19 @@ const usePipelineStore = create<PipelineStore>((set, get) => ({
   fetchRun: async (pipelineId: string, runId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const run = await api.getPipelineRun(pipelineId, runId);
-      set({ selectedRun: run, isLoading: false });
+      const [run, report] = await Promise.all([
+        api.getPipelineRun(pipelineId, runId),
+        api.getRunReport(runId).catch((reportError: unknown) => {
+          console.warn('Pipeline test and coverage report is unavailable', reportError);
+          return null;
+        }),
+      ]);
+      set({
+        selectedRun: report
+          ? { ...run, testSummary: report.testSummary, coverageSummary: report.coverageSummary }
+          : run,
+        isLoading: false,
+      });
     } catch (error: any) {
       set({
         error: error.response?.data?.message || error.message || 'Failed to fetch run',
@@ -439,10 +450,10 @@ const usePipelineStore = create<PipelineStore>((set, get) => ({
     }
   },
 
-  updateVariable: async (id: string, variable: Partial<api.Variable>, pipelineId?: string) => {
+  updateVariable: async (id: string, variable: Partial<api.Variable>) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await api.updateVariable(id, variable, pipelineId);
+      const updated = await api.updateVariable(id, variable);
       set((state) => ({
         variables: state.variables.map((v) => (v.id === id ? updated : v)),
         isLoading: false,
@@ -456,10 +467,10 @@ const usePipelineStore = create<PipelineStore>((set, get) => ({
     }
   },
 
-  removeVariable: async (id: string, pipelineId?: string) => {
+  removeVariable: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      await api.deleteVariable(id, pipelineId);
+      await api.deleteVariable(id);
       set((state) => ({
         variables: state.variables.filter((v) => v.id !== id),
         isLoading: false,
@@ -507,10 +518,10 @@ const usePipelineStore = create<PipelineStore>((set, get) => ({
     }
   },
 
-  updateSecret: async (id: string, secret: { value?: string; scope?: string }, pipelineId?: string) => {
+  updateSecret: async (id: string, secret: { value?: string; scope?: string }) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await api.updateSecret(id, secret, pipelineId);
+      const updated = await api.updateSecret(id, secret);
       set((state) => ({
         secrets: state.secrets.map((s) => (s.id === id ? updated : s)),
         isLoading: false,
@@ -524,10 +535,10 @@ const usePipelineStore = create<PipelineStore>((set, get) => ({
     }
   },
 
-  removeSecret: async (id: string, pipelineId?: string) => {
+  removeSecret: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      await api.deleteSecret(id, pipelineId);
+      await api.deleteSecret(id);
       set((state) => ({
         secrets: state.secrets.filter((s) => s.id !== id),
         isLoading: false,

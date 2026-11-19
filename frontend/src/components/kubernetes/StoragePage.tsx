@@ -11,7 +11,6 @@ import {
   CubeIcon,
   ServerIcon,
   Cog6ToothIcon,
-  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { kubernetesApi } from '../../services/api';
 import { logger } from '../../utils/logger';

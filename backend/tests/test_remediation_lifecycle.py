@@ -1,6 +1,7 @@
 """Unit & Integration tests for CloudGuard Module 7: Intelligent Remediation & Controlled Automation."""
 
 import pytest
+from unittest.mock import AsyncMock
 from app.services.remediation_engine import (
     remediation_engine,
     RemediationLifecycleState,
@@ -15,8 +16,12 @@ class TestRemediationEngine:
         assert len(plans) >= 1
         plan = plans[0]
         assert plan.remediation_id.startswith("REM-")
-        assert plan.status == RemediationLifecycleState.PENDING_APPROVAL
-        assert plan.dry_run_verified is True
+        assert plan.status == RemediationLifecycleState.PENDING_VALIDATION
+        assert plan.dry_run_verified is False
+        assert plan.provenance == "demo"
+        assert plan.data_source == "seeded-demo-sample"
+        assert "not been performed" in plan.dry_run_output
+        assert all(entry.action != "validated" for entry in plan.audit_trail)
         assert len(plan.diff_patch) > 0
         assert len(plan.audit_trail) >= 2
 
@@ -38,11 +43,12 @@ class TestRemediationEngine:
         )
 
         assert plan.remediation_id.startswith("REM-")
-        assert plan.dry_run_verified is True
+        assert plan.dry_run_verified is False
         assert "ClusterIP" in plan.proposed_yaml
-        assert plan.status == RemediationLifecycleState.PENDING_APPROVAL
+        assert plan.status == RemediationLifecycleState.VALIDATION_FAILED
 
-    async def test_four_eyes_self_approval_prevention(self):
+    async def test_four_eyes_self_approval_prevention(self, monkeypatch):
+        monkeypatch.setattr(remediation_engine, "validate_manifest", AsyncMock(return_value=(True, "Mock server-side dry-run succeeded")))
         # A creator of a sensitive remediation cannot self-approve
         cur_yaml = "apiVersion: v1\nkind: Service\nmetadata:\n  name: test-svc\n  namespace: default\nspec:\n  type: NodePort\n  ports:\n  - port: 80\n"
         prop_yaml = "apiVersion: v1\nkind: Service\nmetadata:\n  name: test-svc\n  namespace: default\nspec:\n  type: ClusterIP\n  ports:\n  - port: 80\n"
@@ -67,7 +73,8 @@ class TestRemediationEngine:
             )
         assert "Four-eyes policy violation" in str(exc_info.value)
 
-    async def test_legitimate_second_reviewer_approval_and_execution(self):
+    async def test_approved_execution_is_unavailable_without_separate_executor(self, monkeypatch):
+        monkeypatch.setattr(remediation_engine, "validate_manifest", AsyncMock(return_value=(True, "Mock server-side dry-run succeeded")))
         cur_yaml = "apiVersion: v1\nkind: Service\nmetadata:\n  name: test-svc-2\n  namespace: default\nspec:\n  type: NodePort\n  ports:\n  - port: 80\n"
         prop_yaml = "apiVersion: v1\nkind: Service\nmetadata:\n  name: test-svc-2\n  namespace: default\nspec:\n  type: ClusterIP\n  ports:\n  - port: 80\n"
         plan = await remediation_engine.create_plan(
@@ -92,26 +99,25 @@ class TestRemediationEngine:
         assert approved_plan.status == RemediationLifecycleState.APPROVED
         assert approved_plan.approved_by == "independent-reviewer@cloudguard.io"
 
-        # DevOps executes
+        async def forbidden_kubectl(*args, **kwargs):
+            pytest.fail("Generic remediation must not invoke kubectl")
+
+        monkeypatch.setattr("app.services.remediation_engine.asyncio.create_subprocess_exec", forbidden_kubectl)
         executed_plan = await remediation_engine.execute_plan(
             remediation_id=plan.remediation_id,
             executor="devops-engineer"
         )
-        # Should transition through EXECUTING -> VERIFYING -> COMPLETED
-        assert executed_plan.status == RemediationLifecycleState.COMPLETED
-        assert executed_plan.verification_status == "PASSED"
+        assert executed_plan.status == RemediationLifecycleState.EXECUTION_FAILED
+        assert "separate remediation identity" in executed_plan.execution_log
 
-    async def test_rollback_capability(self):
+    async def test_rollback_does_not_claim_success_without_cluster_operation(self):
         plans = remediation_engine.list_plans()
         plan = plans[0]
-        # Approve and execute
-        remediation_engine.approve_plan(plan.remediation_id, approver="second-approver")
-        await remediation_engine.execute_plan(plan.remediation_id, executor="devops")
-
-        rolled_back = await remediation_engine.rollback_plan(plan.remediation_id, operator="admin")
-        assert rolled_back.status == RemediationLifecycleState.ROLLED_BACK
-        assert rolled_back.rollback_executed is True
-        assert any(entry.action == "rolled_back" for entry in rolled_back.audit_trail)
+        original_status = plan.status
+        with pytest.raises(RuntimeError, match="no cluster change was made"):
+            await remediation_engine.rollback_plan(plan.remediation_id, operator="admin")
+        assert plan.status == original_status
+        assert plan.rollback_executed is False
 
     async def test_forbidden_destructive_action_rejected(self):
         cur_yaml = "apiVersion: v1\nkind: Pod\nmetadata:\n  name: pod\n"

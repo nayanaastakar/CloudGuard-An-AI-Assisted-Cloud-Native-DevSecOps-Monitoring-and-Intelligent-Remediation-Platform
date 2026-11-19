@@ -226,6 +226,18 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+):
+    """Dependency that returns current user if token present, or None without raising 401."""
+    if not credentials:
+        return None
+    try:
+        return await get_current_user(credentials)
+    except HTTPException:
+        return None
+
+
 async def get_current_active_user(current_user=Depends(get_current_user)):
     """Dependency to ensure the current user is active."""
     if not current_user.is_active:

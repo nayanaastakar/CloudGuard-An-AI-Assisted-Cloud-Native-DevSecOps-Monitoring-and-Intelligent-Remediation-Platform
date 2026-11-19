@@ -7,7 +7,7 @@
 **Secure, Analyse and Optimise Your Cloud-Native Infrastructure with Real-Time Intelligence.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0.0-05AD98.svg)](https://github.com/nayanaastakar/CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-Remediation-Platform)
+
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -24,7 +24,7 @@
 
 ## Overview
 
-**CloudGuard** is an enterprise-grade, cloud-native DevSecOps monitoring and intelligent remediation platform. Designed specifically for multi-tenant and production Kubernetes environments, CloudGuard continuously monitors cluster attack surfaces, models predictive multi-hop lateral movement chains, correlates cross-signal incidents with Google Gemini AI, validates remediation plans using server-side dry-runs, and enforces continuous regulatory compliance frameworks (CIS, NIST SP 800-190, PCI-DSS).
+**CloudGuard** is a cloud-native DevSecOps monitoring and intelligent remediation platform. Designed specifically for multi-tenant and production Kubernetes environments, CloudGuard continuously monitors cluster attack surfaces, models predictive multi-hop lateral movement chains, correlates cross-signal incidents with Google Gemini AI, validates remediation plans using server-side dry-runs, and enforces continuous regulatory compliance frameworks (CIS, NIST SP 800-190, PCI-DSS).
 
 CloudGuard adopts a modern **Vichy design system** featuring high-contrast slate backgrounds (`#0D1418`, `#131E24`), vibrant teal accents (`#05AD98`), soft light grays (`#BBBFBF`), and crisp pure white typography (`#FFFFFF`).
 
@@ -76,7 +76,7 @@ Kernel-level runtime behavioral anomaly and Falco threat detection streams.
   <img src="screenshots/04_runtime_threats_falco.png" alt="Runtime Threats Falco" width="95%" />
 </p>
 
-#### 360° Security Graph
+
 Interactive topological graph modeling cluster relationships and blast radii.
 <p align="center">
   <img src="screenshots/05_security_graph_360.png" alt="360 Security Graph" width="95%" />
@@ -292,14 +292,14 @@ cd CloudGuard-An-AI-Assisted-Cloud-Native-DevSecOps-Monitoring-and-Intelligent-R
 ```bash
 cp .env.example .env
 ```
-Edit `.env` and set your optional credentials:
+Edit `.env` and replace every `replace-with-...` value with a unique local secret. Generate URL-safe values with Python:
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+Use separate generated values for `SECRET_KEY`, `POSTGRES_PASSWORD`, `DEFAULT_ADMIN_PASSWORD`, and `FALCO_WEBHOOK_SECRET`. Keep `K8S_SKIP_TLS_VERIFY=false`; set it to `true` only for a trusted local development cluster with an incompatible certificate. Production startup rejects disabled Kubernetes TLS verification.
 ```env
 # Google Gemini AI Key for intelligent incident correlation
 GEMINI_API_KEY=your_gemini_api_key_here
-
-# JWT Authentication
-SECRET_KEY=your_secure_random_secret_key
-DEFAULT_ADMIN_PASSWORD=admin123
 ```
 
 ### 3. Launch via Docker Compose
@@ -345,12 +345,14 @@ Interactive Swagger / OpenAPI documentation is accessible at `http://localhost:8
 
 ## Verification & Test Results
 
-The platform has been audited and validated through automated suites:
+Run the backend and frontend tests from the current source tree:
 
-* **Backend Unit & Integration Tests**: 126 passed (`pytest`).
-* **Frontend Component & Navigation Tests**: 18 passed (`vitest`).
-* **Server-Side Dry-Run Validation**: Verified syntax and admission controller checks via Kubernetes lifecycle endpoints.
-* **Security & Non-Interference Guarantee**: Dedicated ports (`3001`, `8001`, `5433`, `6380`) ensure complete isolation from surrounding environments.
+```bash
+cd backend && python -m pytest
+cd frontend && npm test -- --run
+```
+
+Test results are specific to the source snapshot and environment in which they ran. Passing tests do not verify live-cluster RBAC, production secrets, or deployed integrations. See [Security-sensitive deployment configuration](docs/security-hardening.md) before configuring a deployment.
 
 ---
 

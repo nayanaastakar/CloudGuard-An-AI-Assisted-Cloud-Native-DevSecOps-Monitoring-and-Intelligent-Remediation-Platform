@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProvenanceMetadata } from '../../services/cloudguardApi';
-import { CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon, InformationCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 interface ProvenanceBadgeProps {
   provenance?: ProvenanceMetadata | { state?: string; source?: string; is_fresh?: boolean; error_message?: string };
@@ -19,7 +19,6 @@ export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
 }) => {
   const resolvedState = (explicitState || provenance?.state || 'demo').toLowerCase();
   const resolvedSource = explicitSource || provenance?.source;
-  const isFresh = provenance?.is_fresh ?? true;
   const errorMessage = provenance?.error_message;
 
   switch (resolvedState) {
@@ -55,6 +54,17 @@ export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
         >
           <XCircleIcon className="w-3.5 h-3.5 text-rose-400" />
           <span className="font-semibold uppercase tracking-wider text-[10px]">{explicitLabel || 'UNAVAILABLE'}</span>
+        </span>
+      );
+
+    case 'error':
+      return (
+        <span
+          title={errorMessage || 'The latest data collection attempt failed'}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-950/80 text-red-300 border border-red-500/40 pointer-events-none ${className}`}
+        >
+          <XCircleIcon className="w-3.5 h-3.5 text-red-400" />
+          <span className="font-semibold uppercase tracking-wider text-[10px]">{explicitLabel || 'ERROR'}</span>
         </span>
       );
 

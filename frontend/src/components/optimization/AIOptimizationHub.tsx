@@ -4,8 +4,6 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
   SparklesIcon,
-  CpuChipIcon,
-  CurrencyDollarIcon,
   ShieldCheckIcon,
   ArrowPathIcon,
   CheckCircleIcon,

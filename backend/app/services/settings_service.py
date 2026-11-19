@@ -250,15 +250,19 @@ class SettingsService:
     async def _auto_detect_integrations(self, existing_map: Dict[str, Integration]):
         """Auto-detect and connect integrations running in the cluster."""
         try:
-            from kubernetes import client, config
+            from kubernetes import client
+            from app.core.kubernetes_client import create_kubernetes_api_client
 
             # Try to load in-cluster config first, fall back to kubeconfig
-            try:
-                config.load_incluster_config()
-            except config.ConfigException:
-                config.load_kube_config()
+            if settings.K8S_IN_CLUSTER:
+                api_client = create_kubernetes_api_client(in_cluster=True)
+            else:
+                try:
+                    api_client = create_kubernetes_api_client(in_cluster=True)
+                except Exception:
+                    api_client = create_kubernetes_api_client(in_cluster=False)
 
-            v1 = client.CoreV1Api()
+            v1 = client.CoreV1Api(api_client)
 
             # Detection rules: name -> (namespace patterns, service name patterns, port)
             detection_rules = {

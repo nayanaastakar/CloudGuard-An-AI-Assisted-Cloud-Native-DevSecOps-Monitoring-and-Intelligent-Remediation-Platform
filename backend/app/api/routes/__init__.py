@@ -1,4 +1,4 @@
-from app.api.routes import gitflow, health, incidents, jenkins, kubernetes, selfservice, timeline
+from app.api.routes import gitflow, health, incidents, jenkins, kubernetes, selfservice, timeline, repo_intel
 
 __all__ = [
     "health",
@@ -8,4 +8,5 @@ __all__ = [
     "timeline",
     "selfservice",
     "gitflow",
+    "repo_intel",
 ]

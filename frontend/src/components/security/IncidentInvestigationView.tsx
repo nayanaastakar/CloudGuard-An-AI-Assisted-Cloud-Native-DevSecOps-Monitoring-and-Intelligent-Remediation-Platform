@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   SparklesIcon,
-  ShieldExclamationIcon,
   CheckCircleIcon,
   ArrowPathIcon,
   DocumentMagnifyingGlassIcon,
-  InformationCircleIcon,
-  ListBulletIcon,
   WrenchScrewdriverIcon,
-  ExclamationTriangleIcon,
   PlusIcon,
   LockClosedIcon,
 } from '@heroicons/react/24/outline';
@@ -51,6 +46,7 @@ interface InvestigationRecord {
   target_type: string;
   target_id: string;
   status: string;
+  provenance: string;
   created_at: string;
   report: StructuredReport;
   evidence_bundle: {
@@ -160,7 +156,7 @@ export default function IncidentInvestigationView() {
           </button>
           <button
             onClick={fetchInvestigations}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#151F32] text-gray-200 hover:bg-gray-700 border border-[#2D3B55] transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-gray-200 hover:bg-slate-800 border border-slate-700 transition-colors"
           >
             <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -184,7 +180,7 @@ export default function IncidentInvestigationView() {
       {/* Main Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Investigation Dossier List (Left Column) */}
-        <div className="bg-[#0B1220]/60 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="bg-slate-950/60 border border-gray-800 rounded-xl p-4 space-y-3">
           <div className="text-xs font-semibold text-gray-400 pb-2 border-b border-gray-800 flex justify-between items-center">
             <span>INVESTIGATION DOSSIERS ({investigations.length})</span>
             <span className="text-[10px] text-gray-500 font-mono">Evidence-Backed</span>
@@ -201,7 +197,7 @@ export default function IncidentInvestigationView() {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-purple-500 bg-purple-950/20 shadow-md shadow-purple-500/10'
-                      : 'border-gray-800 bg-gray-950/40 hover:border-[#2D3B55] hover:bg-[#151F32]/30'
+                      : 'border-gray-800 bg-gray-950/40 hover:border-slate-600 hover:bg-slate-900/30'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -224,7 +220,7 @@ export default function IncidentInvestigationView() {
         </div>
 
         {/* Investigation Workspace & Evidence Explorer (Right Columns) */}
-        <div className="lg:col-span-2 bg-[#0B1220]/60 border border-gray-800 rounded-xl p-6 space-y-6">
+        <div className="lg:col-span-2 bg-slate-950/60 border border-gray-800 rounded-xl p-6 space-y-6">
           {selectedInv && selectedInv.report ? (
             <>
               {/* Title & Metadata Strip */}
@@ -233,8 +229,11 @@ export default function IncidentInvestigationView() {
                   <span className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase ${getSeverityBadgeClass(selectedInv.report.severity_assessment)}`}>
                     {selectedInv.report.severity_assessment} Severity Assessment
                   </span>
-                  <span className="text-xs text-violet-400 font-medium">
-                    Confidence: {(selectedInv.report.confidence * 100).toFixed(0)}%
+                  <span className="flex items-center gap-2">
+                    <ProvenanceBadge state={selectedInv.provenance || 'demo'} />
+                    <span className="text-xs text-violet-400 font-medium">
+                      Confidence: {(selectedInv.report.confidence * 100).toFixed(0)}%
+                    </span>
                   </span>
                 </div>
                 <h2 className="text-lg font-bold text-gray-100">{selectedInv.report.title}</h2>
@@ -285,7 +284,10 @@ export default function IncidentInvestigationView() {
                     <div key={item.evidence_id} className="p-2.5 bg-gray-950 border border-gray-800 rounded-lg text-xs space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-violet-400 font-semibold">{item.evidence_id}</span>
-                        <span className="text-[10px] text-gray-400 uppercase font-bold">{item.source}</span>
+                        <span className="flex items-center gap-1">
+                          <span className="text-[10px] text-gray-400 uppercase font-bold">{item.source}</span>
+                          <ProvenanceBadge state={item.provenance} />
+                        </span>
                       </div>
                       <div className="text-gray-300 text-[11px]">Asset: <strong>{item.asset_reference}</strong></div>
                       <pre className="text-[10px] text-gray-500 font-mono truncate">{JSON.stringify(item.details)}</pre>
@@ -331,7 +333,7 @@ export default function IncidentInvestigationView() {
       {/* New Investigation Modal */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0B1220] border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-slate-950 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <SparklesIcon className="w-5 h-5 text-violet-400" />
               Launch New AI Investigation
@@ -382,7 +384,7 @@ export default function IncidentInvestigationView() {
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-[#2D3B55] text-gray-300 hover:bg-[#151F32]"
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 text-gray-300 hover:bg-slate-900"
                 >
                   Cancel
                 </button>

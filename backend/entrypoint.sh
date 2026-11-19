@@ -7,13 +7,18 @@ if [ -n "$K8S_HOST_OVERRIDE" ] && [ -n "$K8S_CONFIG_PATH" ] && [ -f "$K8S_CONFIG
     MODIFIED_CONFIG="/tmp/kubeconfig"
 
     # Copy and modify the kubeconfig, replacing localhost/127.0.0.1 with the override
-    # Also replace certificate-authority with insecure-skip-tls-verify for Docker Desktop development
-    # (Helm and client-go forbid specifying both CA data and insecure-skip-tls-verify)
     sed -e "s|server: https://127.0.0.1:|server: https://${K8S_HOST_OVERRIDE}:|g" \
         -e "s|server: https://localhost:|server: https://${K8S_HOST_OVERRIDE}:|g" \
-        -e "s|certificate-authority-data:.*|insecure-skip-tls-verify: true|g" \
-        -e "s|certificate-authority:.*|insecure-skip-tls-verify: true|g" \
         "$K8S_CONFIG_PATH" > "$MODIFIED_CONFIG"
+
+    if [ "${K8S_SKIP_TLS_VERIFY:-false}" = "true" ]; then
+        # Explicit local-development opt-out only. Production startup rejects this setting.
+        sed -i -e '/certificate-authority-data:/d' -e '/certificate-authority:/d' \
+            -e '/server:/a\    insecure-skip-tls-verify: true' "$MODIFIED_CONFIG"
+    else
+        # Do not inherit an insecure kubeconfig setting unless explicitly requested above.
+        sed -i '/insecure-skip-tls-verify:/d' "$MODIFIED_CONFIG"
+    fi
 
     # Export the modified kubeconfig path for kubectl
     export KUBECONFIG="$MODIFIED_CONFIG"

@@ -11,7 +11,6 @@ import {
   XCircleIcon,
   ArrowPathIcon,
   ChevronRightIcon,
-  CodeBracketIcon,
   RocketLaunchIcon,
   ChartBarIcon,
   CommandLineIcon,

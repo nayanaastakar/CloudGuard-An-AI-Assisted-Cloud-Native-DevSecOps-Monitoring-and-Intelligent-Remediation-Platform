@@ -23,13 +23,11 @@ import {
 import { clustersApi, ClusterTestResult } from '../../services/api';
 import { useCluster } from '../../contexts/ClusterContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
 import GlassCard, { SectionHeader } from '../common/GlassCard';
 import type { ClusterInfo } from '../../types';
 
 // Import shared constants
 import { containerVariants, itemVariants, scaleVariants } from '../../utils/constants';
-import { StatusBadge, HealthIndicator } from '../common/StatusBadge';
 
 type AuthType = 'kubeconfig' | 'kubeconfig_file' | 'token';
 
@@ -63,7 +61,6 @@ const modalVariants = {
 export default function ClusterManagement() {
   const { clusters, setActiveCluster, refreshClusters } = useCluster();
   const { user } = useAuth();
-  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [contexts, setContexts] = useState<KubeContext[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);

@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import Response
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +27,7 @@ from app.schemas.security import (
     SecurityTrends,
 )
 from app.services.security_service import SecurityService, get_security_service
+from app.services.security_posture_engine import security_posture_engine
 
 router = APIRouter(prefix="/security", tags=["Security"])
 
@@ -51,21 +51,14 @@ async def get_security_posture(
     - Recommendations
     """
     try:
-        cache_key = cluster_id
-        if cache_key in _posture_json_cache:
-            json_str, cached_time = _posture_json_cache[cache_key]
-            if datetime.utcnow() - cached_time < timedelta(seconds=45):
-                return Response(content=json_str, media_type="application/json")
-
-        posture = await security_service.get_security_posture(cluster_id)
-        json_str = posture.model_dump_json()
-        _posture_json_cache[cache_key] = (json_str, datetime.utcnow())
-        return Response(content=json_str, media_type="application/json")
+        # Use the same per-check audit contract as CloudGuard posture. The legacy
+        # engine converted Kubernetes exceptions into empty findings and a 100/A.
+        return await security_posture_engine.audit_cluster(cluster_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get security posture: {str(e)}")
 
 
-@router.get("/dashboard", response_model=SecurityDashboardResponse)
+@router.get("/dashboard")
 async def get_security_dashboard(
     cluster_id: str = Query("default", description="Cluster ID"),
     current_user: UserInfo = Depends(get_current_user),
@@ -83,13 +76,34 @@ async def get_security_dashboard(
     - Total images scanned
     """
     try:
-        dashboard = await security_service.get_security_dashboard(cluster_id)
-        return dashboard
+        audit = await security_posture_engine.audit_cluster(cluster_id)
+        score = audit.get("security_score")
+        legacy_score = None if score is None else {
+            **score,
+            "critical_issues": score.get("critical", 0),
+            "high_issues": score.get("high", 0),
+            "medium_issues": score.get("medium", 0),
+            "low_issues": score.get("low", 0),
+            "last_scan": score.get("last_evaluated"),
+        }
+        return {
+            **audit,
+            "security_score": legacy_score,
+            "audit_findings": audit.get("findings", []),
+            # These domains are not evaluated by the current Kubernetes posture
+            # audit. Null means unavailable/not evaluated; it is not a zero count.
+            "vulnerability_summary": None,
+            "top_findings": audit.get("findings", []),
+            "compliance_summary": None,
+            "risky_namespaces": None,
+            "total_images_scanned": None,
+            "last_scan": audit.get("audit_triggered_at"),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get security dashboard: {str(e)}")
 
 
-@router.get("/findings", response_model=List[SecurityFinding])
+@router.get("/findings")
 async def get_security_findings(
     cluster_id: str = Query("default", description="Cluster ID"),
     severity: Optional[str] = Query(None, description="Filter by severity: critical, high, medium, low"),
@@ -106,20 +120,20 @@ async def get_security_findings(
     Returns detailed list of security issues found in the cluster.
     """
     try:
-        posture = await security_service.get_security_posture(cluster_id)
-        findings = posture.findings
+        audit = await security_posture_engine.audit_cluster(cluster_id)
+        findings = audit.get("findings", [])
 
         # Apply filters
         if severity:
-            findings = [f for f in findings if f.severity.value == severity.lower()]
+            findings = [f for f in findings if f.get("severity", "").lower() == severity.lower()]
 
         if finding_type:
-            findings = [f for f in findings if f.type.value == finding_type.lower()]
+            findings = [f for f in findings if f.get("category", "").lower() == finding_type.lower()]
 
         if namespace:
-            findings = [f for f in findings if f.namespace == namespace]
+            findings = [f for f in findings if f.get("namespace") == namespace]
 
-        return findings
+        return {"audit_status": audit["audit_status"], "provenance": audit["provenance"], "checks": audit["checks"], "findings": findings}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get security findings: {str(e)}")
 
@@ -145,28 +159,13 @@ async def trigger_security_scan(
     Note: Full scans may take several minutes.
     """
     try:
-        # Clear cache to force fresh scan
-        if cluster_id in security_service.findings_cache:
-            del security_service.findings_cache[cluster_id]
-
-        # Trigger scan
-        posture = await security_service.get_security_posture(cluster_id)
-
-        return {
-            "status": "completed",
-            "cluster_id": cluster_id,
-            "scan_time": posture.last_updated,
-            "security_score": posture.security_score.score,
-            "grade": posture.security_score.grade,
-            "total_findings": len(posture.findings),
-            "critical_issues": posture.security_score.critical_issues,
-            "high_issues": posture.security_score.high_issues,
-        }
+        result = await security_posture_engine.audit_cluster(cluster_id, force=True)
+        return {**result, "status": result["audit_status"], "scan_time": result["audit_triggered_at"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to trigger security scan: {str(e)}")
 
 
-@router.get("/score", response_model=SecurityScore)
+@router.get("/score")
 async def get_security_score(
     cluster_id: str = Query("default", description="Cluster ID"),
     current_user: UserInfo = Depends(get_current_user),
@@ -182,8 +181,10 @@ async def get_security_score(
     - Last scan time
     """
     try:
-        posture = await security_service.get_security_posture(cluster_id)
-        return posture.security_score
+        audit = await security_posture_engine.audit_cluster(cluster_id)
+        if audit["security_score"] is None:
+            return {"audit_status": audit["audit_status"], "provenance": audit["provenance"], "checks": audit["checks"], "error": audit.get("error"), "security_score": None}
+        return {**audit, "security_score": audit["security_score"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get security score: {str(e)}")
 

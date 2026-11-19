@@ -14,10 +14,12 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 import yaml
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 
 from app.core.cache import cache_service
+from app.core.config import settings
+from app.core.kubernetes_client import create_kubernetes_api_client
 from app.utils.security import validate_kubernetes_name, sanitize_log_input
 
 from app.schemas.prometheus import (
@@ -80,14 +82,18 @@ class PrometheusService:
         if self._k8s_client is None:
             try:
                 if self.kubeconfig:
-                    config.load_kube_config(config_file=self.kubeconfig, context=self.context)
+                    self._k8s_client = create_kubernetes_api_client(
+                        config_file=self.kubeconfig, context=self.context
+                    )
+                elif settings.K8S_IN_CLUSTER:
+                    self._k8s_client = create_kubernetes_api_client(in_cluster=True)
                 else:
                     try:
-                        config.load_incluster_config()
-                    except config.ConfigException:
-                        config.load_kube_config(context=self.context)
-
-                self._k8s_client = client.ApiClient()
+                        self._k8s_client = create_kubernetes_api_client(in_cluster=True)
+                    except Exception:
+                        self._k8s_client = create_kubernetes_api_client(
+                            in_cluster=False, context=self.context
+                        )
                 self._custom_api = client.CustomObjectsApi(self._k8s_client)
                 self._core_api = client.CoreV1Api(self._k8s_client)
                 self._apps_api = client.AppsV1Api(self._k8s_client)

@@ -12,11 +12,13 @@ except ImportError:
     pty = None
     select = None
 from typing import Optional
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect
 from kubernetes.client.rest import ApiException
 
 from app.core.config import settings
+from app.core.startup import is_effective_production
 from app.core.websocket_manager import ws_manager
 from app.services.kubernetes_service import kubernetes_service
 
@@ -34,6 +36,88 @@ ALLOWED_DEBUG_IMAGES = {
     "nicolaka/netshoot:latest",
     "ubuntu:latest",
 }
+
+
+def is_allowed_websocket_origin(origin: Optional[str], allowed_origins=None, is_production_mode: Optional[bool] = None) -> bool:
+    """
+    Validate WebSocket handshake Origin header against configured CORS origins.
+
+    Rules:
+      1. Missing Origin:
+         - Allowed in development / non-production mode for local tools (e.g. testing, curl/wscat).
+         - In production mode, browsers always send Origin on WebSocket handshakes. Missing Origin
+           is rejected to prevent blind bypass of origin controls.
+      2. Production mode:
+         - Wildcards ('*') are strictly rejected.
+         - Origin must match one of the configured CORS_ORIGINS (case-insensitive string or scheme+netloc match).
+      3. Development mode (is_production_mode=False):
+         - Localhost/127.0.0.1 origins are always permitted.
+         - Wildcards and configured CORS_ORIGINS are permitted.
+    """
+    if is_production_mode is None:
+        is_production_mode = is_effective_production(settings)
+
+    if allowed_origins is None:
+        allowed_origins = getattr(settings, "CORS_ORIGINS", [])
+
+    if isinstance(allowed_origins, str):
+        allowed_origins = [orig.strip() for orig in allowed_origins.split(",") if orig.strip()]
+
+    # Normalize allowed origins list
+    allowed_set = set()
+    for o in allowed_origins:
+        o_clean = o.strip().rstrip("/").lower()
+        if o_clean:
+            allowed_set.add(o_clean)
+
+    if not origin:
+        # In production, browser WebSocket requests always include Origin. Missing origin is rejected.
+        return not is_production_mode
+
+    origin_norm = origin.strip().rstrip("/").lower()
+
+    if is_production_mode:
+        # Reject wildcard in production
+        if "*" in allowed_set or origin_norm == "*":
+            return False
+        return origin_norm in allowed_set
+
+    # In development:
+    if "*" in allowed_set:
+        return True
+    if origin_norm in allowed_set:
+        return True
+
+    # Dev fallback: allow standard localhost & loopback patterns
+    try:
+        parsed = urlparse(origin_norm)
+        if parsed.hostname in ("localhost", "127.0.0.1", "::1"):
+            return True
+    except Exception:
+        pass
+
+    return False
+
+
+async def verify_websocket_origin(websocket: WebSocket) -> bool:
+    """
+    Verify incoming WebSocket origin. If invalid, closes the socket with 1008
+    before accepting. Returns True if valid, False if rejected.
+    """
+    raw_origin = websocket.headers.get("origin")
+    if not is_allowed_websocket_origin(raw_origin):
+        sanitized_origin = sanitize_log_input(raw_origin or "<missing>", max_length=50)
+        logger.warning(
+            "WebSocket connection rejected: invalid origin %s for path %s",
+            sanitized_origin,
+            websocket.url.path,
+        )
+        try:
+            await websocket.close(code=1008)
+        except Exception:
+            pass
+        return False
+    return True
 
 
 def sanitize_log_input(value: str, max_length: int = 63) -> str:
@@ -101,6 +185,8 @@ async def websocket_pod_logs(
     - {"type": "error", "error": "...", "code": 500}
     """
     connection_id = None
+    if not await verify_websocket_origin(websocket):
+        return
 
     try:
         # Get container name if not specified
@@ -194,9 +280,94 @@ async def stream_logs(
 @router.websocket("/health")
 async def websocket_health(websocket: WebSocket):
     """Simple WebSocket health check endpoint."""
+    if not await verify_websocket_origin(websocket):
+        return
     await websocket.accept()
     await websocket.send_json({"status": "healthy", "connections": ws_manager.active_connections})
     await websocket.close()
+
+
+@router.websocket("/events")
+async def websocket_events(
+    websocket: WebSocket,
+    cluster_id: str = Query("default"),
+):
+    """
+    Authenticated WebSocket endpoint for cluster security events.
+
+    Authentication Security Guarantee:
+    - Avoids JWT in query parameters (preventing URL exposure in proxy/access logs).
+    - Requires the client to send an initial auth handshake message within 5 seconds:
+      {"type": "authenticate", "token": "<jwt-bearer-token>"}
+    - Verifies the user, active state, and cluster permission before streaming.
+    """
+    if not await verify_websocket_origin(websocket):
+        return
+    await websocket.accept()
+    connection_id = None
+    try:
+        # Wait for authentication handshake frame
+        auth_msg_raw = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
+        try:
+            auth_msg = json.loads(auth_msg_raw)
+        except Exception:
+            await websocket.send_json({"type": "auth_error", "error": "Invalid auth handshake payload"})
+            await websocket.close(code=1008)
+            return
+
+        if auth_msg.get("type") != "authenticate" or not auth_msg.get("token"):
+            await websocket.send_json({"type": "auth_error", "error": "Missing authentication credentials"})
+            await websocket.close(code=1008)
+            return
+
+        token = auth_msg.get("token")
+        from app.core.security import decode_access_token
+        payload = decode_access_token(token)
+        if not payload or payload.get("type") != "access":
+            await websocket.send_json({"type": "auth_error", "error": "Invalid or expired session token"})
+            await websocket.close(code=1008)
+            return
+
+        user_id = payload.get("sub")
+        username = payload.get("username", "analyst")
+        role = payload.get("role", "viewer")
+
+        # Cluster authorization: Users can subscribe to their cluster or '*' for admins
+        cluster_set = {"*"} if role in ["admin", "operator"] else {cluster_id}
+
+        connection_id = await ws_manager.connect_event_subscriber(
+            websocket=websocket,
+            user_id=user_id,
+            username=username,
+            role=role,
+            cluster_ids=cluster_set,
+        )
+
+        await websocket.send_json({
+            "type": "authenticated",
+            "status": "connected",
+            "cluster_id": cluster_id,
+            "user": username,
+        })
+
+        # Keep connection open and process pings/commands
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({"type": "pong"})
+    except asyncio.TimeoutError:
+        try:
+            await websocket.send_json({"type": "auth_error", "error": "Authentication timeout"})
+            await websocket.close(code=1008)
+        except Exception:
+            pass
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.warning("Event stream websocket error: %s", e)
+    finally:
+        if connection_id:
+            await ws_manager.disconnect_event_subscriber(connection_id)
 
 
 @router.websocket("/pods/{namespace}/{pod_name}/exec")
@@ -219,6 +390,10 @@ async def websocket_pod_exec(
     - Server sends: {"type": "status", "status": "connected|disconnected", "message": "..."}
     - Server sends: {"type": "error", "error": "...", "code": 500}
     """
+    # Validate origin before accepting WebSocket
+    if not await verify_websocket_origin(websocket):
+        return
+
     # Validate inputs before accepting WebSocket
     try:
         namespace = validate_k8s_name(namespace, "namespace")
@@ -401,6 +576,10 @@ async def websocket_pod_debug(
     - Server sends: {"type": "status", "status": "connected|disconnected", "message": "..."}
     - Server sends: {"type": "error", "error": "...", "code": 500}
     """
+    # Validate origin before accepting WebSocket
+    if not await verify_websocket_origin(websocket):
+        return
+
     # Validate inputs before accepting WebSocket
     try:
         namespace = validate_k8s_name(namespace, "namespace")

@@ -38,6 +38,8 @@ from app.schemas.argocd import (
     SyncStatus,
     ResourceStatus,
 )
+from app.core.config import settings
+from app.core.startup import is_effective_production
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +69,8 @@ class ArgoCDService:
         self.token = token
         self.username = username
         self.password = password
+        if insecure and is_effective_production(settings):
+            raise ValueError("Argo CD TLS verification cannot be disabled in production")
         self.insecure = insecure
         self._session_token: Optional[str] = None
 

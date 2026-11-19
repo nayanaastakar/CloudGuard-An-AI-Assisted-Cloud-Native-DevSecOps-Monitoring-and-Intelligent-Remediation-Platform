@@ -170,8 +170,15 @@ class K8sDeploymentService:
 
                     ready = deployment.status.ready_replicas or 0
                     desired = deployment.spec.replicas or 1
+                    generation = getattr(deployment.metadata, "generation", None) or 0
+                    observed_generation = getattr(deployment.status, "observed_generation", None) or 0
+                    updated_replicas = getattr(deployment.status, "updated_replicas", None) or 0
 
-                    if ready < desired:
+                    if (
+                        ready < desired
+                        or updated_replicas < desired
+                        or (generation and observed_generation < generation)
+                    ):
                         all_ready = False
                         break
 
@@ -220,11 +227,14 @@ class K8sDeploymentService:
 
         try:
             apps_v1 = kubernetes_service._apps_v1
+            changed_deployments = []
 
             for service_info in original_deployment.services:
                 if isinstance(service_info, dict) and "old_image" in service_info:
                     deployment_name = service_info["name"]
                     previous_image = service_info["old_image"]
+                    if not deployment_name or not previous_image:
+                        raise ValueError("Rollback target is missing a deployment name or previous image")
 
                     if target_version:
                         base_image = previous_image.rsplit(":", 1)[0]
@@ -232,7 +242,12 @@ class K8sDeploymentService:
 
                     deployment = apps_v1.read_namespaced_deployment(deployment_name, original_deployment.namespace)
 
-                    deployment.spec.template.spec.containers[0].image = previous_image
+                    containers = deployment.spec.template.spec.containers or []
+                    if not containers:
+                        raise RuntimeError(f"Rollback failed: deployment {deployment_name} has no containers")
+                    if containers[0].image == previous_image:
+                        raise RuntimeError(f"Rollback failed: deployment {deployment_name} already uses the target image")
+                    containers[0].image = previous_image
 
                     if not deployment.spec.template.metadata.annotations:
                         deployment.spec.template.metadata.annotations = {}
@@ -248,21 +263,34 @@ class K8sDeploymentService:
                     apps_v1.replace_namespaced_deployment(
                         name=deployment_name, namespace=original_deployment.namespace, body=deployment
                     )
+                    changed_deployments.append((deployment_name, previous_image))
 
                     rollback_status.services.append(
                         {
                             "name": deployment_name,
-                            "status": "rolled_back",
+                            "status": "rollback_requested",
                             "restored_image": previous_image,
                             "reason": reason,
                         }
                     )
 
+            if not changed_deployments:
+                raise RuntimeError("Rollback failed: no deployment had a recorded previous image")
+
             await self._wait_for_rollout(
                 namespace=original_deployment.namespace,
-                deployments=[s["name"] for s in rollback_status.services if isinstance(s, dict) and "name" in s],
+                deployments=[name for name, _ in changed_deployments],
                 timeout=300,
             )
+
+            for deployment_name, expected_image in changed_deployments:
+                updated = apps_v1.read_namespaced_deployment(deployment_name, original_deployment.namespace)
+                containers = updated.spec.template.spec.containers or []
+                if not containers or containers[0].image != expected_image:
+                    raise RuntimeError(f"Rollback verification failed for deployment {deployment_name}")
+                for service in rollback_status.services:
+                    if isinstance(service, dict) and service.get("name") == deployment_name:
+                        service["status"] = "rolled_back"
 
             rollback_status.status = "rolled_back"
             rollback_status.completed_at = datetime.now(timezone.utc)

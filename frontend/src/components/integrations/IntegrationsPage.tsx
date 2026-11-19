@@ -158,7 +158,7 @@ function IntegrationCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <GlassCard className="p-4 h-full hover:shadow-lg transition-all duration-300" variant="interactive">
+      <GlassCard className="p-4 h-full hover:shadow-lg transition-all duration-300">
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 rounded-xl ${categoryColors[integration.category]}`}>
             {integrationIcons[integration.icon || ''] || <PuzzlePieceIcon className="w-8 h-8" />}

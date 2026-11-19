@@ -41,7 +41,7 @@ class RemediationPlannerService:
             finding.get("resource_type", "Pod"), target_name
         )
 
-        current_yaml = await self._fetch_current_manifest(workload_kind, workload_name, namespace)
+        current_yaml, manifest_provenance = await self._fetch_current_manifest(workload_kind, workload_name, namespace)
         proposed_yaml = self._generate_corrective_yaml(finding, current_yaml, workload_kind, workload_name, namespace)
 
         # Compute diff
@@ -63,6 +63,7 @@ class RemediationPlannerService:
             "target_resource": f"{workload_kind}/{workload_name}",
             "namespace": namespace,
             "current_yaml": current_yaml,
+            "manifest_provenance": manifest_provenance,
             "proposed_yaml": proposed_yaml,
             "diff_patch": diff_patch,
             "risk_level": "medium" if "NetworkPolicy" in proposed_yaml else "low",
@@ -72,6 +73,9 @@ class RemediationPlannerService:
             "dry_run_verified": dry_run_success,
             "dry_run_output": dry_run_msg,
             "validation_status_label": validation_status_label,
+            "execution_available": False,
+            "allowlist_configured": False,
+            "policy_restriction_message": "Remediation execution is disabled until a separate authorized identity and strict action allowlist are configured.",
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -131,69 +135,39 @@ class RemediationPlannerService:
                 if "actively refused" in err_msg or "dial tcp" in err_msg or "refused it" in err_msg or "timed out" in err_msg:
                     # Server unreachable
                     try:
-                        yaml.safe_load_all(manifest_yaml)
-                        return False, f"Server unreachable ({err_msg}). Local syntax check valid.", "Server Validation Unavailable"
+                        documents = list(yaml.safe_load_all(manifest_yaml))
+                        if not documents or not documents[0]:
+                            return False, "Server validation unavailable. Manifest is empty; no server-side dry-run was performed.", "Server Validation Unavailable"
+                        return False, f"Server unreachable ({err_msg}). Local YAML syntax is valid; no server-side dry-run was performed.", "Server Validation Unavailable"
                     except Exception as ye:
                         return False, f"Invalid YAML schema: {ye}", "Syntax Validation Failed"
                 return False, f"Server Dry-Run Error: {err_msg}", "Kubernetes Server-Side Dry-Run Failed"
         except Exception as e:
             logger.warning(f"Dry-run execution fallback: {e}")
             try:
-                yaml.safe_load_all(manifest_yaml)
-                return False, f"Kubernetes API offline ({e}). Local YAML syntax check valid.", "Server Validation Unavailable"
+                documents = list(yaml.safe_load_all(manifest_yaml))
+                if not documents or not documents[0]:
+                    return False, "Server validation unavailable. Manifest is empty; no server-side dry-run was performed.", "Server Validation Unavailable"
+                return False, f"Kubernetes API offline ({e}). Local YAML syntax is valid; no server-side dry-run was performed.", "Server Validation Unavailable"
             except Exception as ye:
                 return False, f"Invalid YAML schema: {ye}", "Syntax Validation Failed"
 
     async def approve_and_apply(self, remediation_id: str, approver: str = "admin") -> Dict[str, Any]:
-        """Enforces human-in-the-loop approval before applying change to Kubernetes."""
+        """Fail closed until a separate identity and strict action allowlist exist."""
         if remediation_id not in _remediation_store:
             raise ValueError(f"Remediation plan '{remediation_id}' not found.")
 
-        plan = _remediation_store[remediation_id]
-        if plan["status"] in [RemediationStatus.APPLIED.value, RemediationStatus.VERIFIED.value]:
-            return {"success": True, "message": "Remediation already applied.", "plan": plan}
+        # The old generic kubectl apply path used the backend's ambient identity.
+        # Keep plans reviewable, but do not execute or mutate their lifecycle state.
+        return {
+            "success": False,
+            "available": False,
+            "message": "Remediation execution is disabled until a separate authorized identity and strict action allowlist are configured.",
+            "plan": _remediation_store[remediation_id],
+        }
 
-        manifest = plan["proposed_yaml"]
-        namespace = plan["namespace"]
-
-        try:
-            cmd = ["kubectl", "apply", "-f", "-"]
-            if namespace and namespace != "cluster-wide":
-                cmd.extend(["-n", namespace])
-
-            kubeconfig = "/tmp/kubeconfig" if os.path.exists("/tmp/kubeconfig") else None
-            env = os.environ.copy()
-            if kubeconfig:
-                env["KUBECONFIG"] = kubeconfig
-
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-            )
-            stdout, stderr = await proc.communicate(input=manifest.encode())
-
-            if proc.returncode == 0:
-                output = stdout.decode().strip()
-                plan["status"] = RemediationStatus.APPLIED.value
-                plan["approved_by"] = approver
-                plan["applied_at"] = datetime.utcnow().isoformat()
-                plan["execution_log"] = output
-                return {"success": True, "message": f"Successfully applied: {output}", "plan": plan}
-            else:
-                err_msg = stderr.decode().strip()
-                plan["status"] = RemediationStatus.FAILED.value
-                plan["execution_log"] = err_msg
-                return {"success": False, "message": f"Apply failed: {err_msg}", "plan": plan}
-        except Exception as e:
-            plan["status"] = RemediationStatus.FAILED.value
-            plan["execution_log"] = str(e)
-            return {"success": False, "message": str(e), "plan": plan}
-
-    async def _fetch_current_manifest(self, resource_type: str, name: str, namespace: str) -> str:
-        """Fetches the live manifest from Kubernetes."""
+    async def _fetch_current_manifest(self, resource_type: str, name: str, namespace: str) -> Tuple[str, str]:
+        """Fetches a live manifest or returns an explicitly labeled sample."""
         try:
             cmd = ["kubectl", "get", resource_type.lower(), name, "-o", "yaml"]
             if namespace and namespace != "cluster-wide":
@@ -224,14 +198,20 @@ class RemediationPlannerService:
                             data["metadata"].pop("uid", None)
                             data["metadata"].pop("generation", None)
                             data["metadata"].pop("creationTimestamp", None)
-                        return yaml.dump(data, sort_keys=False)
+                        return yaml.dump(data, sort_keys=False), "live"
                 except Exception:
                     pass
-                return manifest_str
+                return manifest_str, "live"
         except Exception:
             pass
 
-        return f"# Live manifest for {resource_type}/{name} in namespace {namespace}\napiVersion: apps/v1\nkind: {resource_type}\nmetadata:\n  name: {name}\n  namespace: {namespace}\n"
+        sample = (
+            f"# SAMPLE ONLY: no live manifest was retrieved for {resource_type}/{name} "
+            f"in namespace {namespace}.\n"
+            f"apiVersion: apps/v1\nkind: {resource_type}\n"
+            f"metadata:\n  name: {name}\n  namespace: {namespace}\n"
+        )
+        return sample, "demo"
 
     def _generate_corrective_yaml(
         self,

@@ -5,7 +5,7 @@
  * data refetching when navigating between pages.
  */
 
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
 // Cache time configurations (in milliseconds)

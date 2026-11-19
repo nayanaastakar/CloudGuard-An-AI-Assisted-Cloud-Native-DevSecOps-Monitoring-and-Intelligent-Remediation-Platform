@@ -23,7 +23,7 @@ interface TestResult {
   id: string;
   runId: string;
   stageId?: string;
-  framework: string;
+  framework?: string | null;
   testFilePattern?: string;
   totalTests: number;
   passedTests: number;
@@ -43,8 +43,9 @@ interface TestSummary {
   passedTests: number;
   failedTests: number;
   skippedTests: number;
+  errorTests?: number;
   passRate: number;
-  framework: string;
+  framework?: string | null;
 }
 
 interface TestResultsPanelProps {
@@ -137,7 +138,7 @@ export default function TestResultsPanel({ testResults, testSummary, isLoading }
   const passedTests = summary.passedTests || 0;
   const failedTests = summary.failedTests || 0;
   const skippedTests = summary.skippedTests || 0;
-  const errorTests = 'errorTests' in summary ? summary.errorTests : 0;
+  const errorTests = summary.errorTests ?? 0;
 
   return (
     <div className="space-y-6">
@@ -232,7 +233,7 @@ export default function TestResultsPanel({ testResults, testSummary, isLoading }
                   {summary.framework}
                 </span>
               )}
-              {'durationSeconds' in summary && summary.durationSeconds && (
+              {'durationSeconds' in summary && typeof summary.durationSeconds === 'number' && summary.durationSeconds > 0 && (
                 <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                   <ClockIcon className="h-3.5 w-3.5" />
                   {formatDuration(summary.durationSeconds)}

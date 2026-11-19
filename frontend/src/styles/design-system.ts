@@ -10,30 +10,30 @@
 export const colors = {
   // Primary Brand Colors
   primary: {
-    50: '#EFF6FF',
-    100: '#DBEAFE',
-    200: '#BFDBFE',
-    300: '#93C5FD',
-    400: '#60A5FA',
-    500: '#3B82F6', // Main brand color
-    600: '#2563EB',
-    700: '#1D4ED8',
-    800: '#1E40AF',
-    900: '#1E3A8A',
+    50: '#F1F5F7',
+    100: '#DDE7ED',
+    200: '#C0D1DC',
+    300: '#A0B7C7',
+    400: '#87A5BA',
+    500: '#7395AE',
+    600: '#557A95',
+    700: '#47677D',
+    800: '#395366',
+    900: '#2C404F',
   },
 
   // Semantic Colors
   success: {
-    50: '#ECFDF5',
-    100: '#D1FAE5',
-    200: '#A7F3D0',
-    300: '#6EE7B7',
-    400: '#34D399',
-    500: '#10B981',
-    600: '#059669',
-    700: '#047857',
-    800: '#065F46',
-    900: '#064E3B',
+    50: '#EFF7F4',
+    100: '#D8ECE6',
+    200: '#B2D8CC',
+    300: '#86BFAF',
+    400: '#379683',
+    500: '#2C7E6E',
+    600: '#246556',
+    700: '#1E5146',
+    800: '#153B34',
+    900: '#102923',
   },
 
   warning: {
@@ -63,16 +63,16 @@ export const colors = {
   },
 
   purple: {
-    50: '#FAF5FF',
-    100: '#F3E8FF',
-    200: '#E9D5FF',
-    300: '#D8B4FE',
-    400: '#C084FC',
-    500: '#A855F7',
-    600: '#9333EA',
-    700: '#7C3AED',
-    800: '#6B21A8',
-    900: '#581C87',
+    50: '#F1F4F6',
+    100: '#D9E3E9',
+    200: '#B9CBD6',
+    300: '#96B0C0',
+    400: '#7496AD',
+    500: '#557A95',
+    600: '#47677D',
+    700: '#395366',
+    800: '#2C404F',
+    900: '#1F303D',
   },
 
   // Neutral Colors - Light Mode
@@ -93,29 +93,29 @@ export const colors = {
     border: {
       default: '#E2E8F0',
       light: 'rgba(226, 232, 240, 0.5)',
-      focus: '#3B82F6',
+      focus: '#557A95',
     },
   },
 
   // Neutral Colors - Dark Mode
   dark: {
     bg: {
-      primary: '#0F172A',
-      secondary: '#1E293B',
-      tertiary: '#334155',
-      card: 'rgba(30, 41, 59, 0.8)',
-      hover: '#334155',
+      primary: '#171619',
+      secondary: '#222126',
+      tertiary: '#2D2C31',
+      card: 'rgba(45, 44, 49, 0.8)',
+      hover: '#3E3D42',
     },
     text: {
-      primary: '#F1F5F9',
-      secondary: '#94A3B8',
-      muted: '#64748B',
-      inverse: '#0F172A',
+      primary: '#F7F4F1',
+      secondary: '#D7D1CC',
+      muted: '#B1A296',
+      inverse: '#171619',
     },
     border: {
-      default: '#334155',
-      light: 'rgba(51, 65, 85, 0.5)',
-      focus: '#60A5FA',
+      default: '#5D5C61',
+      light: 'rgba(93, 92, 97, 0.5)',
+      focus: '#7395AE',
     },
   },
 } as const;
@@ -197,8 +197,8 @@ export const shadows = {
 
   // Colored shadows for buttons
   colored: {
-    primary: '0 4px 14px rgba(59, 130, 246, 0.25)',
-    success: '0 4px 14px rgba(16, 185, 129, 0.25)',
+    primary: '0 4px 14px rgba(85, 122, 149, 0.25)',
+    success: '0 4px 14px rgba(55, 150, 131, 0.25)',
     warning: '0 4px 14px rgba(245, 158, 11, 0.25)',
     danger: '0 4px 14px rgba(239, 68, 68, 0.25)',
     purple: '0 4px 14px rgba(168, 85, 247, 0.25)',
@@ -267,7 +267,7 @@ export const componentClasses = {
   // Button Variants
   button: {
     base: 'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
-    primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 focus:ring-primary-500',
+    primary: 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 focus:ring-primary-500',
     secondary: 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 focus:ring-gray-500',
     outline: 'border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 focus:ring-gray-500',
     ghost: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-gray-200',
@@ -352,29 +352,31 @@ export const componentClasses = {
 // =============================================================================
 
 export const chartColors = {
-  primary: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE'],
-  success: ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'],
+  primary: ['#7395AE', '#8AA9BC', '#A9BFCE', '#D1DDE5'],
+  success: ['#379683', '#57A995', '#83BBAE', '#B4D8CF'],
   warning: ['#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'],
   danger: ['#EF4444', '#F87171', '#FCA5A5', '#FECACA'],
-  purple: ['#A855F7', '#C084FC', '#D8B4FE', '#E9D5FF'],
+  purple: ['#557A95', '#7496AD', '#96B0C0', '#C0D0D9'],
 
   // For multi-series charts
   series: [
-    '#3B82F6', // Blue
-    '#10B981', // Green
-    '#F59E0B', // Amber
-    '#EF4444', // Red
-    '#A855F7', // Purple
-    '#EC4899', // Pink
-    '#06B6D4', // Cyan
-    '#84CC16', // Lime
+    '#7395AE',
+    '#379683',
+    '#557A95',
+    '#B1A296',
+    '#A3B8C6',
+    '#68AA9B',
+    '#89A9BD',
+    '#C6B9AF',
+    '#83B7AA',
+    '#D0C2B7',
   ],
 
   // Gradients for area charts
   gradients: {
-    blue: ['rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0)'],
-    purple: ['rgba(168, 85, 247, 0.3)', 'rgba(168, 85, 247, 0)'],
-    green: ['rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0)'],
+    blue: ['rgba(115, 149, 174, 0.3)', 'rgba(115, 149, 174, 0)'],
+    purple: ['rgba(85, 122, 149, 0.3)', 'rgba(85, 122, 149, 0)'],
+    green: ['rgba(55, 150, 131, 0.3)', 'rgba(55, 150, 131, 0)'],
     red: ['rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0)'],
   },
 };

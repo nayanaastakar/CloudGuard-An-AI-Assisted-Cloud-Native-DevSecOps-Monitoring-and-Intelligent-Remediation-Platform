@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { helmApi } from '../../services/api';
 import { logger } from '../../utils/logger';
-import type { HelmChartSearchResult } from '../../types';
 import HelmRepositoryManager from './HelmRepositoryManager';
 import {
   CubeIcon,
@@ -11,11 +10,9 @@ import {
   RocketLaunchIcon,
   StarIcon,
   ArrowPathIcon,
-  ChevronRightIcon,
   FunnelIcon,
   XMarkIcon,
   ServerStackIcon,
-  CheckCircleIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
 
