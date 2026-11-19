@@ -109,7 +109,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            deleteDir()
         }
         success {
             echo "CloudGuard CI/CD DevSecOps Pipeline completed successfully for commit ${env.COMMIT_HASH}!"
