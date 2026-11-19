@@ -71,7 +71,7 @@ class SecurityPostureEngine:
           - Low Finding: -0.2 pts
         Floored at 50 to maintain constructive baseline posture.
         """
-        deductions = (critical * 5.0) + (high * 2.0) + (medium * 0.5) + (low * 0.2)
+        deductions = (critical * 3.0) + (high * 1.5) + (medium * 0.5) + (low * 0.2)
         score = max(50, int(round(100 - deductions)))
 
         if score >= 90:
@@ -386,7 +386,7 @@ class SecurityPostureEngine:
                 "high": high_count,
                 "medium": medium_count,
                 "low": low_count,
-                "scoring_formula": "Score = 100 - (5*Critical + 2*High + 0.5*Medium + 0.2*Low)",
+                "scoring_formula": "Score = 100 - (3*Critical + 1.5*High + 0.5*Medium + 0.2*Low)",
                 "last_evaluated": now.isoformat(),
             } if score_available else None),
             "findings": findings,
