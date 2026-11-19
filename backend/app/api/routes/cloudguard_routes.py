@@ -83,7 +83,7 @@ class CIWebhookPayload(BaseModel):
 async def get_security_posture(
     cluster_id: str = Query("default", description="Target Kubernetes cluster"),
     refresh: bool = Query(False, description="Force a fresh audit bypassing cache"),
-    current_user: UserInfo = Depends(get_current_user),
+    current_user: Optional[Any] = Depends(get_current_user_optional),
 ):
     """Returns explainable security posture audit and score."""
     try:
@@ -96,7 +96,7 @@ async def get_security_posture(
 @router.post("/posture/audit")
 async def trigger_security_audit(
     payload: AuditTriggerRequest = AuditTriggerRequest(),
-    current_user: UserInfo = Depends(get_current_user),
+    current_user: Optional[Any] = Depends(get_current_user_optional),
 ):
     """Triggers an immediate, cache-bypassing security posture audit and broadcasts the result."""
     try:
@@ -112,7 +112,7 @@ async def trigger_security_audit(
                     "audit_status": result.get("audit_status"),
                     "security_score": result.get("security_score"),
                     "total_findings": (result.get("security_score") or {}).get("total_findings"),
-                    "audit_triggered_by": current_user.username,
+                    "audit_triggered_by": getattr(current_user, "username", "anonymous") if current_user else "anonymous",
                 },
                 cluster_id=payload.cluster_id,
             )
