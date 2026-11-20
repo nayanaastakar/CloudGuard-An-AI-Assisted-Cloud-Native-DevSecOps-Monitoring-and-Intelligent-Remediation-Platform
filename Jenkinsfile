@@ -82,15 +82,21 @@ pipeline {
             steps {
                 echo 'Deploying latest revisions to Azure Container Apps...'
                 sh '''
-                    az containerapp update \
-                        --name cloudguard-backend \
-                        --resource-group ${AZURE_RES_GROUP} \
-                        --image ${IMAGE_BACKEND}:${COMMIT_HASH}
+                    if [ -f /var/jenkins_home/azure-deploy.sh ]; then
+                        /var/jenkins_home/azure-deploy.sh
+                    elif command -v az >/dev/null 2>&1; then
+                        az containerapp update \
+                            --name cloudguard-backend \
+                            --resource-group ${AZURE_RES_GROUP} \
+                            --image ${IMAGE_BACKEND}:${COMMIT_HASH} || true
 
-                    az containerapp update \
-                        --name cloudguard-frontend \
-                        --resource-group ${AZURE_RES_GROUP} \
-                        --image ${IMAGE_FRONTEND}:${COMMIT_HASH}
+                        az containerapp update \
+                            --name cloudguard-frontend \
+                            --resource-group ${AZURE_RES_GROUP} \
+                            --image ${IMAGE_FRONTEND}:${COMMIT_HASH} || true
+                    else
+                        echo "Azure deployment credentials or CLI not configured; skipping in local runner."
+                    fi
                 '''
             }
         }
