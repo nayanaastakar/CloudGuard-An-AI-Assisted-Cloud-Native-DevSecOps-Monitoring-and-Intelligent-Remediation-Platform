@@ -1,0 +1,18 @@
+[
+  {
+    "finding_id": 10,
+    "title": "A Security Group Rule Should Not Allow Unrestricted Egress to Any IP Address",
+    "severity": "Critical",
+    "engine": "Gemini-1.5-Pro / CloudGuard AI Security Architect",
+    "root_cause": "The AWS Security Group specifies an unrestricted egress rule (CIDR 0.0.0.0/0 on all protocols). In modern DevSecOps standards, open outbound rules violate the principle of least privilege.",
+    "attack_scenario": "If a workload in this security group is compromised via web application flaws or dependency vulnerabilities, unrestricted egress allows the attacker to establish reverse shells, exfiltrate sensitive data, and connect to Command & Control (C2) servers with zero egress filtering.",
+    "security_impact": "High Criticality: Enables arbitrary data exfiltration, uncontrolled lateral network movement, and external botnet recruitment.",
+    "original_code": "resource \"aws_security_group\" \"cloudguard_open_ssh\" {\n  ...\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}",
+    "proposed_code": "resource \"aws_security_group\" \"cloudguard_open_ssh\" {\n  name        = \"cloudguard-open-ssh-sg\"\n  description = \"Hardened Security Group with restricted egress and TLS only\"\n\n  ingress {\n    description = \"Restricted Bastion access only\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/16\"] # Restricted to internal VPC CIDR\n  }\n\n  egress {\n    description = \"Allow HTTPS outbound for package updates only\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/16\"]\n  }\n}",
+    "verification_steps": "Run `prowler iac --scan-path /targets` to confirm check AWS-0104 passes with 0 violations.",
+    "status": "APPROVED_AND_APPLIED",
+    "created_at": "2026-11-23 14:47:02",
+    "approved_at": "2026-11-23 16:38:13",
+    "backup_path": "main.tf.backup_20261123_163813"
+  }
+]

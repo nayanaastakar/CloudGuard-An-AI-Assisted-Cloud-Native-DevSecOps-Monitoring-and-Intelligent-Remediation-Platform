@@ -1,0 +1,1 @@
+# CloudGuard GitHub Scanner package

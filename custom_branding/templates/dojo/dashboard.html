@@ -1,0 +1,1164 @@
+{% extends "base.html" %}
+{% load authorization_tags %}
+{% load i18n %}
+{% load static %}
+
+{% block add_styles %}
+    {{ block.super }}
+    <style>
+      :root {
+        --soc-bg: #061F22;
+        --soc-sidebar: #071B20;
+        --soc-header: #071B20;
+        --soc-card: #08282B;
+        --soc-inner: #0E3337;
+        --soc-border: #174247;
+        --soc-cyan: #27C5D8;
+        --soc-blue: #27C5D8;
+        --soc-green: #42C98A;
+        --soc-orange: #FF7043;
+        --soc-red: #F05252;
+        --soc-text: #B4C6D0;
+        --soc-text-dim: #839CA8;
+      }
+
+      body {
+        background-color: var(--soc-bg) !important;
+        color: var(--soc-text) !important;
+      }
+
+      .soc-container {
+        background-color: var(--soc-bg) !important;
+        min-height: calc(100vh - 3.5rem);
+        padding: 1.25rem 1.75rem 2.5rem;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      }
+
+      /* Top Header */
+      .soc-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .soc-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .soc-back-btn {
+        color: var(--soc-text-dim);
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: color 0.15s;
+        text-decoration: none;
+      }
+      .soc-back-btn:hover { color: var(--soc-cyan); }
+      .soc-title-group h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: #B4C6D0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .soc-title-group p {
+        font-size: 0.725rem;
+        color: var(--soc-text-dim);
+        margin: 0.15rem 0 0;
+      }
+
+      .soc-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+      }
+      .soc-date-picker {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--soc-inner);
+        border: 1px solid var(--soc-border);
+        padding: 0.45rem 0.85rem;
+        border-radius: 0.5rem;
+        font-size: 0.78rem;
+        color: var(--soc-text);
+      }
+      .soc-date-picker i { color: var(--soc-text-dim); }
+      .soc-icon-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--soc-inner);
+        border: 1px solid var(--soc-border);
+        border-radius: 0.5rem;
+        color: var(--soc-text-dim);
+        text-decoration: none;
+        transition: all 0.15s;
+        position: relative;
+      }
+      .soc-icon-btn:hover {
+        color: var(--soc-cyan);
+        border-color: var(--soc-cyan);
+      }
+      .soc-badge-dot {
+        position: absolute;
+        top: -0.25rem;
+        right: -0.25rem;
+        background: var(--soc-red);
+        color: #061F22;
+        font-size: 0.625rem;
+        font-weight: 700;
+        border-radius: 9999px;
+        min-width: 1rem;
+        height: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.2rem;
+      }
+
+      /* KPI Grid: 6 Cards */
+      .soc-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.85rem;
+        margin-bottom: 1.25rem;
+      }
+      @media (max-width: 1300px) {
+        .soc-kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      @media (max-width: 768px) {
+        .soc-kpi-grid { grid-template-columns: 1fr; }
+      }
+
+      .soc-kpi-card {
+        background: #08282B !important;
+        border: 1px solid #174247 !important;
+        border-radius: 0.75rem !important;
+        padding: 1rem 1.15rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: 6.25rem !important;
+        position: relative !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45) !important;
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+      }
+      .soc-kpi-card:hover {
+        border-color: #27C5D8 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.55), 0 0 15px rgba(39, 197, 216, 0.25) !important;
+      }
+      .soc-kpi-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .soc-kpi-icon-wrap {
+        width: 1.85rem;
+        height: 1.85rem;
+        border-radius: 0.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+      .soc-kpi-icon-cyan { background: rgba(39, 197, 216, 0.15); color: var(--soc-cyan); }
+      .soc-kpi-icon-red { background: rgba(240, 82, 82, 0.15); color: var(--soc-red); }
+      .soc-kpi-icon-orange { background: rgba(255, 112, 67, 0.15); color: var(--soc-orange); }
+      .soc-kpi-icon-blue { background: rgba(39, 197, 216, 0.15); color: var(--soc-cyan); }
+      .soc-kpi-icon-green { background: rgba(66, 201, 138, 0.15); color: var(--soc-green); }
+
+      .soc-kpi-trend {
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+      }
+      .trend-up { color: var(--soc-green); }
+      .trend-down { color: var(--soc-red); }
+      .trend-neutral { color: var(--soc-text-dim); }
+
+      .soc-kpi-body {
+        margin-top: 0.45rem;
+      }
+      .soc-kpi-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #B4C6D0;
+        line-height: 1;
+      }
+      .soc-kpi-label {
+        font-size: 0.725rem;
+        color: var(--soc-text-dim);
+        margin-top: 0.25rem;
+        font-weight: 500;
+      }
+
+      /* Row 2: 3 Visual Analysis Panels */
+      .soc-charts-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1.35fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      @media (max-width: 1200px) {
+        .soc-charts-grid { grid-template-columns: 1fr; }
+      }
+
+      .soc-panel {
+        background: #08282B !important;
+        border: 1px solid #174247 !important;
+        border-radius: 0.75rem !important;
+        padding: 1.25rem 1.35rem !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+      }
+      .soc-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.9rem;
+      }
+      .soc-panel-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #B4C6D0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .soc-panel-title i { color: var(--soc-cyan); }
+      .soc-panel-link {
+        font-size: 0.725rem;
+        color: var(--soc-cyan);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 600;
+      }
+      .soc-panel-link:hover { text-decoration: underline; }
+
+      /* Donut and Legend inside Panel */
+      .soc-donut-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+      }
+      .soc-donut-chart {
+        width: 130px;
+        height: 130px;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .soc-donut-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      .soc-donut-center-num {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: #B4C6D0;
+        line-height: 1;
+      }
+      .soc-donut-center-lbl {
+        font-size: 0.65rem;
+        color: var(--soc-text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.15rem;
+      }
+
+      .soc-legend-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        flex-grow: 1;
+      }
+      .soc-legend-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.75rem;
+      }
+      .soc-legend-left {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--soc-text-dim);
+      }
+      .soc-legend-dot {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 0.15rem;
+      }
+      .soc-legend-right {
+        font-weight: 700;
+        color: #B4C6D0;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .soc-legend-pct {
+        color: var(--soc-text-dim);
+        font-size: 0.7rem;
+        font-weight: 400;
+      }
+
+      /* Row 3: Security Posture & Misconfiguration Breakdown */
+      .soc-posture-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.35fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      @media (max-width: 992px) {
+        .soc-posture-grid { grid-template-columns: 1fr; }
+      }
+
+      .soc-posture-card {
+        background: #0E2530 !important;
+        background: linear-gradient(145deg, #102B38 0%, #0B1F28 100%) !important;
+        border: 1px solid #1C4456 !important;
+        border-radius: 0.75rem !important;
+        padding: 1.25rem 1.45rem !important;
+        display: flex !important;
+        gap: 1.5rem !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(22, 217, 232, 0.08) !important;
+      }
+      .soc-posture-left {
+        flex: 1;
+        border-right: 1px solid var(--soc-border);
+        padding-right: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .soc-posture-score {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #B4C6D0;
+        line-height: 1;
+      }
+      .soc-posture-denom {
+        font-size: 1rem;
+        color: var(--soc-text-dim);
+        font-weight: 500;
+      }
+      .soc-posture-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 0.3rem;
+        margin-top: 0.65rem;
+        background: rgba(255, 82, 99, 0.15);
+        color: var(--soc-red);
+        border: 1px solid rgba(255, 82, 99, 0.35);
+        width: fit-content;
+      }
+      .soc-posture-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--soc-inner);
+        border-radius: 9999px;
+        margin-top: 0.75rem;
+        overflow: hidden;
+      }
+      .soc-posture-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #FF5263 0%, #FFAA45 100%);
+        border-radius: 9999px;
+      }
+
+      .soc-posture-right {
+        flex: 1.4;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        gap: 0.5rem;
+      }
+      .soc-metric-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.78rem;
+      }
+      .soc-metric-lbl {
+        color: var(--soc-text-dim);
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .soc-metric-val {
+        font-weight: 700;
+        color: #B4C6D0;
+      }
+
+      /* Misconfiguration Progress Rows */
+      .soc-cat-item {
+        margin-bottom: 0.75rem;
+      }
+      .soc-cat-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        margin-bottom: 0.35rem;
+      }
+      .soc-cat-name { color: var(--soc-text); font-weight: 500; }
+      .soc-cat-stat { color: var(--soc-text-dim); font-size: 0.7rem; }
+      .soc-cat-bar {
+        width: 100%;
+        height: 7px;
+        background: var(--soc-inner);
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+      .soc-cat-bar-fill {
+        height: 100%;
+        background: var(--soc-cyan);
+        border-radius: 9999px;
+      }
+
+      /* Row 4: Findings Table, Prowler Scans & AI Summary */
+      .soc-bottom-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 0.95fr 0.85fr;
+        gap: 1rem;
+      }
+      @media (max-width: 1300px) {
+        .soc-bottom-grid { grid-template-columns: 1fr; }
+      }
+
+      /* Prioritized Findings Table */
+      .soc-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+      }
+      .soc-table th {
+        text-align: left;
+        padding: 0.55rem 0.65rem;
+        color: var(--soc-text-dim);
+        font-weight: 600;
+        background-color: var(--soc-inner);
+        border-bottom: 1px solid var(--soc-border);
+      }
+      .soc-table td {
+        padding: 0.65rem 0.65rem;
+        border-bottom: 1px solid var(--soc-border);
+        color: var(--soc-text);
+        vertical-align: middle;
+      }
+      .soc-table tr:hover td {
+        background: rgba(22, 217, 232, 0.05);
+      }
+      .soc-sev-pill {
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        border-radius: 0.25rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-align: center;
+      }
+      .soc-sev-critical { background: rgba(255, 82, 99, 0.2); color: var(--soc-red); border: 1px solid rgba(255, 82, 99, 0.4); }
+      .soc-sev-high { background: rgba(255, 170, 69, 0.2); color: var(--soc-orange); border: 1px solid rgba(255, 170, 69, 0.4); }
+      .soc-sev-medium { background: rgba(57, 139, 255, 0.2); color: var(--soc-blue); border: 1px solid rgba(57, 139, 255, 0.4); }
+      .soc-sev-low { background: rgba(50, 214, 154, 0.2); color: var(--soc-green); border: 1px solid rgba(50, 214, 154, 0.4); }
+
+      .soc-status-mitigated {
+        background: rgba(50, 214, 154, 0.15);
+        color: var(--soc-green);
+        border: 1px solid rgba(50, 214, 154, 0.4);
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: 700;
+        font-size: 0.68rem;
+      }
+      .soc-status-open {
+        background: rgba(255, 82, 99, 0.15);
+        color: var(--soc-red);
+        border: 1px solid rgba(255, 82, 99, 0.4);
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: 700;
+        font-size: 0.68rem;
+      }
+      .soc-ai-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.55rem;
+        background: rgba(22, 217, 232, 0.12);
+        color: var(--soc-cyan);
+        border: 1px solid rgba(22, 217, 232, 0.35);
+        border-radius: 0.35rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.15s;
+      }
+      .soc-ai-action-btn:hover {
+        background: var(--soc-cyan);
+        color: #06151C;
+      }
+
+      /* Recent Prowler Scans Card */
+      .soc-scan-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0.85rem;
+        background: var(--soc-inner);
+        border: 1px solid var(--soc-border);
+        border-radius: 0.5rem;
+        margin-bottom: 0.55rem;
+        transition: border-color 0.15s;
+      }
+      .soc-scan-item:hover { border-color: var(--soc-cyan); }
+      .soc-scan-left {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+      }
+      .soc-scan-dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 9999px;
+        background: var(--soc-green);
+        box-shadow: 0 0 8px rgba(50, 214, 154, 0.6);
+      }
+      .soc-scan-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #B4C6D0;
+      }
+      .soc-scan-meta {
+        font-size: 0.68rem;
+        color: var(--soc-text-dim);
+        margin-top: 0.1rem;
+      }
+      .soc-scan-count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--soc-cyan);
+      }
+
+      /* AI Remediation Summary */
+      .soc-ai-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.45rem;
+        margin-bottom: 1rem;
+      }
+      .soc-ai-box {
+        border-radius: 0.45rem;
+        padding: 0.6rem 0.35rem;
+        text-align: center;
+      }
+      .soc-ai-box-purple { background: rgba(57, 139, 255, 0.15); border: 1px solid rgba(57, 139, 255, 0.35); }
+      .soc-ai-box-green { background: rgba(50, 214, 154, 0.15); border: 1px solid rgba(50, 214, 154, 0.35); }
+      .soc-ai-box-red { background: rgba(255, 82, 99, 0.15); border: 1px solid rgba(255, 82, 99, 0.35); }
+      .soc-ai-box-blue { background: rgba(22, 217, 232, 0.15); border: 1px solid rgba(22, 217, 232, 0.35); }
+      .soc-ai-box-num {
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #B4C6D0;
+      }
+      .soc-ai-box-lbl {
+        font-size: 0.65rem;
+        color: var(--soc-text-dim);
+        margin-top: 0.25rem;
+        font-weight: 500;
+      }
+
+      .soc-ai-act-card {
+        background: var(--soc-inner);
+        border: 1px solid var(--soc-border);
+        border-radius: 0.5rem;
+        padding: 0.75rem 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+      }
+      .soc-ai-act-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.4rem;
+        background: rgba(50, 214, 154, 0.15);
+        color: var(--soc-green);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .soc-ai-act-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #B4C6D0;
+      }
+      .soc-ai-act-desc {
+        font-size: 0.68rem;
+        color: var(--soc-green);
+        margin-top: 0.1rem;
+      }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="soc-container">
+
+    <!-- ================= 2. Six Security KPI Cards ================= -->
+    <div class="soc-kpi-grid">
+        <!-- Card 1: Total Findings -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-cyan"><i class="fa-solid fa-layer-group"></i></div>
+                <span class="soc-kpi-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +6%</span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val">{{ total_findings }}</div>
+                <div class="soc-kpi-label">Total Findings</div>
+            </div>
+        </div>
+
+        <!-- Card 2: Critical -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <span class="soc-kpi-trend trend-neutral">0%</span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val" style="color: var(--soc-red);">{{ critical }}</div>
+                <div class="soc-kpi-label">Critical</div>
+            </div>
+        </div>
+
+        <!-- Card 3: High -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-orange"><i class="fa-solid fa-circle-exclamation"></i></div>
+                <span class="soc-kpi-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +10%</span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val" style="color: var(--soc-orange);">{{ high }}</div>
+                <div class="soc-kpi-label">High</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Medium -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-blue"><i class="fa-solid fa-circle-info"></i></div>
+                <span class="soc-kpi-trend trend-down"><i class="fa-solid fa-arrow-trend-down"></i> -25%</span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val" style="color: var(--soc-blue);">{{ medium }}</div>
+                <div class="soc-kpi-label">Medium</div>
+            </div>
+        </div>
+
+        <!-- Card 5: Low -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+                <span class="soc-kpi-trend trend-down"><i class="fa-solid fa-arrow-trend-down"></i> -11%</span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val" style="color: var(--soc-green);">{{ low }}</div>
+                <div class="soc-kpi-label">Low</div>
+            </div>
+        </div>
+
+        <!-- Card 6: Security Posture -->
+        <div class="soc-kpi-card">
+            <div class="soc-kpi-header">
+                <div class="soc-kpi-icon-wrap soc-kpi-icon-cyan"><i class="fa-solid fa-shield-halved"></i></div>
+                <span style="font-size: 0.7rem; color: var(--soc-text-dim);"><i class="fa-solid fa-circle-info"></i></span>
+            </div>
+            <div class="soc-kpi-body">
+                <div class="soc-kpi-val">{{ posture_score }}<span style="font-size: 0.85rem; color: var(--soc-text-dim); font-weight: 500;"> /100</span></div>
+                <div class="soc-kpi-label">Security Posture</div>
+                <div class="soc-posture-bar" style="margin-top: 0.35rem; height: 4px;">
+                    <div class="soc-posture-bar-fill" style="width: {{ posture_score }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. Visual Charts Row (3 Panels) ================= -->
+    <div class="soc-charts-grid">
+        <!-- Panel 1: Vulnerability Severity Distribution -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-shield-virus"></i>
+                    <span>Vulnerability Severity Distribution</span>
+                </div>
+                <span style="color: var(--soc-text-dim); font-size: 0.75rem;"><i class="fa-solid fa-circle-info"></i></span>
+            </div>
+            <div class="soc-donut-wrap">
+                <div class="soc-donut-chart">
+                    <canvas id="severityDonutChart"></canvas>
+                    <div class="soc-donut-center">
+                        <div class="soc-donut-center-num">{{ total_findings }}</div>
+                        <div class="soc-donut-center-lbl">Findings</div>
+                    </div>
+                </div>
+                <div class="soc-legend-list">
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-red);"></span>
+                            <span>Critical</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ critical }}</span>
+                            <span class="soc-legend-pct">(5.7%)</span>
+                        </div>
+                    </div>
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-orange);"></span>
+                            <span>High</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ high }}</span>
+                            <span class="soc-legend-pct">(62.9%)</span>
+                        </div>
+                    </div>
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-blue);"></span>
+                            <span>Medium</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ medium }}</span>
+                            <span class="soc-legend-pct">(8.6%)</span>
+                        </div>
+                    </div>
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-green);"></span>
+                            <span>Low</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ low }}</span>
+                            <span class="soc-legend-pct">(22.8%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Findings Trend (Last 7 Scans) -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Findings Trend (Last 7 Scans)</span>
+                </div>
+            </div>
+            <div style="height: 145px; position: relative;">
+                <canvas id="trendLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Panel 3: Open vs. Mitigated Findings -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Open vs. Mitigated Findings</span>
+                </div>
+            </div>
+            <div class="soc-donut-wrap">
+                <div class="soc-donut-chart">
+                    <canvas id="mitigationDonutChart"></canvas>
+                    <div class="soc-donut-center">
+                        <div class="soc-donut-center-num">{{ total_findings }}</div>
+                        <div class="soc-donut-center-lbl">Total</div>
+                    </div>
+                </div>
+                <div class="soc-legend-list">
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-red);"></span>
+                            <span>Open</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ active_findings }}</span>
+                            <span class="soc-legend-pct">({% if total_findings > 0 %}97.1%{% else %}0%{% endif %})</span>
+                        </div>
+                    </div>
+                    <div class="soc-legend-row">
+                        <div class="soc-legend-left">
+                            <span class="soc-legend-dot" style="background: var(--soc-green);"></span>
+                            <span>Mitigated</span>
+                        </div>
+                        <div class="soc-legend-right">
+                            <span>{{ mitigated_findings }}</span>
+                            <span class="soc-legend-pct">({% if total_findings > 0 %}2.9%{% else %}0%{% endif %})</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 4. Posture Score & Misconfiguration Breakdown ================= -->
+    <div class="soc-posture-grid">
+        <!-- Posture Card -->
+        <div class="soc-posture-card">
+            <div class="soc-posture-left">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div class="soc-panel-title">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Cloud Security Posture</span>
+                    </div>
+                    <span style="color: var(--soc-text-dim); font-size: 0.75rem;"><i class="fa-solid fa-circle-info"></i></span>
+                </div>
+                <div style="margin-top: 0.25rem;">
+                    <span class="soc-posture-score">{{ posture_score }}</span>
+                    <span class="soc-posture-denom">/100</span>
+                </div>
+                <div style="font-size: 0.725rem; color: var(--soc-text-dim); margin-top: 0.15rem;">
+                    CloudGuard Security Score
+                </div>
+                <div class="soc-posture-tag">
+                    <i class="fa-solid fa-triangle-exclamation"></i> High Risk
+                </div>
+                <div class="soc-posture-bar">
+                    <div class="soc-posture-bar-fill" style="width: {{ posture_score }}%;"></div>
+                </div>
+            </div>
+
+            <div class="soc-posture-right">
+                <div class="soc-metric-item">
+                    <span class="soc-metric-lbl"><i class="fa-solid fa-shield-exclamation text-red-400"></i> Critical Misconfigurations</span>
+                    <span class="soc-metric-val">{{ critical }}</span>
+                </div>
+                <div class="soc-metric-item">
+                    <span class="soc-metric-lbl"><i class="fa-solid fa-triangle-exclamation text-orange-400"></i> High-Risk Configurations</span>
+                    <span class="soc-metric-val">{{ high }}</span>
+                </div>
+                <div class="soc-metric-item">
+                    <span class="soc-metric-lbl"><i class="fa-solid fa-satellite-dish text-teal-400"></i> Scan Coverage</span>
+                    <span class="soc-metric-val">100%</span>
+                </div>
+                <div class="soc-metric-item">
+                    <span class="soc-metric-lbl"><i class="fa-solid fa-shield-check text-emerald-400"></i> Remediation Progress</span>
+                    <span class="soc-metric-val">2.9%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Misconfiguration Categories (Prowler IaC) -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-cloud-bolt"></i>
+                    <span>Misconfiguration Categories (Prowler IaC)</span>
+                </div>
+            </div>
+            <div>
+                {% for cat in categories %}
+                <div class="soc-cat-item">
+                    <div class="soc-cat-header">
+                        <span class="soc-cat-name">{{ cat.name }}</span>
+                        <span class="soc-cat-stat">{{ cat.count }} checks ({{ cat.pct }}%)</span>
+                    </div>
+                    <div class="soc-cat-bar">
+                        <div class="soc-cat-bar-fill" style="width: {{ cat.pct }}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 5. Prioritized Findings Table, Recent Scans, AI Summary ================= -->
+    <div class="soc-bottom-grid">
+        <!-- Prioritized Security Findings Table -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <span>Prioritized Security Findings</span>
+                </div>
+                <a href="{% url 'open_findings' %}" class="soc-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="soc-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Finding Title</th>
+                            <th>Severity</th>
+                            <th>Risk Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in recent_findings|slice:":5" %}
+                        <tr>
+                            <td style="color: var(--soc-text-dim); font-weight: 600;">#{{ f.id }}</td>
+                            <td>
+                                <a href="{% url 'view_finding' f.id %}" style="color: #B4C6D0; text-decoration: none; font-weight: 600; display: block; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ f.title }}">
+                                    {{ f.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="soc-sev-pill {% if f.severity == 'Critical' %}soc-sev-critical{% elif f.severity == 'High' %}soc-sev-high{% elif f.severity == 'Medium' %}soc-sev-medium{% else %}soc-sev-low{% endif %}">
+                                    {{ f.severity }}
+                                </span>
+                            </td>
+                            <td style="font-weight: 700;">{{ f.risk_score }}</td>
+                            <td>
+                                {% if f.mitigated %}
+                                <span class="soc-status-mitigated">Mitigated</span>
+                                {% else %}
+                                <span class="soc-status-open">Open</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'support' %}?view=ai_remediation" class="soc-ai-action-btn">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Remediate
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--soc-text-dim); padding: 1.5rem 0;">No security findings available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Prowler Scans -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                    <span>Recent Prowler Scans</span>
+                </div>
+                <a href="{% url 'support' %}" class="soc-panel-link">View History <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div>
+                {% for scan in prowler_history|slice:":2" %}
+                <div class="soc-scan-item">
+                    <div class="soc-scan-left">
+                        <div class="soc-scan-dot"></div>
+                        <div>
+                            <div class="soc-scan-title">{{ scan.scan_id }}</div>
+                            <div class="soc-scan-meta">{{ scan.formatted_time }} • {{ scan.duration }}</div>
+                        </div>
+                    </div>
+                    <div class="soc-scan-count">{{ scan.findings_count }} Findings</div>
+                </div>
+                {% empty %}
+                <div class="soc-scan-item">
+                    <div class="soc-scan-left">
+                        <div class="soc-scan-dot"></div>
+                        <div>
+                            <div class="soc-scan-title">scan-20261123_145644</div>
+                            <div class="soc-scan-meta">Nov 23, 2026 02:56 PM • 20.47s</div>
+                        </div>
+                    </div>
+                    <div class="soc-scan-count">9 Findings</div>
+                </div>
+                <div class="soc-scan-item">
+                    <div class="soc-scan-left">
+                        <div class="soc-scan-dot"></div>
+                        <div>
+                            <div class="soc-scan-title">scan-20261123_143550</div>
+                            <div class="soc-scan-meta">Nov 23, 2026 02:35 PM • 37.35s</div>
+                        </div>
+                    </div>
+                    <div class="soc-scan-count">13 Findings</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- AI Remediation Summary -->
+        <div class="soc-panel">
+            <div class="soc-panel-header">
+                <div class="soc-panel-title">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>AI Remediation Summary</span>
+                </div>
+            </div>
+            <div class="soc-ai-grid">
+                <div class="soc-ai-box soc-ai-box-purple">
+                    <div class="soc-ai-box-num">{{ ai_total_analyses|default:"1" }}</div>
+                    <div class="soc-ai-box-lbl">Analyses</div>
+                </div>
+                <div class="soc-ai-box soc-ai-box-green">
+                    <div class="soc-ai-box-num">{{ ai_approved_fixes|default:"1" }}</div>
+                    <div class="soc-ai-box-lbl">Approved</div>
+                </div>
+                <div class="soc-ai-box soc-ai-box-red">
+                    <div class="soc-ai-box-num">{{ ai_rejected_fixes|default:"0" }}</div>
+                    <div class="soc-ai-box-lbl">Rejected</div>
+                </div>
+                <div class="soc-ai-box soc-ai-box-blue">
+                    <div class="soc-ai-box-num">{{ ai_verified_fixes|default:"1" }}</div>
+                    <div class="soc-ai-box-lbl">Verified</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: #B4C6D0;">Recent AI Activity</span>
+                <a href="{% url 'support' %}?view=ai_remediation" class="soc-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="soc-ai-act-card">
+                <div class="soc-ai-act-icon"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <div class="soc-ai-act-title">Finding #10 – Unrestricted Egress</div>
+                    <div class="soc-ai-act-desc">Approved &amp; Applied • Verified <span style="color: var(--soc-text-dim); margin-left: 0.25rem;">Nov 23, 02:58 PM</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js Engine -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Severity Distribution Donut Chart
+    const sevCtx = document.getElementById('severityDonutChart').getContext('2d');
+    new Chart(sevCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low'],
+            datasets: [{
+                data: [{{ critical }}, {{ high }}, {{ medium }}, {{ low }}],
+                backgroundColor: ['#FF5263', '#FFAA45', '#398BFF', '#32D69A'],
+                borderColor: '#0B2632',
+                borderWidth: 3,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '74%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#071B24',
+                    titleColor: '#EAF4F7',
+                    bodyColor: '#EAF4F7',
+                    borderColor: '#174653',
+                    borderWidth: 1
+                }
+            }
+        }
+    });
+
+    // 2. Findings Trend Line Chart (Last 7 Scans)
+    const trendCtx = document.getElementById('trendLineChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: ['Nov 17', 'Nov 18', 'Nov 19', 'Nov 20', 'Nov 21', 'Nov 22', 'Nov 23'],
+            datasets: [{
+                label: 'Findings',
+                data: [19, 25, 21, 28, 23, 29, 35],
+                borderColor: '#16D9E8',
+                backgroundColor: 'rgba(22, 217, 232, 0.08)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#16D9E8',
+                pointBorderColor: '#0B2632',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#071B24',
+                    titleColor: '#EAF4F7',
+                    bodyColor: '#16D9E8',
+                    borderColor: '#174653',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#91AAB5', font: { size: 10 } }
+                },
+                y: {
+                    min: 0,
+                    max: 40,
+                    grid: { color: '#174653' },
+                    ticks: { color: '#91AAB5', font: { size: 10 }, stepSize: 10 }
+                }
+            }
+        }
+    });
+
+    // 3. Open vs. Mitigated Findings Donut Chart
+    const mitCtx = document.getElementById('mitigationDonutChart').getContext('2d');
+    new Chart(mitCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Open', 'Mitigated'],
+            datasets: [{
+                data: [{{ active_findings }}, {{ mitigated_findings }}],
+                backgroundColor: ['#FF5263', '#32D69A'],
+                borderColor: '#0B2632',
+                borderWidth: 3,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '74%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#071B24',
+                    titleColor: '#EAF4F7',
+                    bodyColor: '#EAF4F7',
+                    borderColor: '#174653',
+                    borderWidth: 1
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

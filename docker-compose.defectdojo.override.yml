@@ -1,0 +1,26 @@
+---
+services:
+  uwsgi:
+    environment:
+      - DD_CSRF_TRUSTED_ORIGINS=http://localhost:8088,http://127.0.0.1:8088,http://localhost:8080,http://127.0.0.1:8080
+    volumes:
+      - ./custom_branding/templates/base.html:/app/dojo/templates/base.html:ro
+      - ./custom_branding/templates/dojo/login.html:/app/dojo/templates/dojo/login.html:ro
+      - ./custom_branding/templates/dojo/dashboard.html:/app/dojo/templates/dojo/dashboard.html:ro
+      - ./custom_branding/templates/dojo/prowler_scans.html:/app/dojo/templates/dojo/prowler_scans.html:ro
+      - ./custom_branding/templates/dojo/ai_remediation.html:/app/dojo/templates/dojo/ai_remediation.html:ro
+      - ./custom_branding/templates/dojo/remediation_audit.html:/app/dojo/templates/dojo/remediation_audit.html:ro
+      - ./custom_branding/templates/dojo/github_scanner.html:/app/dojo/templates/dojo/github_scanner.html:ro
+      - ./custom_branding/templates/dojo/test_type.html:/app/dojo/templates/dojo/test_type.html:ro
+      - ./custom_branding/templates/dojo/findings_list_snippet.html:/app/dojo/templates/dojo/findings_list_snippet.html:ro
+      - ./custom_branding/views_home.py:/app/dojo/home/views.py:ro
+      - ./custom_branding/urls_home.py:/app/dojo/home/urls.py:ro
+      - ./github_scanner:/app/github_scanner:ro
+      - ./prowler_scans:/app/prowler_scans:rw
+      - ./ai_remediation:/app/ai_remediation:rw
+  nginx:
+    volumes:
+      - ./custom_branding/static/dojo/img/logo.svg:/usr/share/nginx/html/static/dojo/img/logo.svg:ro
+      - ./custom_branding/static/dojo/img/symbol.svg:/usr/share/nginx/html/static/dojo/img/symbol.svg:ro
+      - ./custom_branding/static/dojo/img/favicon.svg:/usr/share/nginx/html/static/dojo/img/favicon.svg:ro
+      - ./custom_branding/static/dojo/css/cloudguard.css:/usr/share/nginx/html/static/dojo/css/cloudguard.css:ro

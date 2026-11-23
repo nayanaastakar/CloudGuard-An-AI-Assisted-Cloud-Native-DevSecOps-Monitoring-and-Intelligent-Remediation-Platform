@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="cg-main-content">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" style="margin-bottom: 0.75rem;">
+    <ol class="breadcrumb" style="padding: 0; background: transparent; font-size: 0.8rem; margin: 0;">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}" style="color: #91AEB3; text-decoration: none;">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page" style="color: #27C5D8;">GitHub Security Scanner</li>
+    </ol>
+  </nav>
+
+  <!-- 1. Header with Title & Action Controls -->
+  <div class="cg-page-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <div class="cg-title-badge" style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(39, 197, 216, 0.12); border: 1px solid rgba(39, 197, 216, 0.3); border-radius: 9999px; padding: 0.25rem 0.75rem; font-size: 0.72rem; color: #27C5D8; margin-bottom: 0.5rem;">
+        <i class="fa-brands fa-github text-cyan-400"></i>
+        <span>Universal Repository Security &amp; Continuous Event Monitoring</span>
+      </div>
+      <h1 class="cg-page-title" style="font-size: 1.65rem; font-weight: 800; color: #E6F1F2; margin: 0 0 0.35rem 0; letter-spacing: -0.02em;">GitHub Security Scanner</h1>
+      <p class="cg-page-subtitle" style="font-size: 0.85rem; color: #91AEB3; margin: 0; max-width: 800px; line-height: 1.4;">
+        Connect public or private repositories, automatically detect technology stacks, orchestrate multi-scanner inspections, and monitor changes via webhooks.
+      </p>
+    </div>
+    <div class="cg-page-header-actions" style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'open_findings' %}" class="cg-btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.825rem; font-weight: 600; text-decoration: none; border: 1px solid #174247; background: #0E3337; color: #27C5D8;">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>View Findings</span>
+      </a>
+      <button class="cg-btn-primary" onclick="focusConnectCard()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.15rem; border-radius: 6px; font-size: 0.825rem; font-weight: 600; border: 1px solid #27C5D8; background: #27C5D8; color: #061F22; cursor: pointer;">
+        <i class="fa-solid fa-plus"></i>
+        <span>Connect Repository</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. KPI Cards (Balanced Responsive 4-Column Row) -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+    <!-- Card 1 -->
+    <div class="cg-card" style="margin: 0; padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 3px solid #27C5D8;">
+      <div style="width: 44px; height: 44px; border-radius: 8px; background: rgba(39, 197, 216, 0.15); color: #27C5D8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+        <i class="fa-brands fa-git-alt"></i>
+      </div>
+      <div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: #E6F1F2; line-height: 1.1;">{{ total_repos }}</div>
+        <div style="font-size: 0.75rem; font-weight: 600; color: #91AEB3; text-transform: uppercase; letter-spacing: 0.04em;">Connected Repositories</div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="cg-card" style="margin: 0; padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 3px solid #42C98A;">
+      <div style="width: 44px; height: 44px; border-radius: 8px; background: rgba(66, 201, 138, 0.15); color: #42C98A; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+        <i class="fa-solid fa-satellite-dish"></i>
+      </div>
+      <div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: #E6F1F2; line-height: 1.1;">{{ monitored_repos }}</div>
+        <div style="font-size: 0.75rem; font-weight: 600; color: #91AEB3; text-transform: uppercase; letter-spacing: 0.04em;">Webhooks Monitored</div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="cg-card" style="margin: 0; padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 3px solid #F2C94C;">
+      <div style="width: 44px; height: 44px; border-radius: 8px; background: rgba(242, 201, 76, 0.15); color: #F2C94C; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+        <i class="fa-solid fa-arrows-rotate"></i>
+      </div>
+      <div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: #E6F1F2; line-height: 1.1;">{{ total_scans }}</div>
+        <div style="font-size: 0.75rem; font-weight: 600; color: #91AEB3; text-transform: uppercase; letter-spacing: 0.04em;">Total Scans Performed</div>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="cg-card" style="margin: 0; padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 3px solid #F05252;">
+      <div style="width: 44px; height: 44px; border-radius: 8px; background: rgba(240, 82, 82, 0.15); color: #F05252; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: #E6F1F2; line-height: 1.1;">{{ total_findings_found }}</div>
+        <div style="font-size: 0.75rem; font-weight: 600; color: #91AEB3; text-transform: uppercase; letter-spacing: 0.04em;">Findings Discovered</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Repository Connection & Live Scan Status Row (Properly Balanced 1:1 on Desktop) -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+    
+    <!-- Left: Repository Connection Form -->
+    <div class="cg-card" id="connectRepoCard" style="margin: 0;">
+      <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="cg-card-title">
+          <i class="fa-brands fa-github text-cyan-400"></i>
+          <span>Connect Target Repository</span>
+        </div>
+        <span class="cg-badge-verified">
+          <i class="fa-solid fa-circle-check"></i> Public &amp; Private Ready
+        </span>
+      </div>
+      <div class="cg-card-body">
+        <form id="connectRepoForm" onsubmit="submitConnectRepo(event)">
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #E6F1F2; margin-bottom: 0.35rem;">
+              GitHub Repository URL <span style="color: #F05252;">*</span>
+            </label>
+            <input type="url" id="repoUrlInput" required
+                   placeholder="https://github.com/owner/repository (or /tree/branch)"
+                   style="width: 100%; background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.6rem 0.85rem; color: #E6F1F2; font-size: 0.85rem; outline: none; transition: border-color 0.15s;"
+                   onfocus="this.style.borderColor='#27C5D8'" onblur="this.style.borderColor='#174247'">
+            <div style="font-size: 0.72rem; color: #91AEB3; margin-top: 0.3rem;">
+              Supports public repositories directly or private repositories with token below.
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.15rem;">
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #E6F1F2; margin-bottom: 0.35rem;">
+                Target Branch (Optional)
+              </label>
+              <input type="text" id="repoBranchInput" placeholder="main / master (auto-detected)"
+                     style="width: 100%; background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.55rem 0.75rem; color: #E6F1F2; font-size: 0.8rem; outline: none;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #E6F1F2; margin-bottom: 0.35rem;">
+                GitHub Token (Private Repos)
+              </label>
+              <input type="password" id="repoTokenInput" placeholder="ghp_... (read:repo scope)"
+                     style="width: 100%; background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.55rem 0.75rem; color: #E6F1F2; font-size: 0.8rem; outline: none;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button type="submit" id="connectBtn" class="cg-btn-primary" style="padding: 0.55rem 1.25rem; font-size: 0.825rem;">
+              <i class="fa-solid fa-link"></i>
+              <span>Connect Repository</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="connectAlert" style="display: none; margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem;"></div>
+      </div>
+    </div>
+
+    <!-- Right: Active Live Scan Progress & Engine Status -->
+    <div class="cg-card" style="margin: 0; display: flex; flex-direction: column;">
+      <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="cg-card-title">
+          <i class="fa-solid fa-microchip text-cyan-400"></i>
+          <span>Live Scan Progress &amp; Engine Status</span>
+        </div>
+        <span id="activeJobBadge" class="cg-badge-pending" style="display: none;">
+          <i class="fa-solid fa-spinner fa-spin"></i> In Progress
+        </span>
+      </div>
+      <div class="cg-card-body" id="scanMonitorBody" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <div id="noActiveScanPlaceholder" style="text-align: center; padding: 1.5rem 1rem; color: #91AEB3;">
+          <i class="fa-solid fa-radar" style="font-size: 2rem; color: #174247; margin-bottom: 0.6rem; display: block;"></i>
+          <div style="font-size: 0.875rem; font-weight: 600; color: #E6F1F2; margin-bottom: 0.25rem;">No Scans Currently Executing</div>
+          <div style="font-size: 0.775rem; color: #91AEB3;">Select a connected repository below or enter a new URL to trigger an automated security audit.</div>
+        </div>
+
+        <div id="activeScanProgressBox" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+            <span id="activeJobRepoName" style="font-size: 0.85rem; font-weight: 700; color: #E6F1F2;"></span>
+            <span id="activeJobPercent" style="font-size: 0.825rem; font-weight: 700; color: #27C5D8;">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="width: 100%; height: 8px; background: #0E3337; border-radius: 4px; overflow: hidden; margin-bottom: 0.75rem;">
+            <div id="activeJobProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #27C5D8, #42C98A); transition: width 0.3s ease;"></div>
+          </div>
+
+          <div id="activeJobStage" style="font-size: 0.8rem; color: #E6F1F2; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-notch fa-spin text-cyan-400"></i>
+            <span>Initializing...</span>
+          </div>
+
+          <div style="background: #0E3337; border: 1px solid #174247; border-radius: 6px; padding: 0.7rem; font-size: 0.75rem; color: #91AEB3;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+              <span>Target Branch:</span>
+              <strong id="activeJobBranch" style="color: #E6F1F2;"></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+              <span>Commit SHA:</span>
+              <strong id="activeJobCommit" style="color: #27C5D8; font-family: monospace;"></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Trigger Origin:</span>
+              <strong id="activeJobTrigger" style="color: #F2C94C;"></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Scanner Engines Health & Coverage Overview -->
+  <div class="cg-card" style="margin-bottom: 1.5rem;">
+    <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="cg-card-title">
+        <i class="fa-solid fa-cubes-stacked text-cyan-400"></i>
+        <span>Scanner Engine Integrations &amp; Health Verification</span>
+      </div>
+      <span class="cg-badge-tag">Multi-Scanner Orchestration</span>
+    </div>
+    <div class="cg-card-body" style="padding: 1rem 1.25rem;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+        {% for engine in scanner_engines %}
+        <div style="background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <strong style="font-size: 0.85rem; color: #E6F1F2;">{{ engine.name }}</strong>
+            <span class="{{ engine.badge_class }}" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">
+              {{ engine.status }}
+            </span>
+          </div>
+          <div style="font-size: 0.73rem; color: #27C5D8; margin-bottom: 0.25rem;">{{ engine.role }}</div>
+          <div style="font-size: 0.72rem; color: #91AEB3;">{{ engine.details }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Connected Repositories Inventory Table -->
+  <div class="cg-card" style="margin-bottom: 1.5rem;">
+    <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="cg-card-title">
+        <i class="fa-solid fa-folder-tree text-cyan-400"></i>
+        <span>Monitored GitHub Repositories</span>
+      </div>
+      <span class="cg-badge-tag">{{ repositories|length }} Registered</span>
+    </div>
+    <div class="cg-card-body" style="padding: 0;">
+      <div class="table-responsive">
+        <table class="table" style="width: 100%; margin-bottom: 0; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #0E3337; border-bottom: 1px solid #174247; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #91AEB3;">
+              <th style="padding: 0.75rem 1.25rem;">Repository Name</th>
+              <th style="padding: 0.75rem 1rem;">Branch / Commit</th>
+              <th style="padding: 0.75rem 1rem;">Detected Stack</th>
+              <th style="padding: 0.75rem 1rem;">Monitoring Mode</th>
+              <th style="padding: 0.75rem 1rem;">Last Assessment</th>
+              <th style="padding: 0.75rem 1.25rem; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for repo in repositories %}
+            <tr style="border-bottom: 1px solid #174247; font-size: 0.8rem; color: #E6F1F2;">
+              <td style="padding: 0.85rem 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                  <i class="fa-brands fa-github text-cyan-400" style="font-size: 1.15rem;"></i>
+                  <div>
+                    <a href="{{ repo.html_url }}" target="_blank" style="color: #E6F1F2; font-weight: 600; text-decoration: none;">
+                      {{ repo.full_name }}
+                    </a>
+                    <div style="font-size: 0.72rem; color: #91AEB3;">{{ repo.description|truncatechars:50 }}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: #061F22; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid #174247;">
+                  <i class="fa-solid fa-code-branch text-cyan-400" style="font-size: 0.7rem;"></i>
+                  <span style="font-weight: 600; color: #E6F1F2;">{{ repo.target_branch|default:repo.default_branch }}</span>
+                  <span style="color: #91AEB3; font-family: monospace; font-size: 0.75rem;">@{{ repo.commit_sha|default:"HEAD" }}</span>
+                </div>
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                  {% if repo.detected_technologies %}
+                    {% for tech, tdata in repo.detected_technologies.items %}
+                      <span class="cg-badge-tag">{{ tech }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span style="color: #91AEB3; font-style: italic;">Pending scan</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                {% if "Webhook" in repo.monitoring_mode %}
+                  <span class="cg-badge-verified">
+                    <i class="fa-solid fa-satellite-dish"></i> Webhook (Live)
+                  </span>
+                {% else %}
+                  <span class="cg-badge-pending">
+                    <i class="fa-solid fa-hand-pointer"></i> Manual Scanning
+                  </span>
+                {% endif %}
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                {% if repo.last_scan_status == "COMPLETED" %}
+                  <span style="color: #42C98A; font-weight: 600;">{{ repo.last_findings_count }} Findings</span>
+                  <div style="font-size: 0.7rem; color: #91AEB3;">{{ repo.last_scan_time }}</div>
+                {% elif repo.last_scan_status == "FAILED" %}
+                  <span style="color: #F05252; font-weight: 600;">Failed</span>
+                {% else %}
+                  <span style="color: #91AEB3;">Not scanned yet</span>
+                {% endif %}
+              </td>
+              <td style="padding: 0.85rem 1.25rem; text-align: right;">
+                <button class="cg-btn-primary" style="padding: 0.35rem 0.85rem; font-size: 0.75rem;"
+                        onclick="triggerScanFor('{{ repo.full_name }}')">
+                  <i class="fa-solid fa-play"></i>
+                  <span>Scan Now</span>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: #91AEB3;">
+                <i class="fa-solid fa-folder-open" style="font-size: 2.25rem; color: #174247; margin-bottom: 0.6rem; display: block;"></i>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #E6F1F2; margin-bottom: 0.25rem;">No Repositories Connected Yet</div>
+                <div style="font-size: 0.775rem;">Paste any public or authorized private repository URL above to inspect and scan.</div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Recent Scan Execution History & Severity Breakdown -->
+  <div class="cg-card" style="margin-bottom: 1.5rem;">
+    <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="cg-card-title">
+        <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i>
+        <span>Scan Execution Audit Trail</span>
+      </div>
+      <div style="display: flex; gap: 0.65rem; font-size: 0.75rem; align-items: center;">
+        <span style="color: #F05252; font-weight: 700;">{{ critical_count }} Critical</span>
+        <span style="color: #FF7043; font-weight: 700;">{{ high_count }} High</span>
+        <span style="color: #F2C94C; font-weight: 700;">{{ medium_count }} Med</span>
+        <span style="color: #27C5D8; font-weight: 700;">{{ low_count }} Low</span>
+      </div>
+    </div>
+    <div class="cg-card-body" style="padding: 0;">
+      <div class="table-responsive">
+        <table class="table" style="width: 100%; margin-bottom: 0;">
+          <thead>
+            <tr style="background: #0E3337; border-bottom: 1px solid #174247; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #91AEB3;">
+              <th style="padding: 0.75rem 1.25rem;">Job ID</th>
+              <th style="padding: 0.75rem 1rem;">Repository</th>
+              <th style="padding: 0.75rem 1rem;">Trigger</th>
+              <th style="padding: 0.75rem 1rem;">Severity Breakdown</th>
+              <th style="padding: 0.75rem 1rem;">Duration</th>
+              <th style="padding: 0.75rem 1.25rem; text-align: right;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in recent_jobs %}
+            <tr style="border-bottom: 1px solid #174247; font-size: 0.8rem; color: #E6F1F2;">
+              <td style="padding: 0.85rem 1.25rem; font-family: monospace; color: #27C5D8;">
+                {{ job.id }}
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                <strong style="color: #E6F1F2;">{{ job.repo_full_name }}</strong>
+                <div style="font-size: 0.7rem; color: #91AEB3;">{{ job.branch }} @ {{ job.commit_sha }}</div>
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                <span class="cg-badge-tag">{{ job.trigger }}</span>
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                {% if job.status == "COMPLETED" %}
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span style="color: #F05252; font-weight: 700;">{{ job.severity_counts.Critical }} C</span>
+                    <span style="color: #FF7043; font-weight: 700;">{{ job.severity_counts.High }} H</span>
+                    <span style="color: #F2C94C; font-weight: 700;">{{ job.severity_counts.Medium }} M</span>
+                    <span style="color: #27C5D8; font-weight: 700;">{{ job.severity_counts.Low }} L</span>
+                  </div>
+                {% else %}
+                  <span style="color: #91AEB3;">-</span>
+                {% endif %}
+              </td>
+              <td style="padding: 0.85rem 1rem;">
+                {{ job.duration_seconds|default:"-" }}s
+              </td>
+              <td style="padding: 0.85rem 1.25rem; text-align: right;">
+                {% if job.status == "COMPLETED" %}
+                  <span class="cg-badge-verified">
+                    <i class="fa-solid fa-check"></i> Completed
+                  </span>
+                {% elif job.status == "FAILED" %}
+                  <span class="cg-badge-rejected">
+                    <i class="fa-solid fa-xmark"></i> Failed
+                  </span>
+                {% else %}
+                  <span class="cg-badge-pending">
+                    <i class="fa-solid fa-spinner fa-spin"></i> {{ job.status }}
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem 1rem; color: #91AEB3;">
+                No scan history recorded yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Webhook Configuration Information Panel -->
+  <div class="cg-card">
+    <div class="cg-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="cg-card-title">
+        <i class="fa-solid fa-satellite-dish text-cyan-400"></i>
+        <span>Event-Driven Webhook Integration</span>
+      </div>
+      <span class="cg-badge-verified">HMAC SHA-256 Protected</span>
+    </div>
+    <div class="cg-card-body">
+      <p style="font-size: 0.825rem; color: #E6F1F2; margin-bottom: 0.85rem;">
+        To enable automatic re-scanning whenever developers push commits or open pull requests, add CloudGuard's webhook URL to your GitHub repository settings:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.78rem;">
+        <div style="background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.85rem;">
+          <div style="color: #91AEB3; margin-bottom: 0.25rem;">Payload URL</div>
+          <code style="color: #27C5D8; font-size: 0.825rem;">http://localhost:8088/github/webhook</code>
+          <div style="font-size: 0.7rem; color: #91AEB3; margin-top: 0.35rem;">
+            (In production or with secure ngrok tunnel: <code>https://your-domain/github/webhook</code>)
+          </div>
+        </div>
+        <div style="background: #061F22; border: 1px solid #174247; border-radius: 6px; padding: 0.85rem;">
+          <div style="color: #91AEB3; margin-bottom: 0.25rem;">Content type &amp; Events</div>
+          <strong style="color: #E6F1F2;">application/json</strong>
+          <div style="font-size: 0.7rem; color: #91AEB3; margin-top: 0.35rem;">
+            Select <strong>Just the push event</strong> or <strong>Pull requests</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- JavaScript for Live AJAX Connection & Polling -->
+<script>
+function focusConnectCard() {
+  const card = document.getElementById('connectRepoCard');
+  const input = document.getElementById('repoUrlInput');
+  card.scrollIntoView({ behavior: 'smooth' });
+  input.focus();
+}
+
+function submitConnectRepo(e) {
+  e.preventDefault();
+  const repoUrl = document.getElementById('repoUrlInput').value.trim();
+  const branch = document.getElementById('repoBranchInput').value.trim();
+  const token = document.getElementById('repoTokenInput').value.trim();
+  const btn = document.getElementById('connectBtn');
+  const alertBox = document.getElementById('connectAlert');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
+  alertBox.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('action', 'connect_repo');
+  formData.append('repo_url', repoUrl);
+  formData.append('branch', branch);
+  formData.append('github_token', token);
+
+  fetch('{% url "github_scanner" %}', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-link"></i> Connect Repository';
+    alertBox.style.display = 'block';
+
+    if (data.status === 'success') {
+      alertBox.style.background = 'rgba(66, 201, 138, 0.15)';
+      alertBox.style.border = '1px solid #42C98A';
+      alertBox.style.color = '#A7F3D0';
+      alertBox.innerHTML = '<i class="fa-solid fa-check"></i> ' + data.message + ' Refreshing list...';
+      setTimeout(() => { window.location.reload(); }, 1200);
+    } else {
+      alertBox.style.background = 'rgba(240, 82, 82, 0.15)';
+      alertBox.style.border = '1px solid #F05252';
+      alertBox.style.color = '#FCA5A5';
+      alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + data.message;
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-link"></i> Connect Repository';
+    alertBox.style.display = 'block';
+    alertBox.style.background = 'rgba(240, 82, 82, 0.15)';
+    alertBox.style.border = '1px solid #F05252';
+    alertBox.style.color = '#FCA5A5';
+    alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Communication error: ' + err;
+  });
+}
+
+let activePollInterval = null;
+
+function triggerScanFor(repoFullName) {
+  const formData = new FormData();
+  formData.append('action', 'scan_repo');
+  formData.append('repo_full_name', repoFullName);
+
+  // Switch to progress monitor view
+  document.getElementById('noActiveScanPlaceholder').style.display = 'none';
+  document.getElementById('activeScanProgressBox').style.display = 'block';
+  document.getElementById('activeJobBadge').style.display = 'inline-flex';
+  
+  document.getElementById('activeJobRepoName').innerText = repoFullName;
+  document.getElementById('activeJobPercent').innerText = '15%';
+  document.getElementById('activeJobProgressBar').style.width = '15%';
+  document.getElementById('activeJobStage').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-cyan-400"></i> Queued for execution...';
+
+  fetch('{% url "github_scanner" %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const jobId = data.job.id;
+      document.getElementById('activeJobBranch').innerText = data.job.branch;
+      document.getElementById('activeJobCommit').innerText = data.job.commit_sha;
+      document.getElementById('activeJobTrigger').innerText = data.job.trigger;
+
+      // Start live polling every 1.5 seconds
+      if (activePollInterval) clearInterval(activePollInterval);
+      activePollInterval = setInterval(() => pollJobStatus(jobId), 1500);
+    } else {
+      alert('Error triggering scan: ' + data.message);
+    }
+  });
+}
+
+function pollJobStatus(jobId) {
+  const formData = new FormData();
+  formData.append('action', 'poll_job');
+  formData.append('job_id', jobId);
+
+  fetch('{% url "github_scanner" %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const job = data.job;
+      const pct = job.progress_percent || 0;
+      document.getElementById('activeJobPercent').innerText = pct + '%';
+      document.getElementById('activeJobProgressBar').style.width = pct + '%';
+      document.getElementById('activeJobStage').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-cyan-400"></i> ' + (job.stage || job.status);
+
+      if (job.status === 'COMPLETED' || job.status === 'FAILED') {
+        clearInterval(activePollInterval);
+        document.getElementById('activeJobBadge').style.display = 'none';
+
+        if (job.status === 'COMPLETED') {
+          document.getElementById('activeJobStage').innerHTML = '<i class="fa-solid fa-check text-green-400"></i> Completed! Discovered ' + job.findings_count + ' security findings.';
+          setTimeout(() => { window.location.reload(); }, 2000);
+        } else {
+          document.getElementById('activeJobStage').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Scan failed: ' + (job.error || 'Unknown error');
+        }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}
