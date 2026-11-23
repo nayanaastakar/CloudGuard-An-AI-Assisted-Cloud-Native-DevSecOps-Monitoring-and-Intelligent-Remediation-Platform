@@ -3,6 +3,7 @@ services:
   uwsgi:
     environment:
       - DD_CSRF_TRUSTED_ORIGINS=http://localhost:8088,http://127.0.0.1:8088,http://localhost:8080,http://127.0.0.1:8080
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
       - ./custom_branding/templates/base.html:/app/dojo/templates/base.html:ro
       - ./custom_branding/templates/dojo/login.html:/app/dojo/templates/dojo/login.html:ro

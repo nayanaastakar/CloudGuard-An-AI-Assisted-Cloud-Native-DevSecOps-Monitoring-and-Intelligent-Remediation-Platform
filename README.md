@@ -249,21 +249,30 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ### 3. Launch via Docker Compose
 
 ```bash
-# Build and start all 4 services in detached mode
+# Build and start all services in detached mode
 docker compose up -d --build
 ```
 
-### 4. Verify Service Health
+### 4. DefectDojo Enterprise Security Integration (Port 8088)
+
+For comprehensive vulnerability management, infrastructure scanning (Prowler OSS), and universal GitHub scanning:
+
+```bash
+# Run with DefectDojo override configuration
+docker compose -f docker-compose.yml -f docker-compose.defectdojo.override.yml up -d
+```
+Access points:
+- **CloudGuard DefectDojo Security Center**: `http://localhost:8088`
+- **Universal GitHub Security Scanner**: `http://localhost:8088/github/scanner`
+- **Gemini AI Remediation Center**: `http://localhost:8088/support?view=ai_remediation`
+- **Prowler Cloud Security Scans**: `http://localhost:8088/support`
+- **Core CloudGuard UI**: `http://localhost:3001` (Backend API on `http://localhost:8001`)
+
+### 5. Verify Service Health
 
 ```bash
 # Check container status
 docker compose ps
-
-# Test Backend API health
-curl http://localhost:8001/health
-
-# Access the CloudGuard Web Dashboard
-# Open http://localhost:3001 in your browser
 ```
 
 ---

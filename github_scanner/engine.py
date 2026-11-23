@@ -153,10 +153,35 @@ class MultiScannerEngine:
             "severity": "Medium",
             "cwe": 321,
             "file_ext": [".py", ".js", ".ts", ".env"],
-            "patterns": [r"jwt\.sign\(.*['\"](secret|test|demo|123456)['\"]", r"SECRET_KEY\s*=\s*['\"](django-insecure|secret|changeme|test)['\"]"],
+            "patterns": [r"jwt\.sign\(.*['\"](secret|test|demo|123456)['\"]", r"SECRET_KEY\s*=\s*['\"](django-insecure|secret|changeme|test)['\"]", r"(cookieSecret|cryptoKey)\s*:\s*['\"][^'\"]+['\"]"],
             "description": "A predictable or default secret key is hardcoded for token generation or sessions.",
             "impact": "Session forgery, authentication bypass, and token tampering.",
             "remediation": "Generate high-entropy secrets and load them from protected environment variables."
+        },
+        # 6. Server-Side JavaScript / Node.js Injection (OWASP A1)
+        {
+            "id": "NODE-001",
+            "name": "Server-Side JavaScript Code Injection via eval()",
+            "scanner": "Semgrep",
+            "severity": "Critical",
+            "cwe": 95,
+            "file_ext": [".js", ".ts"],
+            "patterns": [r"\beval\s*\(\s*(req\.(body|query|params)|[a-zA-Z0-9_]+)"],
+            "description": "Direct evaluation of dynamic input using eval() allows arbitrary server-side code execution.",
+            "impact": "Remote code execution, complete backend server takeover, and data exfiltration.",
+            "remediation": "Do not pass user input to eval(). Use safe data parsing libraries like JSON.parse() or parseInt()."
+        },
+        {
+            "id": "NODE-002",
+            "name": "NoSQL Injection in MongoDB Query ($where clause)",
+            "scanner": "Semgrep",
+            "severity": "High",
+            "cwe": 943,
+            "file_ext": [".js", ".ts"],
+            "patterns": [r"\$where\s*:\s*[`'\"]this\..*['\"`]"],
+            "description": "MongoDB query uses unescaped dynamic JavaScript expressions inside a $where clause.",
+            "impact": "Bypasses access controls, exfiltrates unauthorized database records, or executes arbitrary JavaScript in the database engine.",
+            "remediation": "Avoid using $where clauses. Use standard MongoDB query operators ($eq, $gt, $in) with sanitized inputs."
         }
     ]
 

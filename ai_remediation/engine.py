@@ -22,13 +22,7 @@ class GeminiRemediationEngine:
     def __init__(self):
         self.api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         self.client = None
-        if self.api_key:
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.api_key)
-                self.client = genai.GenerativeModel("gemini-1.5-flash")
-            except Exception as e:
-                print(f"[!] Warning initializing Gemini SDK: {e}")
+        self.active_model = "gemini-3.6-flash"
 
     def analyze_finding(self, finding_data: dict) -> dict:
         """
@@ -55,13 +49,24 @@ Provide a structured JSON output with:
 4. proposed_patch: Complete secure Terraform replacement code.
 5. verification_steps: Step-by-step verification commands.
 """
-        if self.client:
-            try:
-                response = self.client.generate_content(prompt)
-                text = response.text
-                return self._parse_ai_response(text, finding_data)
-            except Exception as e:
-                print(f"[-] Gemini API call failed ({e}). Using intelligent expert analysis fallback.")
+        if self.api_key:
+            import urllib.request
+            import urllib.error
+            for model_name in ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-3.8-flash"]:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.api_key}"
+                payload = {"contents": [{"parts": [{"text": prompt}]}]}
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=15) as resp:
+                        res = json.loads(resp.read().decode("utf-8"))
+                        text = res["candidates"][0]["content"]["parts"][0]["text"]
+                        return self._parse_ai_response(text, finding_data)
+                except Exception as e:
+                    print(f"[-] Gemini model {model_name} call failed: {e}")
 
         return self._generate_expert_analysis(finding_data)
 

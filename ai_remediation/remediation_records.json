@@ -12,7 +12,7 @@
     "verification_steps": "Run `prowler iac --scan-path /targets` to confirm check AWS-0104 passes with 0 violations.",
     "status": "APPROVED_AND_APPLIED",
     "created_at": "2026-11-23 14:47:02",
-    "approved_at": "2026-11-23 16:38:13",
-    "backup_path": "main.tf.backup_20261123_163813"
+    "approved_at": "2026-11-23 18:54:11",
+    "backup_path": "main.tf.backup_20261123_185411"
   }
 ]
