@@ -9,7 +9,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg?logo=react&logoColor=black)](https://reactjs.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3.4-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
@@ -168,7 +167,7 @@ flowchart TD
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend UI** | React 18, TypeScript, Vite 6, TailwindCSS 3.4, Framer Motion, TanStack Query, Recharts, Heroicons |
+| **Frontend UI** | React 18, JavaScript (ES6+), Vite 6, TailwindCSS 3.4, Framer Motion, TanStack Query, Recharts, Heroicons |
 | **Backend API** | Python 3.11, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2, Uvicorn |
 | **Data & Cache** | PostgreSQL 16 (AsyncPG), Redis 7 (Aioredis) |
 | **AI Engine** | Google Gemini 2.5 / Google Generative AI Python SDK |
@@ -191,7 +190,7 @@ CloudGuard/
 │   ├── tests/                      # Pytest backend test suite (126 passing tests)
 │   ├── Dockerfile                  # Production backend container definition
 │   └── requirements.txt            # Python dependencies
-├── frontend/                       # React 18 + TypeScript Frontend
+├── frontend/                       # React 18 + JavaScript Frontend
 │   ├── src/
 │   │   ├── components/             # Security, Monitoring, Deploy, Kubernetes views
 │   │   │   ├── common/             # DualSidebarLayout, Navigation, CommandPalette
