@@ -756,6 +756,8 @@
                                             <li class="active"><a class="active" href="{% url 'support' %}">Prowler</a></li>
                                         {% elif '/metrics' in request.path or '/remediation/audit' in request.path %}
                                             <li class="active"><a class="active" href="{% url 'remediation_audit' %}">Remediation Audit</a></li>
+                                        {% elif '/github' in request.path %}
+                                            <li class="active"><a class="active" href="{% url 'github_scanner' %}">GitHub Security Scanner</a></li>
                                         {% elif request.session.dojo_breadcrumbs %}
                                             {% for crumb in request.session.dojo_breadcrumbs %}
                                                 {% if not forloop.first %}
