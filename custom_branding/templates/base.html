@@ -741,7 +741,6 @@
                                         {% elif '/endpoint' in request.path %}
                                             <li class="active"><a class="active" href="{% url 'endpoint' %}">Assets &amp; Hosts</a></li>
                                         {% elif '/test_type' in request.path %}
-                                            <li><a href="{% url 'test_type' %}">Infrastructure Security</a></li>
                                             <li class="active"><a class="active" href="{% url 'test_type' %}">IaC</a></li>
                                         {% elif '/components' in request.path %}
                                             <li class="active"><a class="active" href="{% url 'components' %}">Container Security</a></li>

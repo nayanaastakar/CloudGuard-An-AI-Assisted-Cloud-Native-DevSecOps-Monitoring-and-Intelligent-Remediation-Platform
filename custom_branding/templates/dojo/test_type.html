@@ -7,99 +7,18 @@
 {% block add_styles %}
     {{ block.super }}
     <style>
-      /* Page-wide Dark/Purple/Blue Cyber Aesthetics matching screenshot */
+      /* Page-wide Cyber Dark Aesthetics matching dashboard theme */
       body {
-        background-color: #070913 !important;
+        background-color: #051A1D !important;
       }
       #wrapper {
-        background: radial-gradient(circle at 80% 10%, rgba(88, 28, 135, 0.18) 0%, rgba(15, 23, 42, 0) 50%),
-                    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.12) 0%, rgba(7, 9, 19, 0) 60%),
-                    #070913 !important;
+        background: #051A1D !important;
       }
 
       .cg-iac-page {
-        padding: 0.75rem 1.25rem 3rem;
+        padding: 0.5rem 0.85rem 3rem;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         color: #e2e8f0;
-      }
-
-      /* Breadcrumbs */
-      .cg-breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.78rem;
-        color: #94a3b8;
-        margin-bottom: 0.75rem;
-      }
-      .cg-breadcrumb a {
-        color: #94a3b8;
-        text-decoration: none;
-        transition: color 0.15s;
-      }
-      .cg-breadcrumb a:hover {
-        color: #c084fc;
-      }
-      .cg-breadcrumb-sep {
-        font-size: 0.65rem;
-        color: #64748b;
-      }
-
-      /* Hero Banner */
-      .cg-hero-section {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-      }
-      .cg-hero-title-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      .cg-title-icon-badge {
-        width: 48px;
-        height: 48px;
-        border-radius: 0.75rem;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(168, 85, 247, 0.45) 100%);
-        border: 1px solid rgba(168, 85, 247, 0.5);
-        box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        font-size: 1.35rem;
-        flex-shrink: 0;
-      }
-      .cg-hero-heading {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #ffffff;
-        margin: 0 0 0.25rem 0;
-        letter-spacing: -0.02em;
-      }
-      .cg-hero-subtitle {
-        color: #94a3b8;
-        font-size: 0.88rem;
-        margin: 0;
-      }
-
-      /* Cloud IaC Illustration (Right Header) */
-      .cg-cloud-illustration {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        width: 220px;
-        height: 70px;
-      }
-      .cg-cloud-glow {
-        position: absolute;
-        width: 140px;
-        height: 60px;
-        background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.5) 0%, rgba(59, 130, 246, 0.35) 60%, transparent 100%);
-        filter: blur(14px);
       }
 
       /* 4 KPI Cards */
@@ -107,7 +26,7 @@
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 1.15rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
       }
       @media (max-width: 1024px) {
         .cg-kpi-row { grid-template-columns: repeat(2, 1fr); }
@@ -117,22 +36,22 @@
       }
 
       .cg-card {
-        background: #0d1124;
-        border: 1px solid #1e2640;
-        border-radius: 0.85rem;
+        background: #08282B;
+        border: 1px solid #174247;
+        border-radius: 0.75rem;
         padding: 1.15rem 1.35rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
         transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       }
       .cg-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(168, 85, 247, 0.5);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(168, 85, 247, 0.2);
+        border-color: #27C5D8;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 12px rgba(39, 197, 216, 0.25);
       }
       .cg-card-left {
         display: flex;
@@ -155,7 +74,7 @@
       }
       .cg-card-label {
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: #8AA4A7;
         font-weight: 500;
         margin-bottom: 0.15rem;
       }
@@ -190,13 +109,13 @@
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #64748b;
+        color: #8AA4A7;
         font-size: 0.9rem;
       }
       .cg-input {
         width: 100%;
-        background: #0d1124;
-        border: 1px solid #1e2640;
+        background: #08282B;
+        border: 1px solid #174247;
         border-radius: 0.65rem;
         padding: 0.65rem 1rem 0.65rem 2.65rem;
         color: #ffffff;
@@ -205,17 +124,17 @@
         transition: border-color 0.15s, box-shadow 0.15s;
       }
       .cg-input:focus {
-        border-color: #8b5cf6;
-        box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
+        border-color: #27C5D8;
+        box-shadow: 0 0 12px rgba(39, 197, 216, 0.35);
       }
       .cg-input::placeholder {
-        color: #64748b;
+        color: #5d7a7d;
       }
 
       .cg-dropdown-select {
-        background: #0d1124;
-        border: 1px solid #1e2640;
-        color: #e2e8f0;
+        background: #08282B;
+        border: 1px solid #174247;
+        color: #E2F1F3;
         border-radius: 0.65rem;
         padding: 0.65rem 1rem;
         font-size: 0.85rem;
@@ -227,7 +146,7 @@
         transition: border-color 0.15s;
       }
       .cg-dropdown-select:hover {
-        border-color: #3b82f6;
+        border-color: #27C5D8;
       }
       .cg-dropdown-select select {
         background: transparent;
@@ -260,9 +179,9 @@
       }
 
       .cg-btn-clear {
-        background: #0d1124;
-        border: 1px solid #1e2640;
-        color: #94a3b8;
+        background: #08282B;
+        border: 1px solid #174247;
+        color: #8AA4A7;
         border-radius: 0.65rem;
         padding: 0.65rem 1rem;
         font-size: 0.85rem;
@@ -274,44 +193,44 @@
         transition: all 0.15s ease;
       }
       .cg-btn-clear:hover {
-        background: #1e2640;
+        background: #0C3438;
         color: #ffffff;
-        border-color: #475569;
+        border-color: #27C5D8;
       }
 
       /* Main IaC Table Container */
       .cg-table-wrapper {
-        background: #0d1124;
-        border: 1px solid #1e2640;
+        background: #08282B;
+        border: 1px solid #174247;
         border-radius: 0.85rem;
         overflow: hidden;
-        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
       }
 
       .cg-table {
         width: 100%;
         border-collapse: collapse;
-        color: #e2e8f0;
+        color: #E2F1F3;
         font-size: 0.88rem;
       }
       .cg-table thead th {
-        background: #090d1c;
-        color: #94a3b8;
+        background: #051A1D;
+        color: #8AA4A7;
         font-size: 0.76rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         padding: 0.95rem 1.25rem;
-        border-bottom: 1px solid #1e2640;
+        border-bottom: 1px solid #174247;
         text-align: left;
         white-space: nowrap;
       }
       .cg-table tbody tr {
-        border-bottom: 1px solid rgba(30, 38, 64, 0.7);
+        border-bottom: 1px solid rgba(23, 66, 71, 0.5);
         transition: background-color 0.15s ease;
       }
       .cg-table tbody tr:hover {
-        background-color: rgba(30, 41, 74, 0.5);
+        background-color: #0C3438;
       }
       .cg-table tbody td {
         padding: 0.9rem 1.25rem;
@@ -320,7 +239,7 @@
 
       /* Row Number */
       .cg-td-num {
-        color: #64748b;
+        color: #8AA4A7;
         font-weight: 500;
         width: 45px;
         text-align: center;
@@ -336,7 +255,7 @@
         text-decoration: none;
       }
       .cg-scanner-cell:hover {
-        color: #c084fc;
+        color: #27C5D8;
       }
       .cg-scanner-icon {
         width: 28px;
@@ -369,9 +288,9 @@
         border: 1px solid rgba(217, 119, 6, 0.35);
       }
       .cg-cat-compliance {
-        background: rgba(59, 130, 246, 0.15);
-        color: #60a5fa;
-        border: 1px solid rgba(59, 130, 246, 0.35);
+        background: rgba(39, 197, 216, 0.15);
+        color: #27C5D8;
+        border: 1px solid rgba(39, 197, 216, 0.35);
       }
       .cg-cat-host {
         background: rgba(16, 185, 129, 0.15);
@@ -384,9 +303,9 @@
         border: 1px solid rgba(20, 184, 166, 0.35);
       }
       .cg-cat-monitoring {
-        background: rgba(37, 99, 235, 0.15);
-        color: #93c5fd;
-        border: 1px solid rgba(37, 99, 235, 0.35);
+        background: rgba(147, 51, 234, 0.15);
+        color: #c084fc;
+        border: 1px solid rgba(147, 51, 234, 0.35);
       }
       .cg-cat-perf {
         background: rgba(236, 72, 153, 0.15);
@@ -399,7 +318,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #94a3b8;
+        color: #8AA4A7;
         font-size: 0.82rem;
       }
 
@@ -432,29 +351,29 @@
         gap: 0.5rem;
       }
       .cg-action-icon {
-        color: #94a3b8;
+        color: #8AA4A7;
         font-size: 0.95rem;
         transition: color 0.15s, transform 0.15s;
         text-decoration: none;
         padding: 0.25rem;
       }
       .cg-action-icon:hover {
-        color: #c084fc;
+        color: #27C5D8;
         transform: scale(1.15);
       }
 
       /* Pagination Foot Bar */
       .cg-table-footer {
         padding: 0.9rem 1.25rem;
-        background: #090d1c;
-        border-top: 1px solid #1e2640;
+        background: #051A1D;
+        border-top: 1px solid #174247;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 1rem;
         font-size: 0.82rem;
-        color: #94a3b8;
+        color: #8AA4A7;
       }
       .cg-page-pills {
         display: flex;
@@ -468,16 +387,16 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #0d1124;
-        border: 1px solid #1e2640;
-        color: #94a3b8;
+        background: #08282B;
+        border: 1px solid #174247;
+        color: #8AA4A7;
         text-decoration: none;
         font-weight: 600;
         font-size: 0.8rem;
         transition: all 0.15s;
       }
       .cg-page-pill:hover {
-        border-color: #8b5cf6;
+        border-color: #27C5D8;
         color: #ffffff;
       }
       .cg-page-pill.active {
@@ -493,73 +412,12 @@
     {{ block.super }}
     <div class="cg-iac-page">
 
-        <!-- Breadcrumb Navigation -->
-        <div class="cg-breadcrumb">
-            <a href="{% url 'dashboard' %}">Home</a>
-            <span class="cg-breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-            <span>Infrastructure Security</span>
-            <span class="cg-breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-            <span style="color: #c084fc;">IaC</span>
-        </div>
-
-        <!-- Main Dashboard Header -->
-        <div class="cg-hero-section">
-            <div class="cg-hero-title-box">
-                <div class="cg-title-icon-badge">
-                    <i class="fa-solid fa-code"></i>
-                </div>
-                <div>
-                    <h1 class="cg-hero-heading">Infrastructure (IaC) Scans</h1>
-                    <p class="cg-hero-subtitle">
-                        Scan and analyze Infrastructure as Code (IaC) for security misconfigurations and policy violations.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Glowing Cloud Illustration -->
-            <div class="cg-cloud-illustration">
-                <div class="cg-cloud-glow"></div>
-                <svg width="190" height="75" viewBox="0 0 190 75" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Left Server Stack -->
-                    <rect x="15" y="28" width="26" height="7" rx="2" fill="#3B82F6" opacity="0.8"/>
-                    <rect x="15" y="38" width="26" height="7" rx="2" fill="#8B5CF6" opacity="0.8"/>
-                    <rect x="15" y="48" width="26" height="7" rx="2" fill="#6366F1" opacity="0.8"/>
-                    <circle cx="20" cy="31.5" r="1.5" fill="#60A5FA"/>
-                    <circle cx="20" cy="41.5" r="1.5" fill="#C084FC"/>
-                    <circle cx="20" cy="51.5" r="1.5" fill="#A5B4FC"/>
-
-                    <!-- Right Server Stack -->
-                    <rect x="148" y="28" width="26" height="7" rx="2" fill="#6366F1" opacity="0.8"/>
-                    <rect x="148" y="38" width="26" height="7" rx="2" fill="#8B5CF6" opacity="0.8"/>
-                    <rect x="148" y="48" width="26" height="7" rx="2" fill="#3B82F6" opacity="0.8"/>
-                    <circle cx="168" cy="31.5" r="1.5" fill="#A5B4FC"/>
-                    <circle cx="168" cy="41.5" r="1.5" fill="#C084FC"/>
-                    <circle cx="168" cy="51.5" r="1.5" fill="#60A5FA"/>
-
-                    <!-- Center Glowing Cloud Contour -->
-                    <path d="M68 52H122C128.627 52 134 46.6274 134 40C134 33.7844 129.284 28.6702 123.23 28.067C122.25 18.966 114.544 12 105 12C98.4109 12 92.6582 15.3409 89.3789 20.3957C87.4116 19.4975 85.2269 19 83 19C74.7157 19 68 25.7157 68 34C68 34.6836 68.0461 35.3564 68.1348 36.0152C63.5353 37.3323 60 41.5542 60 46.5C60 52.0228 64.4772 52 68 52Z" stroke="url(#paint_cloud_stroke)" stroke-width="2.5" fill="rgba(15, 23, 42, 0.45)"/>
-
-                    <!-- Glowing Code Bracket </> in Center -->
-                    <text x="96" y="38" font-family="'Inter', sans-serif" font-weight="800" font-size="14" fill="#E0E7FF" text-anchor="middle" letter-spacing="1">&lt;/&gt;</text>
-
-                    <!-- Gradients -->
-                    <defs>
-                        <linearGradient id="paint_cloud_stroke" x1="60" y1="12" x2="134" y2="52" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#60A5FA"/>
-                            <stop offset="0.5" stop-color="#C084FC"/>
-                            <stop offset="1" stop-color="#3B82F6"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-            </div>
-        </div>
-
-        <!-- 4 Summary KPI Cards with Sparklines (Exact match to reference) -->
+        <!-- 4 Summary KPI Cards (Teal/Cyan used instead of blue) -->
         <div class="cg-kpi-row">
             <!-- Card 1: Total Scans -->
             <div class="cg-card">
                 <div class="cg-card-left">
-                    <div class="cg-card-icon" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                    <div class="cg-card-icon" style="background: rgba(39, 197, 216, 0.15); border: 1px solid rgba(39, 197, 216, 0.4); color: #27C5D8;">
                         <i class="fa-regular fa-clipboard"></i>
                     </div>
                     <div class="cg-card-data">
@@ -567,13 +425,13 @@
                         <span class="cg-card-value">{{ tts.paginator.count|default:395 }}</span>
                     </div>
                 </div>
-                <!-- Sparkline Blue -->
+                <!-- Sparkline Cyan/Teal (No blue) -->
                 <svg class="cg-sparkline" viewBox="0 0 80 38" fill="none">
-                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8 L 78 36 L 2 36 Z" fill="url(#spark_blue)" opacity="0.25"/>
+                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8" stroke="#27C5D8" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8 L 78 36 L 2 36 Z" fill="url(#spark_cyan)" opacity="0.25"/>
                     <defs>
-                        <linearGradient id="spark_blue" x1="0" y1="0" x2="0" y2="1">
-                            <stop stop-color="#3B82F6"/>
+                        <linearGradient id="spark_cyan" x1="0" y1="0" x2="0" y2="1">
+                            <stop stop-color="#27C5D8"/>
                             <stop offset="1" stop-color="transparent"/>
                         </linearGradient>
                     </defs>
@@ -662,7 +520,7 @@
 
             <!-- Scanner Types Filter -->
             <div class="cg-dropdown-select">
-                <i class="fa-solid fa-filter" style="color: #8b5cf6;"></i>
+                <i class="fa-solid fa-filter" style="color: #27C5D8;"></i>
                 <select id="cg-cat-filter">
                     <option value="all">All Scanner Types</option>
                     <option value="cloud security">Cloud Security</option>
@@ -673,19 +531,19 @@
                     <option value="monitoring">Monitoring</option>
                     <option value="performance">Performance</option>
                 </select>
-                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #64748b;"></i>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #8AA4A7;"></i>
             </div>
 
-            <!-- Time Filter -->
+            <!-- Time Filter (Cyan icon, no blue) -->
             <div class="cg-dropdown-select">
-                <i class="fa-regular fa-calendar" style="color: #3b82f6;"></i>
+                <i class="fa-regular fa-calendar" style="color: #27C5D8;"></i>
                 <select id="cg-time-filter">
                     <option value="all">All Time</option>
                     <option value="today">Today</option>
                     <option value="7days">Last 7 Days</option>
                     <option value="30days">Last 30 Days</option>
                 </select>
-                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #64748b;"></i>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #8AA4A7;"></i>
             </div>
 
             <!-- Purple Refresh Button -->
@@ -706,10 +564,10 @@
                     <thead>
                         <tr>
                             <th class="cg-td-num">#</th>
-                            <th>{% dojo_sort request 'Infrastructure / IaC Scanner Type' 'name' 'asc' %} <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
+                            <th>{% dojo_sort request 'Infrastructure / IaC Scanner Type' 'name' 'asc' %} <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #8AA4A7;"></i></th>
                             <th>Category</th>
-                            <th>Last Run <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
-                            <th>Status <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
+                            <th>Last Run <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #8AA4A7;"></i></th>
+                            <th>Status <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #8AA4A7;"></i></th>
                             <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
@@ -727,11 +585,11 @@
                                         {% elif "2ms" in tt.name|lower %}
                                             <span class="cg-scanner-icon" style="color: #FBBF24;"><i class="fa-solid fa-bolt"></i></span>
                                         {% elif "42crunch" in tt.name|lower or "api" in tt.name|lower %}
-                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-solid fa-code"></i></span>
+                                            <span class="cg-scanner-icon" style="color: #27C5D8;"><i class="fa-solid fa-code"></i></span>
                                         {% elif "aide" in tt.name|lower or "host" in tt.name|lower %}
-                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-solid fa-shield-halved"></i></span>
+                                            <span class="cg-scanner-icon" style="color: #27C5D8;"><i class="fa-solid fa-shield-halved"></i></span>
                                         {% elif "apk" in tt.name|lower %}
-                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-brands fa-android"></i></span>
+                                            <span class="cg-scanner-icon" style="color: #27C5D8;"><i class="fa-brands fa-android"></i></span>
                                         {% elif "prowler" in tt.name|lower or "checkov" in tt.name|lower or "iac" in tt.name|lower %}
                                             <span class="cg-scanner-icon" style="color: #C084FC;"><i class="fa-solid fa-cubes"></i></span>
                                         {% else %}
@@ -762,7 +620,7 @@
                                     {% endif %}
                                 </td>
 
-                                <!-- Last Run Time (Realistic sequential timestamps) -->
+                                <!-- Last Run Time -->
                                 <td>
                                     <div class="cg-date-cell">
                                         <i class="fa-regular fa-calendar"></i>
@@ -815,7 +673,7 @@
                         {% if p <= 10 %}
                             <a href="?page={{ p }}" class="cg-page-pill {% if p == tts.number %}active{% endif %}">{{ p }}</a>
                         {% elif p == 11 %}
-                            <span style="color: #64748b; padding: 0 0.35rem;">...</span>
+                            <span style="color: #8AA4A7; padding: 0 0.35rem;">...</span>
                         {% elif p == tts.paginator.num_pages %}
                             <a href="?page={{ p }}" class="cg-page-pill {% if p == tts.number %}active{% endif %}">{{ p }}</a>
                         {% endif %}
