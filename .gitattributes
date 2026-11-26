@@ -1,8 +1,5 @@
-# Override language detection to mark frontend/website as JavaScript/vendored
-frontend/** linguist-language=JavaScript
-frontend/** linguist-detectable=true
-website/** linguist-language=JavaScript
-website/** linguist-detectable=true
-*.ts linguist-language=JavaScript
-*.tsx linguist-language=JavaScript
-
+# GitHub Linguist overrides
+*.ts linguist-detectable=false
+*.tsx linguist-detectable=false
+frontend/** linguist-vendored=true
+website/** linguist-vendored=true
