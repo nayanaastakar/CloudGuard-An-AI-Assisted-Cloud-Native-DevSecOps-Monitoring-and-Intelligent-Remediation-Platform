@@ -751,14 +751,11 @@
                                         {% elif '/reports' in request.path %}
                                             <li class="active"><a class="active" href="{% url 'report_builder' %}">Reports</a></li>
                                         {% elif 'view=ai_remediation' in request.META.QUERY_STRING %}
-                                            <li><a href="{% url 'support' %}?view=ai_remediation">AI Security</a></li>
                                             <li class="active"><a class="active" href="{% url 'support' %}?view=ai_remediation">AI Assistant</a></li>
                                         {% elif request.path == '/support' %}
-                                            <li><a href="{% url 'support' %}">Security Scans</a></li>
                                             <li class="active"><a class="active" href="{% url 'support' %}">Prowler</a></li>
-                                        {% elif '/metrics' in request.path %}
-                                            <li><a href="{% url 'metrics' %}">AI Security</a></li>
-                                            <li class="active"><a class="active" href="{% url 'metrics' %}">Remediation Audit</a></li>
+                                        {% elif '/metrics' in request.path or '/remediation/audit' in request.path %}
+                                            <li class="active"><a class="active" href="{% url 'remediation_audit' %}">Remediation Audit</a></li>
                                         {% elif request.session.dojo_breadcrumbs %}
                                             {% for crumb in request.session.dojo_breadcrumbs %}
                                                 {% if not forloop.first %}
