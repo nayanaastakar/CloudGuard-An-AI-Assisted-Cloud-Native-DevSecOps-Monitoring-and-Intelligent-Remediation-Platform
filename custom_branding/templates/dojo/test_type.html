@@ -721,7 +721,7 @@
 
                                 <!-- Scanner Type Name with icon -->
                                 <td>
-                                    <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-scanner-cell">
+                                    <a href="{% if 'prowler' in tt.name|lower %}{% url 'support' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-scanner-cell">
                                         {% if "aws" in tt.name|lower %}
                                             <span class="cg-scanner-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-size: 0.8rem; font-weight: 800;">aws</span>
                                         {% elif "2ms" in tt.name|lower %}
@@ -786,10 +786,10 @@
                                 <!-- Actions -->
                                 <td style="text-align: right;">
                                     <div class="cg-actions-cell">
-                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-action-icon" title="View Details">
+                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'support' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-action-icon" title="View Details">
                                             <i class="fa-regular fa-eye"></i>
                                         </a>
-                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% else %}#{% endif %}" class="cg-action-icon" title="Open Scan Engine">
+                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'support' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% else %}#{% endif %}" class="cg-action-icon" title="Open Scan Engine">
                                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                         </a>
                                     </div>
