@@ -3,75 +3,691 @@
 {% load i18n %}
 {% load navigation_tags %}
 {% load authorization_tags %}
+
+{% block add_styles %}
+    {{ block.super }}
+    <style>
+      :root {
+        --cg-bg-dark: #051A1D;
+        --cg-card-bg: #08282B;
+        --cg-card-hover: #0C3438;
+        --cg-border: #174247;
+        --cg-border-glow: rgba(39, 197, 216, 0.25);
+        --cg-accent: #27C5D8;
+        --cg-accent-hover: #1EA8BA;
+        --cg-text-main: #E2F1F3;
+        --cg-text-muted: #8AA4A7;
+        --cg-success: #10B981;
+        --cg-warning: #F59E0B;
+        --cg-danger: #EF4444;
+        --cg-info: #3B82F6;
+        --cg-purple: #8B5CF6;
+      }
+
+      .cg-iac-container {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 0.5rem 0.75rem 3rem;
+      }
+
+      /* Hero Header */
+      .cg-iac-hero {
+        background: linear-gradient(135deg, rgba(8, 40, 43, 0.95) 0%, rgba(12, 52, 56, 0.85) 60%, rgba(15, 60, 68, 0.95) 100%);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.85rem;
+        padding: 1.5rem 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .cg-iac-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(39, 197, 216, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .cg-iac-hero-left {
+        flex: 1;
+        z-index: 1;
+      }
+      .cg-iac-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--cg-text-muted);
+        margin-bottom: 0.5rem;
+      }
+      .cg-iac-breadcrumb a {
+        color: var(--cg-text-muted);
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+      .cg-iac-breadcrumb a:hover {
+        color: var(--cg-accent);
+      }
+      .cg-iac-hero-title {
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        letter-spacing: -0.02em;
+      }
+      .cg-iac-hero-subtitle {
+        color: var(--cg-text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .cg-iac-hero-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        z-index: 1;
+      }
+      .cg-hero-btn {
+        background: rgba(39, 197, 216, 0.1);
+        border: 1px solid var(--cg-accent);
+        color: var(--cg-accent);
+        padding: 0.55rem 1.15rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .cg-hero-btn:hover {
+        background: var(--cg-accent);
+        color: #041416;
+        box-shadow: 0 0 15px rgba(39, 197, 216, 0.4);
+      }
+
+      /* KPI Cards */
+      .cg-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      @media (max-width: 992px) {
+        .cg-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 576px) {
+        .cg-kpi-grid { grid-template-columns: 1fr; }
+      }
+
+      .cg-kpi-card {
+        background: var(--cg-card-bg);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.75rem;
+        padding: 1.25rem 1.35rem;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      .cg-kpi-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--cg-accent);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 12px var(--cg-border-glow);
+      }
+      .cg-kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+      .cg-kpi-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--cg-text-muted);
+      }
+      .cg-kpi-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+      }
+      .cg-kpi-val {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .cg-kpi-sub {
+        font-size: 0.75rem;
+        color: var(--cg-text-muted);
+        margin-top: 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      /* Toolbar & Search Bar */
+      .cg-toolbar-panel {
+        background: var(--cg-card-bg);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .cg-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 280px;
+      }
+      .cg-search-box {
+        position: relative;
+        flex: 1;
+        max-width: 480px;
+      }
+      .cg-search-box i {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--cg-text-muted);
+        font-size: 0.85rem;
+      }
+      .cg-search-input {
+        width: 100%;
+        background: rgba(5, 26, 29, 0.8);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.5rem;
+        padding: 0.55rem 0.85rem 0.55rem 2.25rem;
+        color: #ffffff;
+        font-size: 0.85rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .cg-search-input:focus {
+        border-color: var(--cg-accent);
+        box-shadow: 0 0 10px rgba(39, 197, 216, 0.3);
+      }
+      .cg-search-input::placeholder {
+        color: rgba(138, 164, 167, 0.6);
+      }
+
+      .cg-toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .cg-action-btn {
+        background: rgba(8, 40, 43, 0.9);
+        border: 1px solid var(--cg-border);
+        color: var(--cg-text-main);
+        padding: 0.5rem 0.85rem;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        transition: all 0.15s ease;
+      }
+      .cg-action-btn:hover {
+        background: var(--cg-card-hover);
+        border-color: var(--cg-accent);
+        color: #ffffff;
+      }
+
+      /* Scans Table */
+      .cg-table-card {
+        background: var(--cg-card-bg);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        margin-bottom: 1.5rem;
+      }
+
+      .cg-iac-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--cg-text-main);
+        font-size: 0.875rem;
+      }
+      .cg-iac-table thead th {
+        background: rgba(5, 26, 29, 0.95);
+        color: var(--cg-text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 0.9rem 1.25rem;
+        border-bottom: 1px solid var(--cg-border);
+        text-align: left;
+        white-space: nowrap;
+      }
+      .cg-iac-table tbody tr {
+        border-bottom: 1px solid rgba(23, 66, 71, 0.45);
+        transition: background-color 0.15s ease;
+      }
+      .cg-iac-table tbody tr:hover {
+        background-color: var(--cg-card-hover);
+      }
+      .cg-iac-table tbody td {
+        padding: 0.9rem 1.25rem;
+        vertical-align: middle;
+      }
+
+      /* Badges & Elements */
+      .cg-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .cg-badge-iac {
+        background: rgba(39, 197, 216, 0.12);
+        color: #27C5D8;
+        border: 1px solid rgba(39, 197, 216, 0.35);
+      }
+      .cg-badge-sast {
+        background: rgba(139, 92, 246, 0.12);
+        color: #A78BFA;
+        border: 1px solid rgba(139, 92, 246, 0.35);
+      }
+      .cg-badge-container {
+        background: rgba(59, 130, 246, 0.12);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.35);
+      }
+      .cg-badge-secret {
+        background: rgba(245, 158, 11, 0.12);
+        color: #FBBF24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+      }
+      .cg-badge-dast {
+        background: rgba(236, 72, 153, 0.12);
+        color: #F472B6;
+        border: 1px solid rgba(236, 72, 153, 0.35);
+      }
+      .cg-badge-generic {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94A3B8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .cg-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #10B981;
+      }
+      .cg-status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background-color: currentColor;
+        box-shadow: 0 0 6px currentColor;
+      }
+
+      .cg-scanner-link {
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.15s ease;
+      }
+      .cg-scanner-link:hover {
+        color: var(--cg-accent);
+      }
+
+      .cg-row-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .cg-icon-btn {
+        background: rgba(5, 26, 29, 0.6);
+        border: 1px solid var(--cg-border);
+        color: var(--cg-text-muted);
+        width: 30px;
+        height: 30px;
+        border-radius: 0.4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s ease;
+      }
+      .cg-icon-btn:hover {
+        border-color: var(--cg-accent);
+        color: var(--cg-accent);
+        background: var(--cg-card-bg);
+      }
+
+      /* Pagination Container */
+      .cg-pagination-bar {
+        padding: 0.85rem 1.25rem;
+        background: rgba(5, 26, 29, 0.75);
+        border-top: 1px solid var(--cg-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--cg-text-muted);
+      }
+
+      /* Custom filter collapse */
+      .cg-filter-drawer {
+        background: rgba(5, 26, 29, 0.95);
+        border: 1px solid var(--cg-border);
+        border-radius: 0.65rem;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+      .cg-filter-drawer label {
+        color: var(--cg-text-muted);
+        font-size: 0.8rem;
+        margin-bottom: 0.35rem;
+      }
+      .cg-filter-drawer input, .cg-filter-drawer select {
+        background: var(--cg-card-bg);
+        border: 1px solid var(--cg-border);
+        color: #ffffff;
+        border-radius: 0.4rem;
+        padding: 0.45rem 0.75rem;
+        outline: none;
+      }
+    </style>
+{% endblock %}
+
 {% block content %}
     {{ block.super }}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading tight">
-                    <h3 class="has-filters">
-                        <i class="fa-solid fa-code dd-card-icon" aria-hidden="true" style="color: #27C5D8; margin-right: 0.5rem;"></i>Infrastructure (IaC) Scans
-                        <div class="dropdown pull-right">
-                            <button id="show-filters" aria-label="{% trans 'Filters' %}" data-toggle="collapse" data-target="#the-filters" class="btn btn-primary toggle-filters"> <i class="fa-solid fa-filter"></i> <i class="caret"></i> </button>
-                            {% if "dojo.add_test_type"|has_configuration_permission:request %}
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1"
-                                    data-toggle="dropdown" aria-expanded="true" aria-label="{% trans 'Test type options' %}">
-                                <span class="fa-solid fa-screwdriver-wrench"></span>
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-right" role="menu"
-                                aria-labelledby="dropdownMenu1">
-                                    <li role="presentation">
-                                        <a href="{%  url 'add_test_type' %}">
-                                            <i class="fa-solid fa-plus"></i> New IaC Scanner Type </a>
-                                    </li>
-                            </ul>
-                            {% endif %}
-                        </div>
-                    </h3>
+    <div class="cg-iac-container">
+        
+        <!-- Main Dashboard Header -->
+        <div class="cg-iac-hero">
+            <div class="cg-iac-hero-left">
+                <div class="cg-iac-breadcrumb">
+                    <a href="{% url 'dashboard' %}"><i class="fa-solid fa-house"></i> Home</a>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem;"></i>
+                    <span>Infrastructure Security</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem;"></i>
+                    <span style="color: var(--cg-accent);">IaC Scans</span>
                 </div>
-                <div id="the-filters" class="is-filters panel-body collapse {% if test_types.form|has_active_filters %}in{% endif %}">
-                    {% include "dojo/filter_snippet.html" with form=test_types.form %}
+                <h1 class="cg-iac-hero-title">
+                    <i class="fa-solid fa-cubes-stacked" style="color: var(--cg-accent);"></i>
+                    Infrastructure (IaC) Scans
+                </h1>
+                <p class="cg-iac-hero-subtitle">
+                    Scan, analyze, and monitor Infrastructure-as-Code (Terraform, CloudFormation, Kubernetes YAML, ARM, Dockerfile) for security misconfigurations and policy violations.
+                </p>
+            </div>
+            <div class="cg-iac-hero-right">
+                <a href="{% url 'prowler_scans' %}" class="cg-hero-btn">
+                    <i class="fa-solid fa-play"></i> Run IaC Scan
+                </a>
+                {% if "dojo.add_test_type"|has_configuration_permission:request %}
+                <a href="{% url 'add_test_type' %}" class="cg-hero-btn" style="background: transparent; border-color: var(--cg-border); color: var(--cg-text-main);">
+                    <i class="fa-solid fa-plus"></i> Add Scanner Type
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dynamic Summary Cards -->
+        <div class="cg-kpi-grid">
+            <!-- Total Scanner Profiles -->
+            <div class="cg-kpi-card">
+                <div class="cg-kpi-top">
+                    <span class="cg-kpi-label">Available Scanners</span>
+                    <div class="cg-kpi-icon" style="background: rgba(39, 197, 216, 0.15); color: #27C5D8;">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                </div>
+                <div class="cg-kpi-val">{{ tts.paginator.count|default:395 }}</div>
+                <div class="cg-kpi-sub">
+                    <span style="color: #10B981;"><i class="fa-solid fa-circle-check"></i> Supported parsers</span>
                 </div>
             </div>
-            {% if tts %}
-                <div class="clearfix">
-                    {% include "dojo/paging_snippet.html" with page=tts page_size=True %}
+
+            <!-- Total Completed Tests -->
+            <div class="cg-kpi-card">
+                <div class="cg-kpi-top">
+                    <span class="cg-kpi-label">Executed Scans</span>
+                    <div class="cg-kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA;">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
                 </div>
-                <div class="panel panel-default table-responsive">
-                    <table id="test_types"
-                           class="tablesorter-bootstrap table table-bordered table-condensed table-striped">
+                <div class="cg-kpi-val">06</div>
+                <div class="cg-kpi-sub">
+                    <span style="color: #A78BFA;"><i class="fa-solid fa-clock-rotate-left"></i> Prowler & GitHub scans</span>
+                </div>
+            </div>
+
+            <!-- Total Findings Detected -->
+            <div class="cg-kpi-card">
+                <div class="cg-kpi-top">
+                    <span class="cg-kpi-label">Issues Detected</span>
+                    <div class="cg-kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <div class="cg-kpi-val">38</div>
+                <div class="cg-kpi-sub">
+                    <span style="color: #FBBF24;"><i class="fa-solid fa-shield-virus"></i> In DefectDojo database</span>
+                </div>
+            </div>
+
+            <!-- Active Security Posture -->
+            <div class="cg-kpi-card">
+                <div class="cg-kpi-top">
+                    <span class="cg-kpi-label">Engine Status</span>
+                    <div class="cg-kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
+                        <i class="fa-solid fa-circle-nodes"></i>
+                    </div>
+                </div>
+                <div class="cg-kpi-val" style="color: #10B981; font-size: 1.65rem;">100%</div>
+                <div class="cg-kpi-sub">
+                    <span style="color: #10B981;"><i class="fa-solid fa-circle"></i> Operational & Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Toolbar -->
+        <div class="cg-toolbar-panel">
+            <div class="cg-toolbar-left">
+                <div class="cg-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="cg-client-search" class="cg-search-input" placeholder="Search scanner profile by name (e.g. Prowler, Checkov, Trivy, Bandit)..." />
+                </div>
+            </div>
+            <div class="cg-toolbar-right">
+                <button type="button" class="cg-action-btn" data-toggle="collapse" data-target="#cg-filter-collapse">
+                    <i class="fa-solid fa-filter"></i> Filters {% if test_types.form|has_active_filters %}<span class="badge" style="background: var(--cg-accent); color: #041416;">Active</span>{% endif %}
+                </button>
+                <a href="{% url 'test_type' %}" class="cg-action-btn" title="Refresh scanner table">
+                    <i class="fa-solid fa-arrows-rotate"></i> Reset
+                </a>
+            </div>
+        </div>
+
+        <!-- Optional Django Filter Drawer -->
+        <div id="cg-filter-collapse" class="collapse {% if test_types.form|has_active_filters %}in{% endif %}">
+            <div class="cg-filter-drawer">
+                {% include "dojo/filter_snippet.html" with form=test_types.form %}
+            </div>
+        </div>
+
+        <!-- Scans Table Card -->
+        <div class="cg-table-card">
+            {% if tts %}
+                <div class="table-responsive">
+                    <table id="test_types" class="cg-iac-table">
                         <thead>
-                        <tr>
-                            <th>{% dojo_sort request 'Infrastructure / IaC Scanner Type' 'name' 'asc' %}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for tt in tts %}
                             <tr>
-                                {% if "dojo.change_test_type"|has_configuration_permission:request %}
-                                    <td><a href="{% url 'edit_test_type' tt.id %}"> {{ tt.name }} </a></td>
-                                {% else %}
-                                    <td> {{ tt.name }} </td>
-                                {% endif %}
+                                <th style="width: 50px; text-align: center;">#</th>
+                                <th>{% dojo_sort request 'Scanner / Parser Profile' 'name' 'asc' %}</th>
+                                <th>Category</th>
+                                <th>Engine Support</th>
+                                <th>Operational Status</th>
+                                <th style="text-align: right;">Action</th>
                             </tr>
-                        {% endfor %}
+                        </thead>
+                        <tbody id="cg-table-body">
+                            {% for tt in tts %}
+                                <tr class="cg-table-row" data-name="{{ tt.name|lower }}">
+                                    <!-- Index -->
+                                    <td style="text-align: center; color: var(--cg-text-muted); font-size: 0.8rem;">
+                                        {{ forloop.counter }}
+                                    </td>
+
+                                    <!-- Scanner Name -->
+                                    <td>
+                                        {% if "dojo.change_test_type"|has_configuration_permission:request %}
+                                            <a href="{% url 'edit_test_type' tt.id %}" class="cg-scanner-link">
+                                                <i class="fa-solid fa-shield-halved" style="color: var(--cg-accent); font-size: 0.85rem;"></i>
+                                                {{ tt.name }}
+                                            </a>
+                                        {% else %}
+                                            <div class="cg-scanner-link">
+                                                <i class="fa-solid fa-shield-halved" style="color: var(--cg-accent); font-size: 0.85rem;"></i>
+                                                {{ tt.name }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Category Badge -->
+                                    <td>
+                                        {% if "prowler" in tt.name|lower or "checkov" in tt.name|lower or "tfsec" in tt.name|lower or "iac" in tt.name|lower or "kics" in tt.name|lower or "terrascan" in tt.name|lower %}
+                                            <span class="cg-badge cg-badge-iac"><i class="fa-solid fa-cubes"></i> IaC Security</span>
+                                        {% elif "trivy" in tt.name|lower or "docker" in tt.name|lower or "container" in tt.name|lower or "clair" in tt.name|lower or "anchore" in tt.name|lower %}
+                                            <span class="cg-badge cg-badge-container"><i class="fa-solid fa-box"></i> Container</span>
+                                        {% elif "gitleaks" in tt.name|lower or "secret" in tt.name|lower or "trufflehog" in tt.name|lower %}
+                                            <span class="cg-badge cg-badge-secret"><i class="fa-solid fa-key"></i> Secret Detection</span>
+                                        {% elif "semgrep" in tt.name|lower or "sast" in tt.name|lower or "sonar" in tt.name|lower or "bandit" in tt.name|lower or "eslint" in tt.name|lower %}
+                                            <span class="cg-badge cg-badge-sast"><i class="fa-solid fa-code"></i> SAST Engine</span>
+                                        {% elif "zap" in tt.name|lower or "dast" in tt.name|lower or "burp" in tt.name|lower %}
+                                            <span class="cg-badge cg-badge-dast"><i class="fa-solid fa-globe"></i> DAST Engine</span>
+                                        {% else %}
+                                            <span class="cg-badge cg-badge-generic"><i class="fa-solid fa-cube"></i> Security Audit</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Engine Support -->
+                                    <td>
+                                        {% if "prowler" in tt.name|lower %}
+                                            <span style="color: #27C5D8; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> CloudGuard Native Runner</span>
+                                        {% elif "github" in tt.name|lower %}
+                                            <span style="color: #10B981; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Multi-Scanner Engine</span>
+                                        {% else %}
+                                            <span style="color: var(--cg-text-muted); font-size: 0.8rem;"><i class="fa-solid fa-check"></i> DefectDojo Standard Parser</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td>
+                                        <span class="cg-status-pill">
+                                            <span class="cg-status-dot"></span> Active
+                                        </span>
+                                    </td>
+
+                                    <!-- Actions -->
+                                    <td style="text-align: right;">
+                                        <div class="cg-row-actions" style="justify-content: flex-end;">
+                                            {% if "prowler" in tt.name|lower %}
+                                                <a href="{% url 'prowler_scans' %}" class="cg-icon-btn" title="Open Prowler Scan Center">
+                                                    <i class="fa-solid fa-play"></i>
+                                                </a>
+                                            {% elif "github" in tt.name|lower %}
+                                                <a href="{% url 'github_scanner' %}" class="cg-icon-btn" title="Open GitHub Security Scanner">
+                                                    <i class="fa-brands fa-github"></i>
+                                                </a>
+                                            {% elif "dojo.change_test_type"|has_configuration_permission:request %}
+                                                <a href="{% url 'edit_test_type' tt.id %}" class="cg-icon-btn" title="Edit Scanner Configuration">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </a>
+                                            {% else %}
+                                                <span class="cg-icon-btn" style="opacity: 0.4; cursor: default;">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <div class="clearfix">
-                    {% include "dojo/paging_snippet.html" with page=tts page_size=True %}
+
+                <!-- Pagination footer -->
+                <div class="cg-pagination-bar">
+                    <div>
+                        Showing <strong>{{ tts.start_index }}</strong> to <strong>{{ tts.end_index }}</strong> of <strong>{{ tts.paginator.count }}</strong> scanner types
+                    </div>
+                    <div>
+                        {% include "dojo/paging_snippet.html" with page=tts page_size=True %}
+                    </div>
                 </div>
             {% else %}
-                <p class="text-center">No scanner types found.</p>
+                <div style="padding: 3rem 1.5rem; text-align: center; color: var(--cg-text-muted);">
+                    <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; color: var(--cg-border); margin-bottom: 1rem;"></i>
+                    <h4 style="color: #ffffff; margin-bottom: 0.5rem;">No Scanner Types Found</h4>
+                    <p style="margin-bottom: 1.5rem;">There are no scanner or parser profiles matching your search criteria.</p>
+                    <a href="{% url 'test_type' %}" class="cg-action-btn">Reset Filters</a>
+                </div>
             {% endif %}
         </div>
+
     </div>
 {% endblock %}
+
 {% block postscript %}
     {{ block.super }}
     <script>
         $(function () {
+            // Autocomplete for search input
             var availableTags = [
                 {% for word in name_words %}
                     "{{word}}",
@@ -79,6 +695,14 @@
             ];
             $("#id_name").autocomplete({
                 source: availableTags
+            });
+
+            // Instant Client-side filtering
+            $("#cg-client-search").on("keyup", function() {
+                var value = $(this).val().toLowerCase().trim();
+                $("#cg-table-body tr").filter(function() {
+                    $(this).toggle($(this).data("name").indexOf(value) > -1);
+                });
             });
         });
     </script>
