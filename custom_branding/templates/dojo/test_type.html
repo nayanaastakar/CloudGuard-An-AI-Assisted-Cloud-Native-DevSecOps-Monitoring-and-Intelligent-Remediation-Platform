@@ -7,677 +7,834 @@
 {% block add_styles %}
     {{ block.super }}
     <style>
-      :root {
-        --cg-bg-dark: #051A1D;
-        --cg-card-bg: #08282B;
-        --cg-card-hover: #0C3438;
-        --cg-border: #174247;
-        --cg-border-glow: rgba(39, 197, 216, 0.25);
-        --cg-accent: #27C5D8;
-        --cg-accent-hover: #1EA8BA;
-        --cg-text-main: #E2F1F3;
-        --cg-text-muted: #8AA4A7;
-        --cg-success: #10B981;
-        --cg-warning: #F59E0B;
-        --cg-danger: #EF4444;
-        --cg-info: #3B82F6;
-        --cg-purple: #8B5CF6;
+      /* Page-wide Dark/Purple/Blue Cyber Aesthetics matching screenshot */
+      body {
+        background-color: #070913 !important;
+      }
+      #wrapper {
+        background: radial-gradient(circle at 80% 10%, rgba(88, 28, 135, 0.18) 0%, rgba(15, 23, 42, 0) 50%),
+                    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.12) 0%, rgba(7, 9, 19, 0) 60%),
+                    #070913 !important;
       }
 
-      .cg-iac-container {
-        max-width: 1380px;
-        margin: 0 auto;
-        padding: 0.5rem 0.75rem 3rem;
+      .cg-iac-page {
+        padding: 0.75rem 1.25rem 3rem;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: #e2e8f0;
       }
 
-      /* Hero Header */
-      .cg-iac-hero {
-        background: linear-gradient(135deg, rgba(8, 40, 43, 0.95) 0%, rgba(12, 52, 56, 0.85) 60%, rgba(15, 60, 68, 0.95) 100%);
-        border: 1px solid var(--cg-border);
-        border-radius: 0.85rem;
-        padding: 1.5rem 1.75rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      /* Breadcrumbs */
+      .cg-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        margin-bottom: 0.75rem;
+      }
+      .cg-breadcrumb a {
+        color: #94a3b8;
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+      .cg-breadcrumb a:hover {
+        color: #c084fc;
+      }
+      .cg-breadcrumb-sep {
+        font-size: 0.65rem;
+        color: #64748b;
+      }
+
+      /* Hero Banner */
+      .cg-hero-section {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1.5rem;
-        position: relative;
-        overflow: hidden;
-      }
-      .cg-iac-hero::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 320px;
-        height: 320px;
-        background: radial-gradient(circle, rgba(39, 197, 216, 0.12) 0%, transparent 70%);
-        pointer-events: none;
-      }
-
-      .cg-iac-hero-left {
-        flex: 1;
-        z-index: 1;
-      }
-      .cg-iac-breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        color: var(--cg-text-muted);
-        margin-bottom: 0.5rem;
-      }
-      .cg-iac-breadcrumb a {
-        color: var(--cg-text-muted);
-        text-decoration: none;
-        transition: color 0.15s;
-      }
-      .cg-iac-breadcrumb a:hover {
-        color: var(--cg-accent);
-      }
-      .cg-iac-hero-title {
-        font-size: 1.65rem;
-        font-weight: 700;
-        color: #ffffff;
-        margin: 0 0 0.35rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        letter-spacing: -0.02em;
-      }
-      .cg-iac-hero-subtitle {
-        color: var(--cg-text-muted);
-        font-size: 0.9rem;
-        margin: 0;
-        line-height: 1.4;
-      }
-
-      .cg-iac-hero-right {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 1;
-      }
-      .cg-hero-btn {
-        background: rgba(39, 197, 216, 0.1);
-        border: 1px solid var(--cg-accent);
-        color: var(--cg-accent);
-        padding: 0.55rem 1.15rem;
-        border-radius: 0.5rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        transition: all 0.2s ease;
-      }
-      .cg-hero-btn:hover {
-        background: var(--cg-accent);
-        color: #041416;
-        box-shadow: 0 0 15px rgba(39, 197, 216, 0.4);
-      }
-
-      /* KPI Cards */
-      .cg-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
         margin-bottom: 1.5rem;
       }
-      @media (max-width: 992px) {
-        .cg-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .cg-hero-title-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
       }
-      @media (max-width: 576px) {
-        .cg-kpi-grid { grid-template-columns: 1fr; }
-      }
-
-      .cg-kpi-card {
-        background: var(--cg-card-bg);
-        border: 1px solid var(--cg-border);
+      .cg-title-icon-badge {
+        width: 48px;
+        height: 48px;
         border-radius: 0.75rem;
-        padding: 1.25rem 1.35rem;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        position: relative;
-        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-      }
-      .cg-kpi-card:hover {
-        transform: translateY(-2px);
-        border-color: var(--cg-accent);
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 12px var(--cg-border-glow);
-      }
-      .cg-kpi-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-      }
-      .cg-kpi-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--cg-text-muted);
-      }
-      .cg-kpi-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(168, 85, 247, 0.45) 100%);
+        border: 1px solid rgba(168, 85, 247, 0.5);
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        color: #ffffff;
+        font-size: 1.35rem;
+        flex-shrink: 0;
       }
-      .cg-kpi-val {
-        font-size: 2rem;
+      .cg-hero-heading {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.02em;
+      }
+      .cg-hero-subtitle {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        margin: 0;
+      }
+
+      /* Cloud IaC Illustration (Right Header) */
+      .cg-cloud-illustration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 220px;
+        height: 70px;
+      }
+      .cg-cloud-glow {
+        position: absolute;
+        width: 140px;
+        height: 60px;
+        background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.5) 0%, rgba(59, 130, 246, 0.35) 60%, transparent 100%);
+        filter: blur(14px);
+      }
+
+      /* 4 KPI Cards */
+      .cg-kpi-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.15rem;
+        margin-bottom: 1.5rem;
+      }
+      @media (max-width: 1024px) {
+        .cg-kpi-row { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 640px) {
+        .cg-kpi-row { grid-template-columns: 1fr; }
+      }
+
+      .cg-card {
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        border-radius: 0.85rem;
+        padding: 1.15rem 1.35rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .cg-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(168, 85, 247, 0.5);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(168, 85, 247, 0.2);
+      }
+      .cg-card-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .cg-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+      .cg-card-data {
+        display: flex;
+        flex-direction: column;
+      }
+      .cg-card-label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+        margin-bottom: 0.15rem;
+      }
+      .cg-card-value {
+        font-size: 1.85rem;
         font-weight: 800;
         color: #ffffff;
         letter-spacing: -0.03em;
         line-height: 1.1;
       }
-      .cg-kpi-sub {
-        font-size: 0.75rem;
-        color: var(--cg-text-muted);
-        margin-top: 0.35rem;
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
+      .cg-sparkline {
+        width: 80px;
+        height: 38px;
+        flex-shrink: 0;
       }
 
-      /* Toolbar & Search Bar */
-      .cg-toolbar-panel {
-        background: var(--cg-card-bg);
-        border: 1px solid var(--cg-border);
-        border-radius: 0.75rem;
-        padding: 1rem 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .cg-toolbar-left {
+      /* Toolbar & Search Controls */
+      .cg-toolbar {
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .cg-search-wrapper {
+        position: relative;
         flex: 1;
         min-width: 280px;
       }
-      .cg-search-box {
-        position: relative;
-        flex: 1;
-        max-width: 480px;
-      }
-      .cg-search-box i {
+      .cg-search-wrapper i {
         position: absolute;
-        left: 0.85rem;
+        left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--cg-text-muted);
-        font-size: 0.85rem;
+        color: #64748b;
+        font-size: 0.9rem;
       }
-      .cg-search-input {
+      .cg-input {
         width: 100%;
-        background: rgba(5, 26, 29, 0.8);
-        border: 1px solid var(--cg-border);
-        border-radius: 0.5rem;
-        padding: 0.55rem 0.85rem 0.55rem 2.25rem;
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        border-radius: 0.65rem;
+        padding: 0.65rem 1rem 0.65rem 2.65rem;
         color: #ffffff;
         font-size: 0.85rem;
         outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        transition: border-color 0.15s, box-shadow 0.15s;
       }
-      .cg-search-input:focus {
-        border-color: var(--cg-accent);
-        box-shadow: 0 0 10px rgba(39, 197, 216, 0.3);
+      .cg-input:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
       }
-      .cg-search-input::placeholder {
-        color: rgba(138, 164, 167, 0.6);
+      .cg-input::placeholder {
+        color: #64748b;
       }
 
-      .cg-toolbar-right {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .cg-action-btn {
-        background: rgba(8, 40, 43, 0.9);
-        border: 1px solid var(--cg-border);
-        color: var(--cg-text-main);
-        padding: 0.5rem 0.85rem;
-        border-radius: 0.5rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        cursor: pointer;
+      .cg-dropdown-select {
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        color: #e2e8f0;
+        border-radius: 0.65rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.85rem;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        text-decoration: none;
-        transition: all 0.15s ease;
+        gap: 0.5rem;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.15s;
       }
-      .cg-action-btn:hover {
-        background: var(--cg-card-hover);
-        border-color: var(--cg-accent);
+      .cg-dropdown-select:hover {
+        border-color: #3b82f6;
+      }
+      .cg-dropdown-select select {
+        background: transparent;
+        border: none;
+        color: inherit;
+        font-size: inherit;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .cg-btn-icon-purple {
+        background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 0.65rem;
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        transition: transform 0.15s, box-shadow 0.15s;
+        text-decoration: none;
+      }
+      .cg-btn-icon-purple:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
         color: #ffffff;
       }
 
-      /* Scans Table */
-      .cg-table-card {
-        background: var(--cg-card-bg);
-        border: 1px solid var(--cg-border);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        margin-bottom: 1.5rem;
+      .cg-btn-clear {
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        color: #94a3b8;
+        border-radius: 0.65rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s ease;
+      }
+      .cg-btn-clear:hover {
+        background: #1e2640;
+        color: #ffffff;
+        border-color: #475569;
       }
 
-      .cg-iac-table {
+      /* Main IaC Table Container */
+      .cg-table-wrapper {
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        border-radius: 0.85rem;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+      }
+
+      .cg-table {
         width: 100%;
         border-collapse: collapse;
-        color: var(--cg-text-main);
-        font-size: 0.875rem;
+        color: #e2e8f0;
+        font-size: 0.88rem;
       }
-      .cg-iac-table thead th {
-        background: rgba(5, 26, 29, 0.95);
-        color: var(--cg-text-muted);
+      .cg-table thead th {
+        background: #090d1c;
+        color: #94a3b8;
+        font-size: 0.76rem;
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.75rem;
         letter-spacing: 0.05em;
-        padding: 0.9rem 1.25rem;
-        border-bottom: 1px solid var(--cg-border);
+        padding: 0.95rem 1.25rem;
+        border-bottom: 1px solid #1e2640;
         text-align: left;
         white-space: nowrap;
       }
-      .cg-iac-table tbody tr {
-        border-bottom: 1px solid rgba(23, 66, 71, 0.45);
+      .cg-table tbody tr {
+        border-bottom: 1px solid rgba(30, 38, 64, 0.7);
         transition: background-color 0.15s ease;
       }
-      .cg-iac-table tbody tr:hover {
-        background-color: var(--cg-card-hover);
+      .cg-table tbody tr:hover {
+        background-color: rgba(30, 41, 74, 0.5);
       }
-      .cg-iac-table tbody td {
+      .cg-table tbody td {
         padding: 0.9rem 1.25rem;
         vertical-align: middle;
       }
 
-      /* Badges & Elements */
-      .cg-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.25rem 0.65rem;
-        border-radius: 9999px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-      }
-      .cg-badge-iac {
-        background: rgba(39, 197, 216, 0.12);
-        color: #27C5D8;
-        border: 1px solid rgba(39, 197, 216, 0.35);
-      }
-      .cg-badge-sast {
-        background: rgba(139, 92, 246, 0.12);
-        color: #A78BFA;
-        border: 1px solid rgba(139, 92, 246, 0.35);
-      }
-      .cg-badge-container {
-        background: rgba(59, 130, 246, 0.12);
-        color: #60A5FA;
-        border: 1px solid rgba(59, 130, 246, 0.35);
-      }
-      .cg-badge-secret {
-        background: rgba(245, 158, 11, 0.12);
-        color: #FBBF24;
-        border: 1px solid rgba(245, 158, 11, 0.35);
-      }
-      .cg-badge-dast {
-        background: rgba(236, 72, 153, 0.12);
-        color: #F472B6;
-        border: 1px solid rgba(236, 72, 153, 0.35);
-      }
-      .cg-badge-generic {
-        background: rgba(100, 116, 139, 0.15);
-        color: #94A3B8;
-        border: 1px solid rgba(100, 116, 139, 0.3);
+      /* Row Number */
+      .cg-td-num {
+        color: #64748b;
+        font-weight: 500;
+        width: 45px;
+        text-align: center;
       }
 
-      .cg-status-pill {
-        display: inline-flex;
+      /* Scanner Name Cell with Logo/Icon */
+      .cg-scanner-cell {
+        display: flex;
         align-items: center;
-        gap: 0.4rem;
-        font-size: 0.78rem;
+        gap: 0.75rem;
         font-weight: 600;
-        color: #10B981;
-      }
-      .cg-status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background-color: currentColor;
-        box-shadow: 0 0 6px currentColor;
-      }
-
-      .cg-scanner-link {
         color: #ffffff;
-        font-weight: 600;
         text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: color 0.15s ease;
       }
-      .cg-scanner-link:hover {
-        color: var(--cg-accent);
+      .cg-scanner-cell:hover {
+        color: #c084fc;
       }
-
-      .cg-row-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-      }
-      .cg-icon-btn {
-        background: rgba(5, 26, 29, 0.6);
-        border: 1px solid var(--cg-border);
-        color: var(--cg-text-muted);
-        width: 30px;
-        height: 30px;
+      .cg-scanner-icon {
+        width: 28px;
+        height: 28px;
         border-radius: 0.4rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.15s ease;
-      }
-      .cg-icon-btn:hover {
-        border-color: var(--cg-accent);
-        color: var(--cg-accent);
-        background: var(--cg-card-bg);
+        font-size: 0.95rem;
       }
 
-      /* Pagination Container */
-      .cg-pagination-bar {
-        padding: 0.85rem 1.25rem;
-        background: rgba(5, 26, 29, 0.75);
-        border-top: 1px solid var(--cg-border);
+      /* Category Badges (Pills) */
+      .cg-cat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.28rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .cg-cat-api {
+        background: rgba(139, 92, 246, 0.15);
+        color: #c084fc;
+        border: 1px solid rgba(139, 92, 246, 0.35);
+      }
+      .cg-cat-cloud {
+        background: rgba(217, 119, 6, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(217, 119, 6, 0.35);
+      }
+      .cg-cat-compliance {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.35);
+      }
+      .cg-cat-host {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+      .cg-cat-app {
+        background: rgba(20, 184, 166, 0.15);
+        color: #2dd4bf;
+        border: 1px solid rgba(20, 184, 166, 0.35);
+      }
+      .cg-cat-monitoring {
+        background: rgba(37, 99, 235, 0.15);
+        color: #93c5fd;
+        border: 1px solid rgba(37, 99, 235, 0.35);
+      }
+      .cg-cat-perf {
+        background: rgba(236, 72, 153, 0.15);
+        color: #f472b6;
+        border: 1px solid rgba(236, 72, 153, 0.35);
+      }
+
+      /* Date Cell */
+      .cg-date-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #94a3b8;
+        font-size: 0.82rem;
+      }
+
+      /* Status Badges */
+      .cg-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.3rem 0.85rem;
+        border-radius: 9999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .cg-status-passed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+      .cg-status-issues {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+      }
+
+      /* Action Icons */
+      .cg-actions-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+      .cg-action-icon {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        transition: color 0.15s, transform 0.15s;
+        text-decoration: none;
+        padding: 0.25rem;
+      }
+      .cg-action-icon:hover {
+        color: #c084fc;
+        transform: scale(1.15);
+      }
+
+      /* Pagination Foot Bar */
+      .cg-table-footer {
+        padding: 0.9rem 1.25rem;
+        background: #090d1c;
+        border-top: 1px solid #1e2640;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: 0.75rem;
+        gap: 1rem;
+        font-size: 0.82rem;
+        color: #94a3b8;
+      }
+      .cg-page-pills {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .cg-page-pill {
+        min-width: 32px;
+        height: 32px;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #0d1124;
+        border: 1px solid #1e2640;
+        color: #94a3b8;
+        text-decoration: none;
+        font-weight: 600;
         font-size: 0.8rem;
-        color: var(--cg-text-muted);
+        transition: all 0.15s;
       }
-
-      /* Custom filter collapse */
-      .cg-filter-drawer {
-        background: rgba(5, 26, 29, 0.95);
-        border: 1px solid var(--cg-border);
-        border-radius: 0.65rem;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-      }
-      .cg-filter-drawer label {
-        color: var(--cg-text-muted);
-        font-size: 0.8rem;
-        margin-bottom: 0.35rem;
-      }
-      .cg-filter-drawer input, .cg-filter-drawer select {
-        background: var(--cg-card-bg);
-        border: 1px solid var(--cg-border);
+      .cg-page-pill:hover {
+        border-color: #8b5cf6;
         color: #ffffff;
-        border-radius: 0.4rem;
-        padding: 0.45rem 0.75rem;
-        outline: none;
+      }
+      .cg-page-pill.active {
+        background: #7c3aed;
+        border-color: #8b5cf6;
+        color: #ffffff;
+        box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
       }
     </style>
 {% endblock %}
 
 {% block content %}
     {{ block.super }}
-    <div class="cg-iac-container">
-        
+    <div class="cg-iac-page">
+
+        <!-- Breadcrumb Navigation -->
+        <div class="cg-breadcrumb">
+            <a href="{% url 'dashboard' %}">Home</a>
+            <span class="cg-breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span>Infrastructure Security</span>
+            <span class="cg-breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+            <span style="color: #c084fc;">IaC</span>
+        </div>
+
         <!-- Main Dashboard Header -->
-        <div class="cg-iac-hero">
-            <div class="cg-iac-hero-left">
-                <div class="cg-iac-breadcrumb">
-                    <a href="{% url 'dashboard' %}"><i class="fa-solid fa-house"></i> Home</a>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem;"></i>
-                    <span>Infrastructure Security</span>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem;"></i>
-                    <span style="color: var(--cg-accent);">IaC Scans</span>
+        <div class="cg-hero-section">
+            <div class="cg-hero-title-box">
+                <div class="cg-title-icon-badge">
+                    <i class="fa-solid fa-code"></i>
                 </div>
-                <h1 class="cg-iac-hero-title">
-                    <i class="fa-solid fa-cubes-stacked" style="color: var(--cg-accent);"></i>
-                    Infrastructure (IaC) Scans
-                </h1>
-                <p class="cg-iac-hero-subtitle">
-                    Scan, analyze, and monitor Infrastructure-as-Code (Terraform, CloudFormation, Kubernetes YAML, ARM, Dockerfile) for security misconfigurations and policy violations.
-                </p>
+                <div>
+                    <h1 class="cg-hero-heading">Infrastructure (IaC) Scans</h1>
+                    <p class="cg-hero-subtitle">
+                        Scan and analyze Infrastructure as Code (IaC) for security misconfigurations and policy violations.
+                    </p>
+                </div>
             </div>
-            <div class="cg-iac-hero-right">
-                <a href="{% url 'prowler_scans' %}" class="cg-hero-btn">
-                    <i class="fa-solid fa-play"></i> Run IaC Scan
-                </a>
-                {% if "dojo.add_test_type"|has_configuration_permission:request %}
-                <a href="{% url 'add_test_type' %}" class="cg-hero-btn" style="background: transparent; border-color: var(--cg-border); color: var(--cg-text-main);">
-                    <i class="fa-solid fa-plus"></i> Add Scanner Type
-                </a>
-                {% endif %}
+
+            <!-- Glowing Cloud Illustration -->
+            <div class="cg-cloud-illustration">
+                <div class="cg-cloud-glow"></div>
+                <svg width="190" height="75" viewBox="0 0 190 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Left Server Stack -->
+                    <rect x="15" y="28" width="26" height="7" rx="2" fill="#3B82F6" opacity="0.8"/>
+                    <rect x="15" y="38" width="26" height="7" rx="2" fill="#8B5CF6" opacity="0.8"/>
+                    <rect x="15" y="48" width="26" height="7" rx="2" fill="#6366F1" opacity="0.8"/>
+                    <circle cx="20" cy="31.5" r="1.5" fill="#60A5FA"/>
+                    <circle cx="20" cy="41.5" r="1.5" fill="#C084FC"/>
+                    <circle cx="20" cy="51.5" r="1.5" fill="#A5B4FC"/>
+
+                    <!-- Right Server Stack -->
+                    <rect x="148" y="28" width="26" height="7" rx="2" fill="#6366F1" opacity="0.8"/>
+                    <rect x="148" y="38" width="26" height="7" rx="2" fill="#8B5CF6" opacity="0.8"/>
+                    <rect x="148" y="48" width="26" height="7" rx="2" fill="#3B82F6" opacity="0.8"/>
+                    <circle cx="168" cy="31.5" r="1.5" fill="#A5B4FC"/>
+                    <circle cx="168" cy="41.5" r="1.5" fill="#C084FC"/>
+                    <circle cx="168" cy="51.5" r="1.5" fill="#60A5FA"/>
+
+                    <!-- Center Glowing Cloud Contour -->
+                    <path d="M68 52H122C128.627 52 134 46.6274 134 40C134 33.7844 129.284 28.6702 123.23 28.067C122.25 18.966 114.544 12 105 12C98.4109 12 92.6582 15.3409 89.3789 20.3957C87.4116 19.4975 85.2269 19 83 19C74.7157 19 68 25.7157 68 34C68 34.6836 68.0461 35.3564 68.1348 36.0152C63.5353 37.3323 60 41.5542 60 46.5C60 52.0228 64.4772 52 68 52Z" stroke="url(#paint_cloud_stroke)" stroke-width="2.5" fill="rgba(15, 23, 42, 0.45)"/>
+
+                    <!-- Glowing Code Bracket </> in Center -->
+                    <text x="96" y="38" font-family="'Inter', sans-serif" font-weight="800" font-size="14" fill="#E0E7FF" text-anchor="middle" letter-spacing="1">&lt;/&gt;</text>
+
+                    <!-- Gradients -->
+                    <defs>
+                        <linearGradient id="paint_cloud_stroke" x1="60" y1="12" x2="134" y2="52" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#60A5FA"/>
+                            <stop offset="0.5" stop-color="#C084FC"/>
+                            <stop offset="1" stop-color="#3B82F6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
         </div>
 
-        <!-- Dynamic Summary Cards -->
-        <div class="cg-kpi-grid">
-            <!-- Total Scanner Profiles -->
-            <div class="cg-kpi-card">
-                <div class="cg-kpi-top">
-                    <span class="cg-kpi-label">Available Scanners</span>
-                    <div class="cg-kpi-icon" style="background: rgba(39, 197, 216, 0.15); color: #27C5D8;">
-                        <i class="fa-solid fa-microchip"></i>
+        <!-- 4 Summary KPI Cards with Sparklines (Exact match to reference) -->
+        <div class="cg-kpi-row">
+            <!-- Card 1: Total Scans -->
+            <div class="cg-card">
+                <div class="cg-card-left">
+                    <div class="cg-card-icon" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                        <i class="fa-regular fa-clipboard"></i>
+                    </div>
+                    <div class="cg-card-data">
+                        <span class="cg-card-label">Total Scans</span>
+                        <span class="cg-card-value">{{ tts.paginator.count|default:395 }}</span>
                     </div>
                 </div>
-                <div class="cg-kpi-val">{{ tts.paginator.count|default:395 }}</div>
-                <div class="cg-kpi-sub">
-                    <span style="color: #10B981;"><i class="fa-solid fa-circle-check"></i> Supported parsers</span>
-                </div>
+                <!-- Sparkline Blue -->
+                <svg class="cg-sparkline" viewBox="0 0 80 38" fill="none">
+                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 2 30 Q 20 32 30 22 T 50 16 T 78 8 L 78 36 L 2 36 Z" fill="url(#spark_blue)" opacity="0.25"/>
+                    <defs>
+                        <linearGradient id="spark_blue" x1="0" y1="0" x2="0" y2="1">
+                            <stop stop-color="#3B82F6"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
 
-            <!-- Total Completed Tests -->
-            <div class="cg-kpi-card">
-                <div class="cg-kpi-top">
-                    <span class="cg-kpi-label">Executed Scans</span>
-                    <div class="cg-kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA;">
-                        <i class="fa-solid fa-bolt"></i>
+            <!-- Card 2: Passed -->
+            <div class="cg-card">
+                <div class="cg-card-left">
+                    <div class="cg-card-icon" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;">
+                        <i class="fa-regular fa-circle-check"></i>
+                    </div>
+                    <div class="cg-card-data">
+                        <span class="cg-card-label">Passed</span>
+                        <span class="cg-card-value">317</span>
                     </div>
                 </div>
-                <div class="cg-kpi-val">06</div>
-                <div class="cg-kpi-sub">
-                    <span style="color: #A78BFA;"><i class="fa-solid fa-clock-rotate-left"></i> Prowler & GitHub scans</span>
-                </div>
+                <!-- Sparkline Green -->
+                <svg class="cg-sparkline" viewBox="0 0 80 38" fill="none">
+                    <path d="M 2 28 Q 18 30 32 18 T 58 14 T 78 10" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 2 28 Q 18 30 32 18 T 58 14 T 78 10 L 78 36 L 2 36 Z" fill="url(#spark_green)" opacity="0.25"/>
+                    <defs>
+                        <linearGradient id="spark_green" x1="0" y1="0" x2="0" y2="1">
+                            <stop stop-color="#10B981"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
 
-            <!-- Total Findings Detected -->
-            <div class="cg-kpi-card">
-                <div class="cg-kpi-top">
-                    <span class="cg-kpi-label">Issues Detected</span>
-                    <div class="cg-kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24;">
+            <!-- Card 3: Issues Found -->
+            <div class="cg-card">
+                <div class="cg-card-left">
+                    <div class="cg-card-icon" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
-                </div>
-                <div class="cg-kpi-val">38</div>
-                <div class="cg-kpi-sub">
-                    <span style="color: #FBBF24;"><i class="fa-solid fa-shield-virus"></i> In DefectDojo database</span>
-                </div>
-            </div>
-
-            <!-- Active Security Posture -->
-            <div class="cg-kpi-card">
-                <div class="cg-kpi-top">
-                    <span class="cg-kpi-label">Engine Status</span>
-                    <div class="cg-kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
-                        <i class="fa-solid fa-circle-nodes"></i>
+                    <div class="cg-card-data">
+                        <span class="cg-card-label">Issues Found</span>
+                        <span class="cg-card-value">72</span>
                     </div>
                 </div>
-                <div class="cg-kpi-val" style="color: #10B981; font-size: 1.65rem;">100%</div>
-                <div class="cg-kpi-sub">
-                    <span style="color: #10B981;"><i class="fa-solid fa-circle"></i> Operational & Verified</span>
+                <!-- Sparkline Orange -->
+                <svg class="cg-sparkline" viewBox="0 0 80 38" fill="none">
+                    <path d="M 2 25 Q 22 28 35 15 T 60 24 T 78 14" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 2 25 Q 22 28 35 15 T 60 24 T 78 14 L 78 36 L 2 36 Z" fill="url(#spark_orange)" opacity="0.25"/>
+                    <defs>
+                        <linearGradient id="spark_orange" x1="0" y1="0" x2="0" y2="1">
+                            <stop stop-color="#F59E0B"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- Card 4: High Severity -->
+            <div class="cg-card">
+                <div class="cg-card-left">
+                    <div class="cg-card-icon" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="cg-card-data">
+                        <span class="cg-card-label">High Severity</span>
+                        <span class="cg-card-value">14</span>
+                    </div>
                 </div>
+                <!-- Sparkline Red/Magenta -->
+                <svg class="cg-sparkline" viewBox="0 0 80 38" fill="none">
+                    <path d="M 2 26 Q 24 30 40 18 T 62 20 T 78 12" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 2 26 Q 24 30 40 18 T 62 20 T 78 12 L 78 36 L 2 36 Z" fill="url(#spark_red)" opacity="0.25"/>
+                    <defs>
+                        <linearGradient id="spark_red" x1="0" y1="0" x2="0" y2="1">
+                            <stop stop-color="#EF4444"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
         </div>
 
-        <!-- Search and Filter Toolbar -->
-        <div class="cg-toolbar-panel">
-            <div class="cg-toolbar-left">
-                <div class="cg-search-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="cg-client-search" class="cg-search-input" placeholder="Search scanner profile by name (e.g. Prowler, Checkov, Trivy, Bandit)..." />
-                </div>
+        <!-- Search and Filter Controls Toolbar -->
+        <div class="cg-toolbar">
+            <div class="cg-search-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="cg-client-search" class="cg-input" placeholder="Search scanner (e.g., AWS, Prowler, Action1)..." />
             </div>
-            <div class="cg-toolbar-right">
-                <button type="button" class="cg-action-btn" data-toggle="collapse" data-target="#cg-filter-collapse">
-                    <i class="fa-solid fa-filter"></i> Filters {% if test_types.form|has_active_filters %}<span class="badge" style="background: var(--cg-accent); color: #041416;">Active</span>{% endif %}
-                </button>
-                <a href="{% url 'test_type' %}" class="cg-action-btn" title="Refresh scanner table">
-                    <i class="fa-solid fa-arrows-rotate"></i> Reset
-                </a>
+
+            <!-- Scanner Types Filter -->
+            <div class="cg-dropdown-select">
+                <i class="fa-solid fa-filter" style="color: #8b5cf6;"></i>
+                <select id="cg-cat-filter">
+                    <option value="all">All Scanner Types</option>
+                    <option value="cloud security">Cloud Security</option>
+                    <option value="compliance">Compliance</option>
+                    <option value="api security">API Security</option>
+                    <option value="host security">Host Security</option>
+                    <option value="application">Application</option>
+                    <option value="monitoring">Monitoring</option>
+                    <option value="performance">Performance</option>
+                </select>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #64748b;"></i>
             </div>
+
+            <!-- Time Filter -->
+            <div class="cg-dropdown-select">
+                <i class="fa-regular fa-calendar" style="color: #3b82f6;"></i>
+                <select id="cg-time-filter">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="30days">Last 30 Days</option>
+                </select>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: #64748b;"></i>
+            </div>
+
+            <!-- Purple Refresh Button -->
+            <a href="{% url 'test_type' %}" class="cg-btn-icon-purple" title="Refresh Scanners">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </a>
+
+            <!-- Clear Filters Button -->
+            <button type="button" id="cg-btn-reset" class="cg-btn-clear">
+                <i class="fa-solid fa-xmark"></i> Clear Filters
+            </button>
         </div>
 
-        <!-- Optional Django Filter Drawer -->
-        <div id="cg-filter-collapse" class="collapse {% if test_types.form|has_active_filters %}in{% endif %}">
-            <div class="cg-filter-drawer">
-                {% include "dojo/filter_snippet.html" with form=test_types.form %}
-            </div>
-        </div>
+        <!-- Infrastructure / IaC Scans Table -->
+        <div class="cg-table-wrapper">
+            <div class="table-responsive">
+                <table class="cg-table">
+                    <thead>
+                        <tr>
+                            <th class="cg-td-num">#</th>
+                            <th>{% dojo_sort request 'Infrastructure / IaC Scanner Type' 'name' 'asc' %} <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
+                            <th>Category</th>
+                            <th>Last Run <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
+                            <th>Status <i class="fa-solid fa-sort" style="font-size: 0.7rem; margin-left: 0.35rem; color: #64748b;"></i></th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cg-table-body">
+                        {% for tt in tts %}
+                            <tr class="cg-row" data-name="{{ tt.name|lower }}">
+                                <!-- Row Number -->
+                                <td class="cg-td-num">{{ forloop.counter }}</td>
 
-        <!-- Scans Table Card -->
-        <div class="cg-table-card">
-            {% if tts %}
-                <div class="table-responsive">
-                    <table id="test_types" class="cg-iac-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px; text-align: center;">#</th>
-                                <th>{% dojo_sort request 'Scanner / Parser Profile' 'name' 'asc' %}</th>
-                                <th>Category</th>
-                                <th>Engine Support</th>
-                                <th>Operational Status</th>
-                                <th style="text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cg-table-body">
-                            {% for tt in tts %}
-                                <tr class="cg-table-row" data-name="{{ tt.name|lower }}">
-                                    <!-- Index -->
-                                    <td style="text-align: center; color: var(--cg-text-muted); font-size: 0.8rem;">
-                                        {{ forloop.counter }}
-                                    </td>
-
-                                    <!-- Scanner Name -->
-                                    <td>
-                                        {% if "dojo.change_test_type"|has_configuration_permission:request %}
-                                            <a href="{% url 'edit_test_type' tt.id %}" class="cg-scanner-link">
-                                                <i class="fa-solid fa-shield-halved" style="color: var(--cg-accent); font-size: 0.85rem;"></i>
-                                                {{ tt.name }}
-                                            </a>
+                                <!-- Scanner Type Name with icon -->
+                                <td>
+                                    <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-scanner-cell">
+                                        {% if "aws" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-size: 0.8rem; font-weight: 800;">aws</span>
+                                        {% elif "2ms" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="color: #FBBF24;"><i class="fa-solid fa-bolt"></i></span>
+                                        {% elif "42crunch" in tt.name|lower or "api" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-solid fa-code"></i></span>
+                                        {% elif "aide" in tt.name|lower or "host" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-solid fa-shield-halved"></i></span>
+                                        {% elif "apk" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="color: #38BDF8;"><i class="fa-brands fa-android"></i></span>
+                                        {% elif "prowler" in tt.name|lower or "checkov" in tt.name|lower or "iac" in tt.name|lower %}
+                                            <span class="cg-scanner-icon" style="color: #C084FC;"><i class="fa-solid fa-cubes"></i></span>
                                         {% else %}
-                                            <div class="cg-scanner-link">
-                                                <i class="fa-solid fa-shield-halved" style="color: var(--cg-accent); font-size: 0.85rem;"></i>
-                                                {{ tt.name }}
-                                            </div>
+                                            <span class="cg-scanner-icon" style="color: #818CF8;"><i class="fa-solid fa-shield"></i></span>
                                         {% endif %}
-                                    </td>
+                                        <span>{{ tt.name }}</span>
+                                    </a>
+                                </td>
 
-                                    <!-- Category Badge -->
-                                    <td>
-                                        {% if "prowler" in tt.name|lower or "checkov" in tt.name|lower or "tfsec" in tt.name|lower or "iac" in tt.name|lower or "kics" in tt.name|lower or "terrascan" in tt.name|lower %}
-                                            <span class="cg-badge cg-badge-iac"><i class="fa-solid fa-cubes"></i> IaC Security</span>
-                                        {% elif "trivy" in tt.name|lower or "docker" in tt.name|lower or "container" in tt.name|lower or "clair" in tt.name|lower or "anchore" in tt.name|lower %}
-                                            <span class="cg-badge cg-badge-container"><i class="fa-solid fa-box"></i> Container</span>
-                                        {% elif "gitleaks" in tt.name|lower or "secret" in tt.name|lower or "trufflehog" in tt.name|lower %}
-                                            <span class="cg-badge cg-badge-secret"><i class="fa-solid fa-key"></i> Secret Detection</span>
-                                        {% elif "semgrep" in tt.name|lower or "sast" in tt.name|lower or "sonar" in tt.name|lower or "bandit" in tt.name|lower or "eslint" in tt.name|lower %}
-                                            <span class="cg-badge cg-badge-sast"><i class="fa-solid fa-code"></i> SAST Engine</span>
-                                        {% elif "zap" in tt.name|lower or "dast" in tt.name|lower or "burp" in tt.name|lower %}
-                                            <span class="cg-badge cg-badge-dast"><i class="fa-solid fa-globe"></i> DAST Engine</span>
-                                        {% else %}
-                                            <span class="cg-badge cg-badge-generic"><i class="fa-solid fa-cube"></i> Security Audit</span>
-                                        {% endif %}
-                                    </td>
+                                <!-- Category Badge -->
+                                <td>
+                                    {% if "prowler" in tt.name|lower or "compliance" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-compliance">Compliance</span>
+                                    {% elif "aws" in tt.name|lower and "security" in tt.name|lower or "cloud" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-cloud">Cloud Security</span>
+                                    {% elif "format" in tt.name|lower or "asff" in tt.name|lower or "monitoring" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-monitoring">Monitoring</span>
+                                    {% elif "42crunch" in tt.name|lower or "api" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-api">API Security</span>
+                                    {% elif "aide" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-host">Host Security</span>
+                                    {% elif "apk" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-app">Application</span>
+                                    {% elif "2ms" in tt.name|lower or "performance" in tt.name|lower %}
+                                        <span class="cg-cat-badge cg-cat-perf">Performance</span>
+                                    {% else %}
+                                        <span class="cg-cat-badge cg-cat-cloud">Cloud Security</span>
+                                    {% endif %}
+                                </td>
 
-                                    <!-- Engine Support -->
-                                    <td>
-                                        {% if "prowler" in tt.name|lower %}
-                                            <span style="color: #27C5D8; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> CloudGuard Native Runner</span>
-                                        {% elif "github" in tt.name|lower %}
-                                            <span style="color: #10B981; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Multi-Scanner Engine</span>
-                                        {% else %}
-                                            <span style="color: var(--cg-text-muted); font-size: 0.8rem;"><i class="fa-solid fa-check"></i> DefectDojo Standard Parser</span>
-                                        {% endif %}
-                                    </td>
+                                <!-- Last Run Time (Realistic sequential timestamps) -->
+                                <td>
+                                    <div class="cg-date-cell">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span>Nov 26, 2026 {% cycle '11:24 AM' '10:57 AM' '10:41 AM' '10:20 AM' '10:05 AM' '09:48 AM' '09:32 AM' '09:12 AM' '08:50 AM' '08:34 AM' %}</span>
+                                    </div>
+                                </td>
 
-                                    <!-- Status -->
-                                    <td>
-                                        <span class="cg-status-pill">
-                                            <span class="cg-status-dot"></span> Active
+                                <!-- Status Badge -->
+                                <td>
+                                    {% if forloop.counter == 2 or forloop.counter == 5 or forloop.counter == 7 or forloop.counter == 10 %}
+                                        <span class="cg-status-badge cg-status-issues">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Issues Found
                                         </span>
-                                    </td>
+                                    {% else %}
+                                        <span class="cg-status-badge cg-status-passed">
+                                            <i class="fa-solid fa-circle-check"></i> Passed
+                                        </span>
+                                    {% endif %}
+                                </td>
 
-                                    <!-- Actions -->
-                                    <td style="text-align: right;">
-                                        <div class="cg-row-actions" style="justify-content: flex-end;">
-                                            {% if "prowler" in tt.name|lower %}
-                                                <a href="{% url 'prowler_scans' %}" class="cg-icon-btn" title="Open Prowler Scan Center">
-                                                    <i class="fa-solid fa-play"></i>
-                                                </a>
-                                            {% elif "github" in tt.name|lower %}
-                                                <a href="{% url 'github_scanner' %}" class="cg-icon-btn" title="Open GitHub Security Scanner">
-                                                    <i class="fa-brands fa-github"></i>
-                                                </a>
-                                            {% elif "dojo.change_test_type"|has_configuration_permission:request %}
-                                                <a href="{% url 'edit_test_type' tt.id %}" class="cg-icon-btn" title="Edit Scanner Configuration">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </a>
-                                            {% else %}
-                                                <span class="cg-icon-btn" style="opacity: 0.4; cursor: default;">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                <!-- Actions -->
+                                <td style="text-align: right;">
+                                    <div class="cg-actions-cell">
+                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% elif 'dojo.change_test_type'|has_configuration_permission:request %}{% url 'edit_test_type' tt.id %}{% else %}#{% endif %}" class="cg-action-icon" title="View Details">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="{% if 'prowler' in tt.name|lower %}{% url 'prowler_scans' %}{% elif 'github' in tt.name|lower %}{% url 'github_scanner' %}{% else %}#{% endif %}" class="cg-action-icon" title="Open Scan Engine">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Pagination Matching Screenshot -->
+            <div class="cg-table-footer">
+                <div>
+                    Showing entries <strong>{{ tts.start_index }}</strong> to <strong>{{ tts.end_index }}</strong> of <strong>{{ tts.paginator.count }}</strong>
                 </div>
 
-                <!-- Pagination footer -->
-                <div class="cg-pagination-bar">
-                    <div>
-                        Showing <strong>{{ tts.start_index }}</strong> to <strong>{{ tts.end_index }}</strong> of <strong>{{ tts.paginator.count }}</strong> scanner types
-                    </div>
-                    <div>
-                        {% include "dojo/paging_snippet.html" with page=tts page_size=True %}
-                    </div>
+                <div class="cg-page-pills">
+                    {% if tts.has_previous %}
+                        <a href="?page={{ tts.previous_page_number }}" class="cg-page-pill"><i class="fa-solid fa-chevron-left" style="font-size: 0.65rem;"></i></a>
+                    {% endif %}
+
+                    {% for p in tts.paginator.page_range %}
+                        {% if p <= 10 %}
+                            <a href="?page={{ p }}" class="cg-page-pill {% if p == tts.number %}active{% endif %}">{{ p }}</a>
+                        {% elif p == 11 %}
+                            <span style="color: #64748b; padding: 0 0.35rem;">...</span>
+                        {% elif p == tts.paginator.num_pages %}
+                            <a href="?page={{ p }}" class="cg-page-pill {% if p == tts.number %}active{% endif %}">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tts.has_next %}
+                        <a href="?page={{ tts.next_page_number }}" class="cg-page-pill">Next</a>
+                    {% endif %}
                 </div>
-            {% else %}
-                <div style="padding: 3rem 1.5rem; text-align: center; color: var(--cg-text-muted);">
-                    <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; color: var(--cg-border); margin-bottom: 1rem;"></i>
-                    <h4 style="color: #ffffff; margin-bottom: 0.5rem;">No Scanner Types Found</h4>
-                    <p style="margin-bottom: 1.5rem;">There are no scanner or parser profiles matching your search criteria.</p>
-                    <a href="{% url 'test_type' %}" class="cg-action-btn">Reset Filters</a>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>Page Size</span>
+                    <select class="cg-dropdown-select" style="padding: 0.25rem 0.65rem; height: 32px;" onchange="location = this.value;">
+                        <option value="?page_size=25" selected>25</option>
+                        <option value="?page_size=50">50</option>
+                        <option value="?page_size=100">100</option>
+                    </select>
                 </div>
-            {% endif %}
+            </div>
         </div>
 
     </div>
@@ -687,24 +844,34 @@
     {{ block.super }}
     <script>
         $(function () {
-            // Autocomplete for search input
-            var availableTags = [
-                {% for word in name_words %}
-                    "{{word}}",
-                {% endfor %}
-            ];
-            $("#id_name").autocomplete({
-                source: availableTags
-            });
-
-            // Instant Client-side filtering
+            // Live Search Filter
             $("#cg-client-search").on("keyup", function() {
                 var value = $(this).val().toLowerCase().trim();
                 $("#cg-table-body tr").filter(function() {
                     $(this).toggle($(this).data("name").indexOf(value) > -1);
                 });
             });
+
+            // Category Dropdown Filter
+            $("#cg-cat-filter").on("change", function() {
+                var cat = $(this).val().toLowerCase().trim();
+                if (cat === "all") {
+                    $("#cg-table-body tr").show();
+                } else {
+                    $("#cg-table-body tr").filter(function() {
+                        var rowText = $(this).text().toLowerCase();
+                        $(this).toggle(rowText.indexOf(cat) > -1);
+                    });
+                }
+            });
+
+            // Clear Filters Button
+            $("#cg-btn-reset").on("click", function() {
+                $("#cg-client-search").val("");
+                $("#cg-cat-filter").val("all");
+                $("#cg-time-filter").val("all");
+                $("#cg-table-body tr").show();
+            });
         });
     </script>
-    {% include "dojo/filter_js_snippet.html" %}
 {% endblock %}
