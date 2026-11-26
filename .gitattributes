@@ -1,5 +1,6 @@
-# GitHub Linguist overrides
 *.ts linguist-detectable=false
 *.tsx linguist-detectable=false
+*.ts linguist-documentation=true
+*.tsx linguist-documentation=true
 frontend/** linguist-vendored=true
 website/** linguist-vendored=true
